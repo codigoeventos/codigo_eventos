@@ -132,40 +132,28 @@ class ClientUpdateView(LoginRequiredMixin, AuditMixin, SuccessMessageMixin, Upda
         return context
 
 
-class ClientDeleteView(LoginRequiredMixin, SuccessMessageMixin, DeleteView):
-    """Delete a client (soft delete)."""
+class ClientDeleteView(LoginRequiredMixin, DeleteView):
+    """Delete a client (soft delete) - via AJAX only."""
     
     model = Client
-    template_name = 'clients/client_confirm_delete.html'
     # permission_required = 'clients.delete_client'  # Commented out for now
     success_url = reverse_lazy('clients:list')
     success_message = "Cliente excluído com sucesso!"
     
-    def delete(self, request, *args, **kwargs):
-        """Handle delete request - supports both AJAX and regular POST."""
+    def post(self, request, *args, **kwargs):
+        """Handle POST delete request - AJAX only."""
         self.object = self.get_object()
-        success_url = self.get_success_url()
         
         # Perform soft delete
         self.object.delete()
         
-        # If AJAX request, return JSON
-        if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.content_type == 'application/json':
-            return JsonResponse({
-                'success': True,
-                'message': self.success_message
-            })
-        
-        # Regular request - redirect with message
-        messages.success(self.request, self.success_message)
-        return HttpResponseRedirect(success_url)
+        # Return JSON response
+        return JsonResponse({
+            'success': True,
+            'message': self.success_message
+        })
     
-    def get_context_data(self, **kwargs):
-        """Add breadcrumbs to context."""
-        context = super().get_context_data(**kwargs)
-        context['breadcrumbs'] = [
-            {'name': 'Clientes', 'url': reverse_lazy('clients:list')},
-            {'name': self.object.name, 'url': reverse_lazy('clients:detail', kwargs={'pk': self.object.pk})},
-            {'name': 'Excluir', 'url': None}
-        ]
-        return context
+    def get(self, request, *args, **kwargs):
+        """Redirect GET requests to client detail page."""
+        client = self.get_object()
+        return HttpResponseRedirect(reverse_lazy('clients:detail', kwargs={'pk': client.pk}))

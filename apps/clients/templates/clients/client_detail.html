@@ -30,10 +30,10 @@
                     </a>
                     {% endif %}
                     {% if perms.clients.delete_client %}
-                    <a href="{% url 'clients:delete' client.pk %}"
+                    <button onclick="openClientDeleteModal({{ client.pk }}, '{{ client.name|escapejs }}', '{{ client.get_document_type_display|escapejs }}', '{{ client.document_number }}', {{ client.events.count }})"
                         class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all">
                         Excluir
-                    </a>
+                    </button>
                     {% endif %}
                 </div>
             </div>
@@ -89,4 +89,32 @@
         </div>
     </div>
 </div>
+
+<!-- Delete Modal -->
+{% include 'components/delete_modal.html' %}
+
+<script>
+function openClientDeleteModal(clientId, clientName, docType, docNumber, eventsCount) {
+    const deleteUrl = `/clients/${clientId}/delete/`;
+    const redirectUrl = '{% url "clients:list" %}';
+    
+    const itemDetails = `
+        <div class="flex items-center">
+            <div class="h-12 w-12 rounded-full bg-black text-white flex items-center justify-center text-xl font-bold">
+                ${clientName.charAt(0).toUpperCase()}
+            </div>
+            <div class="ml-4">
+                <p class="text-sm font-medium text-gray-900">${clientName}</p>
+                <p class="text-sm text-gray-500">${docType}: ${docNumber}</p>
+            </div>
+        </div>
+    `;
+    
+    const warning = eventsCount > 0 
+        ? `Este cliente possui ${eventsCount} evento${eventsCount > 1 ? 's' : ''} associado${eventsCount > 1 ? 's' : ''}.`
+        : null;
+    
+    openDeleteModal(deleteUrl, `o cliente "${clientName}"`, itemDetails, warning, redirectUrl);
+}
+</script>
 {% endblock %}
