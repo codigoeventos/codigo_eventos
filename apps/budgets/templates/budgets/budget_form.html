@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}{{ form_title }} - Orçamentos{% endblock %}
+{% block page_title %}{{ form_title }}{% endblock %}
+
+{% block content %}
+{% include 'components/breadcrumbs.html' %}
+
+<div class="w-full mx-auto">
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-8 w-full">
+        <form method="post" novalidate>
+            {% csrf_token %}
+            
+            {% include 'components/form_errors.html' %}
+
+            <div class="space-y-6">
+                <div>
+                    <label for="{{ form.proposal.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        {{ form.proposal.label }}
+                    </label>
+                    {{ form.proposal }}
+                    {% if form.proposal.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.proposal.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label for="{{ form.name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        {{ form.name.label }}
+                    </label>
+                    {{ form.name }}
+                    {% if form.name.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.name.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="{{ form.status.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            {{ form.status.label }}
+                        </label>
+                        {{ form.status }}
+                        {% if form.status.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.status.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+
+                    <div class="flex items-center mt-8">
+                        {{ form.is_selected }}
+                        <label for="{{ form.is_selected.id_for_label }}" class="ml-2 text-sm text-gray-700">
+                            {{ form.is_selected.label }}
+                        </label>
+                        {% if form.is_selected.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.is_selected.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-8 flex justify-end gap-3">
+                <a href="{% if object %}{% url 'budgets:detail' object.pk %}{% else %}{% url 'budgets:list' %}{% endif %}"
+                    class="px-6 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
+                    Cancelar
+                </a>
+                <button type="submit"
+                    class="px-6 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-all">
+                    {{ submit_text }}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+
+{% block title %}Visita - {{ technical_visit.event.name }} - Visitas Técnicas{% endblock %}
+{% block page_title %}Detalhes da Visita Técnica{% endblock %}
+
+{% block content %}
+{% include 'components/breadcrumbs.html' %}
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Technical Visit Info Card -->
+    <div class="lg:col-span-2">
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div class="flex justify-between items-start mb-6">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-900">Visita Técnica</h2>
+                    <p class="text-sm text-gray-500 mt-1">{{ technical_visit.event.name }}</p>
+                </div>
+
+                <div class="flex gap-2">
+                    <a href="{% url 'technical_visits:edit' technical_visit.pk %}"
+                        class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
+                        Editar
+                    </a>
+                    <button onclick="openTechnicalVisitDeleteModal({{ technical_visit.pk }}, '{{ technical_visit.event.name|escapejs }}', '{{ technical_visit.visit_date|date:'d/m/Y H:i' }}', {{ technical_visit.attachments.count }})"
+                        class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all">
+                        Excluir
+                    </button>
+                </div>
+            </div>
+
+            <dl class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <dt class="text-sm font-medium text-gray-500">Evento</dt>
+                    <dd class="mt-1 text-sm text-gray-900">
+                        <a href="{% url 'events:detail' technical_visit.event.pk %}" class="text-blue-600 hover:underline">
+                            {{ technical_visit.event.name }}
+                        </a>
+                    </dd>
+                </div>
+
+                <div>
+                    <dt class="text-sm font-medium text-gray-500">Cliente</dt>
+                    <dd class="mt-1 text-sm text-gray-900">
+                        <a href="{% url 'clients:detail' technical_visit.event.client.pk %}" class="text-blue-600 hover:underline">
+                            {{ technical_visit.event.client.name }}
+                        </a>
+                    </dd>
+                </div>
+
+                <div>
+                    <dt class="text-sm font-medium text-gray-500">Data da Visita</dt>
+                    <dd class="mt-1 text-sm text-gray-900">{{ technical_visit.visit_date|date:"d/m/Y H:i" }}</dd>
+                </div>
+
+                <div>
+                    <dt class="text-sm font-medium text-gray-500">Status</dt>
+                    <dd class="mt-1">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                            {% if technical_visit.status == 'completed' %}bg-green-100 text-green-800
+                            {% elif technical_visit.status == 'cancelled' %}bg-red-100 text-red-800
+                            {% else %}bg-blue-100 text-blue-800{% endif %}">
+                            {{ technical_visit.get_status_display }}
+                        </span>
+                    </dd>
+                </div>
+
+                <div>
+                    <dt class="text-sm font-medium text-gray-500">Responsável</dt>
+                    <dd class="mt-1 text-sm text-gray-900">
+                        {% if technical_visit.responsible %}
+                            <a href="{% url 'teams:detail' technical_visit.responsible.pk %}" class="text-blue-600 hover:underline">
+                                {{ technical_visit.responsible.name }}
+                            </a>
+                        {% else %}
+                            <span class="text-gray-400">Não atribuído</span>
+                        {% endif %}
+                    </dd>
+                </div>
+
+                <div>
+                    <dt class="text-sm font-medium text-gray-500">Local do Evento</dt>
+                    <dd class="mt-1 text-sm text-gray-900">{{ technical_visit.event.location }}</dd>
+                </div>
+
+                {% if technical_visit.notes %}
+                <div class="md:col-span-2">
+                    <dt class="text-sm font-medium text-gray-500">Observações</dt>
+                    <dd class="mt-1 text-sm text-gray-900">{{ technical_visit.notes }}</dd>
+                </div>
+                {% endif %}
+            </dl>
+        </div>
+
+        <!-- Attachments Section -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mt-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold text-gray-900">Anexos</h3>
+            </div>
+
+            {% if technical_visit.attachments.all %}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {% for attachment in technical_visit.attachments.all %}
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                    <div class="flex items-center">
+                        <svg class="w-8 h-8 text-gray-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                        </svg>
+                        <div>
+                            <p class="text-sm font-medium text-gray-900">{{ attachment.file.name|slice:":30" }}...</p>
+                            <p class="text-xs text-gray-500">{{ attachment.uploaded_at|date:"d/m/Y H:i" }}</p>
+                        </div>
+                    </div>
+                    <a href="{{ attachment.file.url }}" target="_blank" class="text-blue-600 hover:text-blue-900">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-sm text-gray-500 text-center py-4">Nenhum anexo</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="space-y-6">
+        <!-- Metadata -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Informações</h3>
+            <dl class="space-y-3">
+                <div>
+                    <dt class="text-xs text-gray-500">Criado por</dt>
+                    <dd class="text-sm text-gray-900">{{ technical_visit.created_by.get_full_name|default:technical_visit.created_by.username }}</dd>
+                </div>
+                <div>
+                    <dt class="text-xs text-gray-500">Criado em</dt>
+                    <dd class="text-sm text-gray-900">{{ technical_visit.created_at|date:"d/m/Y H:i" }}</dd>
+                </div>
+                {% if technical_visit.updated_by %}
+                <div>
+                    <dt class="text-xs text-gray-500">Última atualização</dt>
+                    <dd class="text-sm text-gray-900">{{ technical_visit.updated_at|date:"d/m/Y H:i" }}</dd>
+                </div>
+                {% endif %}
+            </dl>
+        </div>
+
+        <!-- Event Details -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Detalhes do Evento</h3>
+            <dl class="space-y-3">
+                <div>
+                    <dt class="text-xs text-gray-500">Data do Evento</dt>
+                    <dd class="text-sm text-gray-900">{{ technical_visit.event.event_date|date:"d/m/Y" }}</dd>
+                </div>
+                <div>
+                    <dt class="text-xs text-gray-500">Local</dt>
+                    <dd class="text-sm text-gray-900">{{ technical_visit.event.location }}</dd>
+                </div>
+            </dl>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Modal -->
+{% include 'components/delete_modal.html' %}
+
+<script>
+function openTechnicalVisitDeleteModal(visitId, eventName, visitDate, attachmentsCount) {
+    const deleteUrl = `/technical-visits/${visitId}/delete/`;
+    const redirectUrl = '{% url "technical_visits:list" %}';
+    
+    const itemDetails = `
+        <div class="space-y-2">
+            <p class="text-sm font-medium text-gray-900">Visita - ${eventName}</p>
+            <p class="text-sm text-gray-500">Data: ${visitDate}</p>
+        </div>
+    `;
+    
+    const warning = attachmentsCount > 0 
+        ? `Esta visita possui ${attachmentsCount} anexo${attachmentsCount > 1 ? 's' : ''} associado${attachmentsCount > 1 ? 's' : ''}.`
+        : null;
+    
+    openDeleteModal(deleteUrl, `a visita técnica "${eventName}"`, itemDetails, warning, redirectUrl);
+}
+</script>
+{% endblock %}

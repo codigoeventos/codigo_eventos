@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}{{ form_title }} - Ordens de Serviço{% endblock %}
+{% block page_title %}{{ form_title }}{% endblock %}
+
+{% block content %}
+{% include 'components/breadcrumbs.html' %}
+
+<div class="w-full mx-auto">
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-8 w-full">
+        <form method="post" novalidate>
+            {% csrf_token %}
+            
+            {% include 'components/form_errors.html' %}
+
+            <div class="space-y-6">
+                <div>
+                    <label for="{{ form.event.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        {{ form.event.label }}
+                    </label>
+                    {{ form.event }}
+                    {% if form.event.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.event.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label for="{{ form.budget.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        {{ form.budget.label }}
+                    </label>
+                    {{ form.budget }}
+                    {% if form.budget.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.budget.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label for="{{ form.status.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        {{ form.status.label }}
+                    </label>
+                    {{ form.status }}
+                    {% if form.status.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.status.errors.0 }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="mt-8 flex justify-end gap-3">
+                <a href="{% if object %}{% url 'service_orders:detail' object.pk %}{% else %}{% url 'service_orders:list' %}{% endif %}"
+                    class="px-6 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
+                    Cancelar
+                </a>
+                <button type="submit"
+                    class="px-6 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-all">
+                    {{ submit_text }}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+
+{% block title %}Orçamentos - Sistema de Gestão de Eventos{% endblock %}
+{% block page_title %}Orçamentos{% endblock %}
+
+{% block content %}
+<!-- Breadcrumbs -->
+{% include 'components/breadcrumbs.html' %}
+
+<!-- Header Actions -->
+<div class="flex justify-between items-center mb-6">
+    <div class="flex-1 max-w-lg">
+        <form method="get" class="flex gap-2">
+            {{ search_form.search }}
+            {{ search_form.status }}
+            {{ search_form.proposal }}
+            <button type="submit"
+                class="px-6 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-all duration-200">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+            </button>
+        </form>
+    </div>
+
+    <a href="{% url 'budgets:create' %}"
+        class="px-6 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-all duration-200 flex items-center">
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg>
+        Novo Orçamento
+    </a>
+</div>
+
+<!-- Budgets Table -->
+<div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+    {% if budgets %}
+    <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+            <tr>
+                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    Nome
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    Proposta
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    Evento
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    Valor Total
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    Status
+                </th>
+                <th class="px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    Ações
+                </th>
+            </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+            {% for budget in budgets %}
+            <tr class="hover:bg-gray-50 transition-colors">
+                <td class="px-6 py-4">
+                    <div class="text-sm font-medium text-gray-900">
+                        {{ budget.name }}
+                        {% if budget.is_selected %}
+                        <span class="ml-2 px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800">
+                            Selecionado
+                        </span>
+                        {% endif %}
+                    </div>
+                </td>
+                <td class="px-6 py-4">
+                    <div class="text-sm text-gray-900">{{ budget.proposal.title }}</div>
+                </td>
+                <td class="px-6 py-4">
+                    <div class="text-sm text-gray-500">{{ budget.proposal.event.name }}</div>
+                </td>
+                <td class="px-6 py-4">
+                    <div class="text-sm text-gray-900">R$ {{ budget.total_value|floatformat:2 }}</div>
+                </td>
+                <td class="px-6 py-4">
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                        {% if budget.status == 'approved' %}bg-green-100 text-green-800
+                        {% elif budget.status == 'rejected' %}bg-red-100 text-red-800
+                        {% elif budget.status == 'sent' %}bg-blue-100 text-blue-800
+                        {% else %}bg-gray-100 text-gray-800{% endif %}">
+                        {{ budget.get_status_display }}
+                    </span>
+                </td>
+                <td class="px-6 py-4 text-right text-sm font-medium space-x-2">
+                    <a href="{% url 'budgets:detail' budget.pk %}" class="text-blue-600 hover:text-blue-900"
+                        title="Visualizar">
+                        <svg class="w-5 h-5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                    </a>
+
+                    <a href="{% url 'budgets:edit' budget.pk %}" class="text-gray-600 hover:text-gray-900"
+                        title="Editar">
+                        <svg class="w-5 h-5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                    </a>
+
+                    <button onclick="openBudgetDeleteModal({{ budget.pk }}, '{{ budget.name|escapejs }}', '{{ budget.proposal.title|escapejs }}', {{ budget.items.count }})" 
+                        class="text-red-600 hover:text-red-900"
+                        title="Excluir">
+                        <svg class="w-5 h-5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                    </button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Pagination -->
+    {% include 'components/pagination.html' %}
+    {% else %}
+    <div class="p-12 text-center">
+        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+        </svg>
+        <h3 class="mt-2 text-sm font-medium text-gray-900">Nenhum orçamento encontrado</h3>
+        <p class="mt-1 text-sm text-gray-500">Comece criando um novo orçamento.</p>
+        <div class="mt-6">
+            <a href="{% url 'budgets:create' %}"
+                class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-black hover:bg-gray-800">
+                <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+                Novo Orçamento
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Delete Modal -->
+{% include 'components/delete_modal.html' %}
+
+<script>
+function openBudgetDeleteModal(budgetId, budgetName, proposalTitle, itemsCount) {
+    const deleteUrl = `/budgets/${budgetId}/delete/`;
+    const redirectUrl = '{% url "budgets:list" %}';
+    
+    const itemDetails = `
+        <div class="space-y-2">
+            <p class="text-sm font-medium text-gray-900">${budgetName}</p>
+            <p class="text-sm text-gray-500">Proposta: ${proposalTitle}</p>
+        </div>
+    `;
+    
+    const warning = itemsCount > 0 
+        ? `Este orçamento possui ${itemsCount} item${itemsCount > 1 ? 'ns' : ''} associado${itemsCount > 1 ? 's' : ''}.`
+        : null;
+    
+    openDeleteModal(deleteUrl, `o orçamento "${budgetName}"`, itemDetails, warning, redirectUrl);
+}
+</script>
+{% endblock %}

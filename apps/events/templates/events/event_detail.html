@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block title %}{{ event.name }} - Eventos{% endblock %}
+{% block page_title %}Detalhes do Evento{% endblock %}
+
+{% block content %}
+{% include 'components/breadcrumbs.html' %}
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Event Info Card -->
+    <div class="lg:col-span-2">
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div class="flex justify-between items-start mb-6">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-900">{{ event.name }}</h2>
+                    <p class="text-sm text-gray-500 mt-1">Criado em {{ event.created_at|date:"d/m/Y" }}</p>
+                </div>
+
+                <div class="flex gap-2">
+                    <a href="{% url 'events:edit' event.pk %}"
+                        class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
+                        Editar
+                    </a>
+                    <button onclick="openEventDeleteModal({{ event.pk }}, '{{ event.name|escapejs }}', '{{ event.client.name|escapejs }}', '{{ event.event_date|date:'d/m/Y' }}', {{ event.proposals.count }})"
+                        class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all">
+                        Excluir
+                    </button>
+                </div>
+            </div>
+
+            <dl class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <dt class="text-sm font-medium text-gray-500">Cliente</dt>
+                    <dd class="mt-1 text-sm text-gray-900">
+                        <a href="{% url 'clients:detail' event.client.pk %}" class="text-blue-600 hover:underline">
+                            {{ event.client.name }}
+                        </a>
+                    </dd>
+                </div>
+
+                <div>
+                    <dt class="text-sm font-medium text-gray-500">Data do Evento</dt>
+                    <dd class="mt-1 text-sm text-gray-900">{{ event.event_date|date:"d/m/Y" }}</dd>
+                </div>
+
+                <div>
+                    <dt class="text-sm font-medium text-gray-500">Local</dt>
+                    <dd class="mt-1 text-sm text-gray-900">{{ event.location }}</dd>
+                </div>
+
+                <div>
+                    <dt class="text-sm font-medium text-gray-500">Status</dt>
+                    <dd class="mt-1 text-sm text-gray-900">{{ event.status }}</dd>
+                </div>
+
+                {% if event.notes %}
+                <div class="md:col-span-2">
+                    <dt class="text-sm font-medium text-gray-500">Observações</dt>
+                    <dd class="mt-1 text-sm text-gray-900">{{ event.notes }}</dd>
+                </div>
+                {% endif %}
+            </dl>
+        </div>
+
+        <!-- Proposals Section -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mt-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold text-gray-900">Propostas</h3>
+            </div>
+
+            {% if event.proposals.all %}
+            <div class="space-y-3">
+                {% for proposal in event.proposals.all %}
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                    <div>
+                        <p class="text-sm font-medium text-gray-900">{{ proposal.title }}</p>
+                        <p class="text-xs text-gray-500">Status: {{ proposal.get_status_display }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-sm text-gray-500 text-center py-4">Nenhuma proposta cadastrada</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="space-y-6">
+        <!-- Service Orders -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Ordens de Serviço</h3>
+            {% if event.service_orders.all %}
+            <div class="space-y-3">
+                {% for order in event.service_orders.all %}
+                <div class="p-3 bg-gray-50 rounded-lg">
+                    <p class="text-sm font-medium text-gray-900">OS #{{ order.pk }}</p>
+                    <p class="text-xs text-gray-500">{{ order.get_status_display }}</p>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-sm text-gray-500 text-center py-4">Nenhuma OS</p>
+            {% endif %}
+        </div>
+
+        <!-- Technical Visits -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Visitas Técnicas</h3>
+            {% if event.technical_visits.all %}
+            <div class="space-y-3">
+                {% for visit in event.technical_visits.all %}
+                <div class="p-3 bg-gray-50 rounded-lg">
+                    <p class="text-sm font-medium text-gray-900">{{ visit.visit_date|date:"d/m/Y H:i" }}</p>
+                    <p class="text-xs text-gray-500">{{ visit.get_status_display }}</p>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-sm text-gray-500 text-center py-4">Nenhuma visita</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Delete Modal -->
+{% include 'components/delete_modal.html' %}
+
+<script>
+function openEventDeleteModal(eventId, eventName, clientName, eventDate, proposalsCount) {
+    const deleteUrl = `/events/${eventId}/delete/`;
+    const redirectUrl = '{% url "events:list" %}';
+    
+    const itemDetails = `
+        <div class="space-y-2">
+            <p class="text-sm font-medium text-gray-900">${eventName}</p>
+            <p class="text-sm text-gray-500">Cliente: ${clientName}</p>
+            <p class="text-sm text-gray-500">Data: ${eventDate}</p>
+        </div>
+    `;
+    
+    const warning = proposalsCount > 0 
+        ? `Este evento possui ${proposalsCount} proposta${proposalsCount > 1 ? 's' : ''} associada${proposalsCount > 1 ? 's' : ''}.`
+        : null;
+    
+    openDeleteModal(deleteUrl, `o evento "${eventName}"`, itemDetails, warning, redirectUrl);
+}
+</script>
+{% endblock %}
