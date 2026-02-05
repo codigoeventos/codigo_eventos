@@ -1,160 +1,204 @@
-# Django Project Template
+# Sistema de Gestão de Eventos
 
-Template simples e funcional para projetos Django com Docker, PostgreSQL e Redis.
+Sistema web interno para gerenciamento completo de eventos, contemplando fluxo comercial, operacional e técnico.
 
-## 🚀 Features
+## 🎯 Características
 
-- Django 5.0+ com Django REST Framework
-- PostgreSQL como banco de dados
-- Redis para cache e Celery
-- Docker e Docker Compose
-- Celery para tarefas assíncronas
-- Autenticação JWT
-- Documentação automática da API (Swagger)
+- **Autenticação por E-mail**: Login usando endereço de e-mail
+- **RBAC (Controle de Acesso Baseado em Funções)**: 4 grupos de usuários
+- **Auditoria Completa**: Rastreamento de criação/atualização com histórico
+- **Soft Delete**: Exclusão lógica de registros
+- **Design Minimalista**: Interface em preto/branco/cinza com Tailwind CSS
 
-## 📋 Pré-requisitos
+## 📋 Módulos do Sistema
 
-- Python 3.11+
-- Docker e Docker Compose (recomendado)
+### Núcleo
+- **Clientes**: Cadastro de clientes (CPF/CNPJ) com validação
+- **Eventos**: Evento como raiz agregada do sistema
+- **Equipes**: Membros da equipe e alocação por evento
 
-## 🔧 Instalação
+### Comercial
+- **Propostas**: Propostas comerciais para eventos
+- **Orçamentos**: Orçamentos detalhados com itens e totais automáticos
 
-### Opção 1: Com Docker (Recomendado)
+### Operacional
+- **Ordens de Serviço**: Criadas automaticamente ao aprovar orçamento
+- **Visitas Técnicas**: Agendamento e documentação de visitas
+- **Documentos**: ARTs, seguros, certificados, etc.
 
-1. Clone o repositório e configure o ambiente:
+## 🚀 Início Rápido com Docker
+
+### 1. Clonar e Configurar
+
 ```bash
-git clone <seu-repositorio>
-cd django_project_template
-cp .env.example .env
+cd /home/rafael-pinheiro/Documentos/CODE/CODIGO\ DE\ EVENTOS/codigo_eventos
 ```
 
-2. Edite o arquivo `.env` com suas configurações
+### 2. Subir os Containers
 
-3. Inicie os containers:
 ```bash
-docker-compose up --build
+docker-compose up -d
 ```
 
-4. Em outro terminal, execute as migrações e crie um superusuário:
+### 3. Criar Superusuário
+
 ```bash
-docker-compose exec web python manage.py migrate
 docker-compose exec web python manage.py createsuperuser
 ```
 
-5. Acesse: `http://localhost:8000`
+Forneça:
+- **E-mail**: seu@email.com
+- **Nome**: Seu Nome
+- **Sobrenome**: Sobrenome
+- **Senha**: (mínimo 8 caracteres)
 
-### Opção 2: Desenvolvimento Local
+### 4. Acessar o Sistema
 
-1. Clone e configure:
+- **Sistema**: http://localhost:8000
+- **Admin**: http://localhost:8000/admin
+
+## 👥 Grupos de Usuários (RBAC)
+
+Os grupos foram criados automaticamente:
+
+- **Administrador**: Acesso total ao sistema
+- **Comercial**: Propostas, orçamentos, clientes, eventos (visualização)
+- **Operacional**: Ordens de serviço, equipes, documentos
+- **Técnico**: Visitas técnicas, eventos (visualização)
+
+Para atribuir um grupo a um usuário, acesse o admin Django.
+
+## 🛠️ Comandos Úteis
+
+### Gerenciar Containers
+
 ```bash
-git clone <seu-repositorio>
-cd django_project_template
-cp .env.example .env
+# Ver logs
+docker-compose logs -f web
+
+# Parar containers
+docker-compose down
+
+# Reiniciar
+docker-compose restart
+
+# Rebuild após mudanças no código
+docker-compose up -d --build
 ```
 
-2. Crie o ambiente virtual e instale as dependências:
-```bash
-python -m venv venv
-source venv/bin/activate  # Linux/Mac
-pip install -r requirements.txt
-```
+### Django Management
 
-3. Execute as migrações:
 ```bash
-python manage.py migrate
-python manage.py createsuperuser
-```
+# Criar migrações
+docker-compose exec web python manage.py makemigrations
 
-4. Inicie o servidor:
-```bash
-python manage.py runserver
+# Aplicar migrações
+docker-compose exec web python manage.py migrate
+
+# Criar grupos RBAC
+docker-compose exec web python manage.py create_groups
+
+# Shell Django
+docker-compose exec web python manage.py shell
+
+# Acessar PostgreSQL
+docker-compose exec db psql -U eventos_user -d eventos_db
 ```
 
 ## 📁 Estrutura do Projeto
 
 ```
-django_project_template/
-├── apps/               # Apps Django
-│   └── core/          # App de exemplo
-├── config/            # Configurações do projeto
-│   ├── settings/     # Settings (base, local, production)
-│   ├── urls.py
-│   ├── wsgi.py
-│   └── celery.py
-├── static/           # Arquivos estáticos
-├── media/            # Uploads
-├── requirements.txt  # Dependências
-├── docker-compose.yml
-├── Dockerfile
-└── manage.py
+codigo_eventos/
+├── apps/
+│   ├── accounts/          # Autenticação e usuários
+│   ├── clients/           # Clientes
+│   ├── events/            # Eventos (raiz agregada)
+│   ├── proposals/         # Propostas comerciais
+│   ├── budgets/           # Orçamentos
+│   ├── service_orders/    # Ordens de serviço
+│   ├── technical_visits/  # Visitas técnicas
+│   ├── teams/             # Equipes
+│   ├── documents/         # Documentos
+│   ├── dashboard/         # Dashboard principal
+│   └── common/            # Modelos e utilitários comuns
+├── config/                # Configurações do Django
+├── templates/             # Templates HTML
+├── static/                # Arquivos estáticos
+├── media/                 # Uploads de arquivos
+└── docker-compose.yml     # Configuração Docker
 ```
 
-## 🛠️ Comandos Úteis
+## 🎨 Stack Tecnológico
 
-### Django
+- **Backend**: Django 5.0, Python 3.12+
+- **Banco de Dados**: PostgreSQL 16
+- **Frontend**: Django Templates, Tailwind CSS (CDN)
+- **Containerização**: Docker & Docker Compose
+- **Auditoria**: django-simple-history
+- **Soft Delete**: django-safedelete
+- **Forms**: django-crispy-forms com crispy-tailwind
+
+## 🔧 Desenvolvimento Local (Sem Docker)
+
 ```bash
-# Criar migrações
-python manage.py makemigrations
+# Criar ambiente virtual
+python3 -m venv venv
+source venv/bin/activate
 
-# Aplicar migrações
+# Instalar dependências
+pip install -r requirements.txt
+
+# Configurar .env
+cp .env.example .env
+# Edite .env com suas configurações de banco
+
+# Rodar migrações
 python manage.py migrate
+
+# Criar grupos
+python manage.py create_groups
 
 # Criar superusuário
 python manage.py createsuperuser
 
-# Criar nova app
-python manage.py startapp nome_app apps/nome_app
+# Rodar servidor
+python manage.py runserver
 ```
 
-### Docker
-```bash
-# Iniciar
-docker-compose up
+## 📝 Fluxo de Trabalho Principal
 
-# Parar
-docker-compose down
+1. **Cadastrar Cliente** → Clientes
+2. **Criar Evento** → Eventos (vinculado ao cliente)
+3. **Agendar Visita Técnica** → Visitas Técnicas
+4. **Criar Proposta** → Propostas (para o evento)
+5. **Adicionar Orçamento** → Orçamentos (dentro da proposta)
+6. **Aprovar Orçamento** → Status = "approved"
+7. **Ordem de Serviço Criada Automaticamente** ✨
+8. **Executar OS** → Atualizar status dos itens
+9. **Anexar Documentos** → ARTs, seguros, etc.
 
-# Ver logs
-docker-compose logs -f web
+## 🔐 Segurança
 
-# Executar comandos
-docker-compose exec web python manage.py <comando>
-```
+- Autenticação obrigatória para todas as páginas (exceto login)
+- Controle de permissões por grupo
+- CSRF protection ativo
+- Senhas hasheadas com PBKDF2
+- Histórico completo de alterações
+- Soft delete (nenhum dado é perdido)
 
-### Celery
-```bash
-# Worker
-celery -A config worker -l info
+## 📊 Próximas Funcionalidades
 
-# Beat (agendador)
-celery -A config beat -l info
-```
-
-## 🌐 Endpoints
-
-- Admin: `http://localhost:8000/admin/`
-- API: `http://localhost:8000/api/`
-- Swagger: `http://localhost:8000/api/docs/`
-- ReDoc: `http://localhost:8000/api/redoc/`
-
-## 🚀 Deploy
-
-1. Configure as variáveis de ambiente de produção no `.env`
-2. Defina `DEBUG=False`
-3. Configure `ALLOWED_HOSTS`
-4. Use um `SECRET_KEY` seguro
-5. Configure o banco de dados de produção
-
-## 📝 Próximos Passos
-
-Após clonar o template:
-
-1. Renomeie o projeto conforme necessário
-2. Configure suas variáveis de ambiente
-3. Crie suas próprias apps
-4. Customize os models, views e serializers
-5. Adicione suas funcionalidades
+- [ ] Integração WhatsApp
+- [ ] Módulo Financeiro
+- [ ] Sistema de Notificações
+- [ ] Checklist de Eventos
+- [ ] Link Público para Aprovação de Orçamento
+- [ ] Relatórios e Dashboard Avançado
 
 ## 📄 Licença
 
 MIT
+
+---
+
+**Desenvolvido para gestão interna de eventos** | 2026

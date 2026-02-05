@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+
+{% block title %}{{ form_title }} - Clientes{% endblock %}
+{% block page_title %}{{ form_title }}{% endblock %}
+
+{% block content %}
+{% include 'components/breadcrumbs.html' %}
+
+<div class="w-full mx-auto">
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
+        <form method="post" novalidate>
+            {% csrf_token %}
+
+            {% include 'components/form_errors.html' %}
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Name -->
+                <div class="md:col-span-2">
+                    <label for="{{ form.name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        {{ form.name.label }}
+                    </label>
+                    {{ form.name }}
+                    {% if form.name.help_text %}
+                    <p class="mt-1 text-sm text-gray-500">{{ form.name.help_text }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Document Type -->
+                <div>
+                    <label for="{{ form.document_type.id_for_label }}"
+                        class="block text-sm font-medium text-gray-700 mb-2">
+                        {{ form.document_type.label }}
+                    </label>
+                    {{ form.document_type }}
+                </div>
+
+                <!-- Document Number -->
+                <div>
+                    <label for="{{ form.document_number.id_for_label }}"
+                        class="block text-sm font-medium text-gray-700 mb-2">
+                        {{ form.document_number.label }}
+                    </label>
+                    {{ form.document_number }}
+                    <p class="mt-1 text-xs text-gray-500" id="doc-hint">Selecione o tipo de documento primeiro</p>
+                </div>
+
+                <!-- Email -->
+                <div>
+                    <label for="{{ form.email.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        {{ form.email.label }}
+                    </label>
+                    {{ form.email }}
+                </div>
+
+                <!-- Phone -->
+                <div>
+                    <label for="{{ form.phone.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        {{ form.phone.label }}
+                    </label>
+                    {{ form.phone }}
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="mt-8 flex justify-end gap-3">
+                <a href="{% if object %}{% url 'clients:detail' object.pk %}{% else %}{% url 'clients:list' %}{% endif %}"
+                    class="px-6 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
+                    Cancelar
+                </a>
+                <button type="submit" class="px-6 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-all">
+                    {{ submit_text }}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const docTypeField = document.getElementById('{{ form.document_type.id_for_label }}');
+        const docNumberField = document.getElementById('{{ form.document_number.id_for_label }}');
+        const docHint = document.getElementById('doc-hint');
+
+        if (!docTypeField || !docNumberField) return;
+
+        // Disable document number field initially if no type is selected
+        function initializeField() {
+            if (!docTypeField.value) {
+                docNumberField.disabled = true;
+                docNumberField.classList.add('bg-gray-100', 'cursor-not-allowed', 'opacity-60');
+                docNumberField.placeholder = 'Selecione o tipo primeiro';
+                if (docHint) docHint.classList.remove('hidden');
+            } else {
+                enableField();
+            }
+        }
+
+        function enableField() {
+            const type = docTypeField.value.toLowerCase();
+            docNumberField.disabled = false;
+            docNumberField.classList.remove('bg-gray-100', 'cursor-not-allowed', 'opacity-60');
+            docNumberField.placeholder = type === 'cpf' ? '000.000.000-00' : '00.000.000/0000-00';
+            if (docHint) docHint.classList.add('hidden');
+            setTimeout(() => docNumberField.focus(), 100);
+        }
+
+        function formatDocument(value) {
+            const type = docTypeField.value.toLowerCase();
+            const numbers = value.replace(/\D/g, '');
+
+            if (type === 'cpf') {
+                return numbers
+                    .replace(/(\d{3})(\d)/, '$1.$2')
+                    .replace(/(\d{3})(\d)/, '$1.$2')
+                    .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+            } else if (type === 'cnpj') {
+                return numbers
+                    .replace(/(\d{2})(\d)/, '$1.$2')
+                    .replace(/(\d{3})(\d)/, '$1.$2')
+                    .replace(/(\d{3})(\d)/, '$1/$2')
+                    .replace(/(\d{4})(\d{1,2})$/, '$1-$2');
+            }
+            return numbers;
+        }
+
+        // Handle document type change
+        docTypeField.addEventListener('change', function () {
+            if (this.value) {
+                const currentValue = docNumberField.value.replace(/\D/g, '');
+                docNumberField.value = '';
+                enableField();
+                if (currentValue) {
+                    docNumberField.value = formatDocument(currentValue);
+                }
+            } else {
+                docNumberField.value = '';
+                initializeField();
+            }
+        });
+
+        // Handle document number input
+        docNumberField.addEventListener('input', function (e) {
+            if (this.disabled) return;
+
+            const cursorPosition = this.selectionStart;
+            const oldLength = this.value.length;
+            const formatted = formatDocument(this.value);
+
+            this.value = formatted;
+
+            // Adjust cursor position
+            const newLength = this.value.length;
+            const diff = newLength - oldLength;
+            this.setSelectionRange(cursorPosition + diff, cursorPosition + diff);
+        });
+
+        // Initialize on page load
+        initializeField();
+    });
+</script>
+{% endblock %}

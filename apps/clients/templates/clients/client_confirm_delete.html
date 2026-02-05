@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block title %}Excluir Cliente - {{ client.name }}{% endblock %}
+{% block page_title %}Confirmar Exclusão{% endblock %}
+
+{% block content %}
+{% include 'components/breadcrumbs.html' %}
+
+<div class="max-w-2xl mx-auto">
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
+        <div class="flex items-center justify-center mb-6">
+            <div class="rounded-full bg-red-100 p-3">
+                <svg class="h-12 w-12 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+            </div>
+        </div>
+
+        <h3 class="text-lg font-medium text-gray-900 text-center mb-4">
+            Tem certeza que deseja excluir este cliente?
+        </h3>
+
+        <div class="bg-gray-50 rounded-lg p-4 mb-6">
+            <div class="flex items-center">
+                <div
+                    class="h-12 w-12 rounded-full bg-black text-white flex items-center justify-center text-xl font-bold">
+                    {{ client.name.0|upper }}
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-900">{{ client.name }}</p>
+                    <p class="text-sm text-gray-500">{{ client.get_document_type_display }}: {{ client.document_number}}</p>
+                </div>
+            </div>
+        </div>
+
+        {% if client.events.count > 0 %}
+        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+            <div class="flex">
+                <svg class="h-5 w-5 text-yellow-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd"
+                        d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                        clip-rule="evenodd" />
+                </svg>
+                <div>
+                    <h4 class="text-sm font-medium text-yellow-800">Atenção</h4>
+                    <p class="text-sm text-yellow-700 mt-1">
+                        Este cliente possui {{ client.events.count }} evento{{ client.events.count|pluralize }}
+                        associado{{ client.events.count|pluralize }}.
+                    </p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <p class="text-sm text-gray-500 text-center mb-8">
+            Esta ação não pode ser desfeita. O cliente será marcado como excluído.
+        </p>
+
+        <form method="post">
+            {% csrf_token %}
+            <div class="flex justify-center gap-3">
+                <a href="{% url 'clients:detail' client.pk %}"
+                    class="px-6 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
+                    Cancelar
+                </a>
+                <button type="submit"
+                    class="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all">
+                    Sim, Excluir Cliente
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
