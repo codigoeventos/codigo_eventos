@@ -8,10 +8,11 @@ from django.urls import reverse_lazy
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.db.models import Q
 from django.http import HttpResponseRedirect, JsonResponse
+from django.db import transaction
 
 from apps.common.mixins import AuditMixin
 from .models import ServiceOrder
-from .forms import ServiceOrderForm, ServiceOrderSearchForm
+from .forms import ServiceOrderForm, ServiceOrderSearchForm, ServiceOrderItemFormSet
 
 
 class ServiceOrderListView(LoginRequiredMixin, ListView):
@@ -100,8 +101,13 @@ class ServiceOrderCreateView(LoginRequiredMixin, AuditMixin, SuccessMessageMixin
         return reverse_lazy('service_orders:detail', kwargs={'pk': self.object.pk})
     
     def get_context_data(self, **kwargs):
-        """Add breadcrumbs to context."""
+        """Add breadcrumbs and formset to context."""
         context = super().get_context_data(**kwargs)
+        if self.request.POST:
+            context['items_formset'] = ServiceOrderItemFormSet(self.request.POST, instance=self.object)
+        else:
+            context['items_formset'] = ServiceOrderItemFormSet(instance=self.object)
+        
         context['breadcrumbs'] = [
             {'name': 'Ordens de Serviço', 'url': reverse_lazy('service_orders:list')},
             {'name': 'Nova Ordem de Serviço', 'url': None}
@@ -109,6 +115,26 @@ class ServiceOrderCreateView(LoginRequiredMixin, AuditMixin, SuccessMessageMixin
         context['form_title'] = 'Nova Ordem de Serviço'
         context['submit_text'] = 'Criar Ordem de Serviço'
         return context
+    
+    def form_valid(self, form):
+        """Save service order and items."""
+        context = self.get_context_data()
+        items_formset = context['items_formset']
+        
+        # Set audit fields (created_by)
+        if not form.instance.pk:
+            form.instance.created_by = self.request.user
+        form.instance.updated_by = self.request.user
+        
+        with transaction.atomic():
+            self.object = form.save()
+            if items_formset.is_valid():
+                items_formset.instance = self.object
+                items_formset.save()
+            else:
+                return self.form_invalid(form)
+        
+        return super(ServiceOrderCreateView, self).form_valid(form)
 
 
 class ServiceOrderUpdateView(LoginRequiredMixin, AuditMixin, SuccessMessageMixin, UpdateView):
@@ -124,8 +150,13 @@ class ServiceOrderUpdateView(LoginRequiredMixin, AuditMixin, SuccessMessageMixin
         return reverse_lazy('service_orders:detail', kwargs={'pk': self.object.pk})
     
     def get_context_data(self, **kwargs):
-        """Add breadcrumbs to context."""
+        """Add breadcrumbs and formset to context."""
         context = super().get_context_data(**kwargs)
+        if self.request.POST:
+            context['items_formset'] = ServiceOrderItemFormSet(self.request.POST, instance=self.object)
+        else:
+            context['items_formset'] = ServiceOrderItemFormSet(instance=self.object)
+        
         context['breadcrumbs'] = [
             {'name': 'Ordens de Serviço', 'url': reverse_lazy('service_orders:list')},
             {'name': f'OS #{self.object.pk}', 'url': reverse_lazy('service_orders:detail', kwargs={'pk': self.object.pk})},
@@ -134,10 +165,28 @@ class ServiceOrderUpdateView(LoginRequiredMixin, AuditMixin, SuccessMessageMixin
         context['form_title'] = f'Editar Ordem de Serviço: OS #{self.object.pk}'
         context['submit_text'] = 'Salvar Alterações'
         return context
+    
+    def form_valid(self, form):
+        """Save service order and items."""
+        context = self.get_context_data()
+        items_formset = context['items_formset']
+        
+        # Set audit field (updated_by)
+        form.instance.updated_by = self.request.user
+        
+        with transaction.atomic():
+            self.object = form.save()
+            if items_formset.is_valid():
+                items_formset.instance = self.object
+                items_formset.save()
+            else:
+                return self.form_invalid(form)
+        
+        return super(ServiceOrderUpdateView, self).form_valid(form)
 
 
 class ServiceOrderDeleteView(LoginRequiredMixin, DeleteView):
-    """Delete a service order (soft delete) - via AJAX only."""
+    """Delete a service order (hard delete) - via AJAX only."""
     
     model = ServiceOrder
     success_url = reverse_lazy('service_orders:list')
@@ -147,8 +196,9 @@ class ServiceOrderDeleteView(LoginRequiredMixin, DeleteView):
         """Handle POST delete request - AJAX only."""
         self.object = self.get_object()
         
-        # Perform soft delete
-        self.object.delete()
+        # Perform HARD delete to allow recreating OS with same budget
+        # Use Django's Model.delete() directly to bypass safedelete
+        super(ServiceOrder, self.object).delete()
         
         # Return JSON response
         return JsonResponse({

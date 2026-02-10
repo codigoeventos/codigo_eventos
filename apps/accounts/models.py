@@ -94,6 +94,12 @@ class User(AbstractBaseUser, PermissionsMixin):
         auto_now_add=True
     )
     
+    must_change_password = models.BooleanField(
+        _('deve alterar senha'),
+        default=False,
+        help_text=_('Força o usuário a alterar a senha no próximo login.')
+    )
+    
     objects = UserManager()
     
     USERNAME_FIELD = 'email'

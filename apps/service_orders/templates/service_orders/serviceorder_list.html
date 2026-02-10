@@ -143,6 +143,8 @@
 <!-- Delete Modal -->
 {% include 'components/delete_modal.html' %}
 
+{% csrf_token %}
+
 <script>
 function openServiceOrderDeleteModal(serviceOrderId, osNumber, eventName, itemsCount) {
     const deleteUrl = `/service-orders/${serviceOrderId}/delete/`;

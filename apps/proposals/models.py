@@ -55,6 +55,7 @@ class Proposal(BaseModel):
     original_document = models.FileField(
         'Documento Original',
         upload_to=proposal_upload_path,
+        max_length=255,
         blank=True,
         null=True,
         help_text='PDF ou DOC da proposta original'
@@ -72,5 +73,5 @@ class Proposal(BaseModel):
     def total_value(self):
         """Calculate total value from all related budgets."""
         return self.budgets.aggregate(
-            total=Sum('budgetitem__total_price')
+            total=Sum('items__total_price')
         )['total'] or 0

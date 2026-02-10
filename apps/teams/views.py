@@ -8,30 +8,31 @@ from django.urls import reverse_lazy
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.db.models import Q
 from django.http import HttpResponseRedirect, JsonResponse
+from django.db import transaction
 
-from .models import TeamMember
-from .forms import TeamMemberForm, TeamMemberSearchForm
+from apps.common.mixins import AuditMixin
+from .models import Team, TeamMember
+from .forms import TeamForm, TeamSearchForm, TeamMemberFormSet
 
 
 class TeamMemberListView(LoginRequiredMixin, ListView):
-    """List all team members with search and pagination."""
+    """List all teams with search and pagination."""
     
-    model = TeamMember
-    template_name = 'teams/team_member_list.html'
-    context_object_name = 'members'
+    model = Team
+    template_name = 'teams/team_list.html'
+    context_object_name = 'teams'
     paginate_by = 20
     
     def get_queryset(self):
-        """Filter team members based on search query."""
-        queryset = TeamMember.objects.all()
+        """Filter teams based on search query."""
+        queryset = Team.objects.prefetch_related('members').all()
         
         # Search functionality
         search = self.request.GET.get('search', '').strip()
         if search:
             queryset = queryset.filter(
                 Q(name__icontains=search) |
-                Q(role__icontains=search) |
-                Q(phone__icontains=search)
+                Q(description__icontains=search)
             )
         
         return queryset.order_by('name')
@@ -39,7 +40,7 @@ class TeamMemberListView(LoginRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         """Add search form and breadcrumbs to context."""
         context = super().get_context_data(**kwargs)
-        context['search_form'] = TeamMemberSearchForm(self.request.GET)
+        context['search_form'] = TeamSearchForm(self.request.GET)
         context['breadcrumbs'] = [
             {'name': 'Equipes', 'url': None}
         ]
@@ -47,15 +48,15 @@ class TeamMemberListView(LoginRequiredMixin, ListView):
 
 
 class TeamMemberDetailView(LoginRequiredMixin, DetailView):
-    """Display team member details."""
+    """Display team details and members."""
     
-    model = TeamMember
-    template_name = 'teams/team_member_detail.html'
-    context_object_name = 'member'
+    model = Team
+    template_name = 'teams/team_detail.html'
+    context_object_name = 'team'
     
     def get_queryset(self):
         """Optimize query with related objects."""
-        return TeamMember.objects.prefetch_related('event_assignments__event')
+        return Team.objects.prefetch_related('members', 'created_by', 'updated_by')
     
     def get_context_data(self, **kwargs):
         """Add breadcrumbs to context."""
@@ -67,65 +68,115 @@ class TeamMemberDetailView(LoginRequiredMixin, DetailView):
         return context
 
 
-class TeamMemberCreateView(LoginRequiredMixin, SuccessMessageMixin, CreateView):
-    """Create a new team member."""
+class TeamMemberCreateView(LoginRequiredMixin, AuditMixin, SuccessMessageMixin, CreateView):
+    """Create a new team with members."""
     
-    model = TeamMember
-    form_class = TeamMemberForm
-    template_name = 'teams/team_member_form.html'
-    success_message = "Membro %(name)s adicionado com sucesso!"
+    model = Team
+    form_class = TeamForm
+    template_name = 'teams/team_form.html'
+    success_message = "Equipe %(name)s criada com sucesso!"
     
     def get_success_url(self):
-        """Redirect to team member detail after creation."""
+        """Redirect to team detail after creation."""
         return reverse_lazy('teams:detail', kwargs={'pk': self.object.pk})
     
     def get_context_data(self, **kwargs):
-        """Add breadcrumbs to context."""
+        """Add breadcrumbs and formset to context."""
         context = super().get_context_data(**kwargs)
+        if self.request.POST:
+            context['members_formset'] = TeamMemberFormSet(self.request.POST, instance=self.object)
+        else:
+            context['members_formset'] = TeamMemberFormSet(instance=self.object)
+        
         context['breadcrumbs'] = [
             {'name': 'Equipes', 'url': reverse_lazy('teams:list')},
-            {'name': 'Novo Membro', 'url': None}
+            {'name': 'Nova Equipe', 'url': None}
         ]
-        context['form_title'] = 'Novo Membro da Equipe'
-        context['submit_text'] = 'Adicionar Membro'
+        context['form_title'] = 'Nova Equipe'
+        context['submit_text'] = 'Criar Equipe'
         return context
-
-
-class TeamMemberUpdateView(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
-    """Update an existing team member."""
     
-    model = TeamMember
-    form_class = TeamMemberForm
-    template_name = 'teams/team_member_form.html'
-    success_message = "Membro %(name)s atualizado com sucesso!"
+    def form_valid(self, form):
+        """Save team and members."""
+        context = self.get_context_data()
+        members_formset = context['members_formset']
+        
+        # Set audit fields
+        if not form.instance.pk:
+            form.instance.created_by = self.request.user
+        form.instance.updated_by = self.request.user
+        
+        with transaction.atomic():
+            self.object = form.save()
+            if members_formset.is_valid():
+                members_formset.instance = self.object
+                members_formset.save()
+            else:
+                return self.form_invalid(form)
+        
+        return super(TeamMemberCreateView, self).form_valid(form)
+
+
+class TeamMemberUpdateView(LoginRequiredMixin, AuditMixin, SuccessMessageMixin, UpdateView):
+    """Update an existing team and its members."""
+    
+    model = Team
+    form_class = TeamForm
+    template_name = 'teams/team_form.html'
+    success_message = "Equipe %(name)s atualizada com sucesso!"
     
     def get_success_url(self):
-        """Redirect to team member detail after update."""
+        """Redirect to team detail after update."""
         return reverse_lazy('teams:detail', kwargs={'pk': self.object.pk})
     
     def get_context_data(self, **kwargs):
-        """Add breadcrumbs to context."""
+        """Add breadcrumbs and formset to context."""
         context = super().get_context_data(**kwargs)
+        if self.request.POST:
+            context['members_formset'] = TeamMemberFormSet(self.request.POST, instance=self.object)
+        else:
+            context['members_formset'] = TeamMemberFormSet(instance=self.object)
+        
         context['breadcrumbs'] = [
             {'name': 'Equipes', 'url': reverse_lazy('teams:list')},
             {'name': self.object.name, 'url': reverse_lazy('teams:detail', kwargs={'pk': self.object.pk})},
             {'name': 'Editar', 'url': None}
         ]
-        context['form_title'] = f'Editar Membro: {self.object.name}'
+        context['form_title'] = f'Editar Equipe: {self.object.name}'
         context['submit_text'] = 'Salvar Alterações'
         return context
+    
+    def form_valid(self, form):
+        """Save team and members."""
+        context = self.get_context_data()
+        members_formset = context['members_formset']
+        
+        # Set audit field
+        form.instance.updated_by = self.request.user
+        
+        with transaction.atomic():
+            self.object = form.save()
+            if members_formset.is_valid():
+                members_formset.instance = self.object
+                members_formset.save()
+            else:
+                return self.form_invalid(form)
+        
+        return super(TeamMemberUpdateView, self).form_valid(form)
 
 
 class TeamMemberDeleteView(LoginRequiredMixin, DeleteView):
-    """Delete a team member - via AJAX only."""
+    """Delete a team - via AJAX only."""
     
-    model = TeamMember
+    model = Team
     success_url = reverse_lazy('teams:list')
-    success_message = "Membro excluído com sucesso!"
+    success_message = "Equipe excluída com sucesso!"
     
     def post(self, request, *args, **kwargs):
         """Handle POST delete request - AJAX only."""
         self.object = self.get_object()
+        
+        # Soft delete (BaseModel handles this)
         self.object.delete()
         
         return JsonResponse({
@@ -134,6 +185,6 @@ class TeamMemberDeleteView(LoginRequiredMixin, DeleteView):
         })
     
     def get(self, request, *args, **kwargs):
-        """Redirect GET requests to member detail page."""
-        member = self.get_object()
-        return HttpResponseRedirect(reverse_lazy('teams:detail', kwargs={'pk': member.pk}))
+        """Redirect GET requests to team detail page."""
+        team = self.get_object()
+        return HttpResponseRedirect(reverse_lazy('teams:detail', kwargs={'pk': team.pk}))

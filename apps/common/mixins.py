@@ -54,6 +54,10 @@ class GroupRequiredMixin(LoginRequiredMixin):
     
     def dispatch(self, request, *args, **kwargs):
         if self.required_groups:
+            # Superusers always have access
+            if request.user.is_superuser:
+                return super().dispatch(request, *args, **kwargs)
+            
             user_groups = request.user.groups.values_list('name', flat=True)
             if not any(group in user_groups for group in self.required_groups):
                 raise PermissionDenied("Você não tem permissão para acessar esta página.")

@@ -148,6 +148,8 @@
 <!-- Delete Modal -->
 {% include 'components/delete_modal.html' %}
 
+{% csrf_token %}
+
 <script>
 function openClientDeleteModal(clientId, clientName, docType, docNumber, eventsCount) {
     const deleteUrl = `/clients/${clientId}/delete/`;

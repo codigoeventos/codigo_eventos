@@ -1,0 +1,366 @@
+{% extends "base.html" %}
+
+{% block title %}{{ form_title }} - Equipes{% endblock %}
+{% block page_title %}{{ form_title }}{% endblock %}
+
+{% block content %}
+{% include 'components/breadcrumbs.html' %}
+
+<div class="w-full mx-auto">
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-8 w-full">
+        <form method="post" novalidate>
+            {% csrf_token %}
+            
+            {% include 'components/form_errors.html' %}
+
+            <div class="space-y-6">
+                <div>
+                    <label for="{{ form.name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        {{ form.name.label }}
+                    </label>
+                    {{ form.name }}
+                    {% if form.name.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.name.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label for="{{ form.description.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        {{ form.description.label }}
+                    </label>
+                    {{ form.description }}
+                    {% if form.description.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.description.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Team Members -->
+                <div class="border-t pt-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-medium text-gray-900">Membros da Equipe</h3>
+                        <button type="button" id="add-member" class="px-4 py-2 bg-black text-white text-sm rounded-lg hover:bg-gray-800 transition-all">
+                            + Adicionar Membro
+                        </button>
+                    </div>
+                    
+                    {{ members_formset.management_form }}
+                    
+                    <div id="members-formset" class="space-y-4">
+                        {% for member_form in members_formset %}
+                        <div class="member-form bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                                        {{ member_form.name.label }}
+                                    </label>
+                                    {{ member_form.name }}
+                                    {% if member_form.name.errors %}
+                                    <p class="mt-1 text-sm text-red-600">{{ member_form.name.errors.0 }}</p>
+                                    {% endif %}
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                                        {{ member_form.role.label }}
+                                    </label>
+                                    {{ member_form.role }}
+                                    {% if member_form.role.errors %}
+                                    <p class="mt-1 text-sm text-red-600">{{ member_form.role.errors.0 }}</p>
+                                    {% endif %}
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                                        {{ member_form.phone.label }}
+                                    </label>
+                                    {{ member_form.phone }}
+                                    {% if member_form.phone.errors %}
+                                    <p class="mt-1 text-sm text-red-600">{{ member_form.phone.errors.0 }}</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="mt-4 pt-4 border-t border-gray-200 flex items-center justify-between">
+                                <button type="button" class="remove-member px-4 py-2 bg-white border border-red-300 text-red-600 text-sm rounded-lg hover:bg-red-50 transition-all">
+                                    Remover Membro
+                                </button>
+                                <div class="hidden">
+                                    {{ member_form.DELETE }}
+                                    {{ member_form.id }}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    {% if members_formset.non_form_errors %}
+                    <div class="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                        <p class="text-sm text-red-600">{{ members_formset.non_form_errors }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="mt-8 flex justify-end gap-3">
+                <a href="{% if object %}{% url 'teams:detail' object.pk %}{% else %}{% url 'teams:list' %}{% endif %}"
+                    class="px-6 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
+                    Cancelar
+                </a>
+                <button type="submit"
+                    class="px-6 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-all">
+                    {{ submit_text }}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const formsetContainer = document.getElementById('members-formset');
+        const addButton = document.getElementById('add-member');
+        const totalFormsInput = document.getElementById('id_members-TOTAL_FORMS');
+        
+        // Store a clean template on page load
+        const firstFormOriginal = formsetContainer.querySelector('.member-form');
+        let cleanTemplate = null;
+        
+        if (firstFormOriginal) {
+            cleanTemplate = firstFormOriginal.cloneNode(true);
+            
+            // Clear all input values from the template
+            const inputs = cleanTemplate.querySelectorAll('input:not([type="hidden"]):not([type="checkbox"]), textarea, select');
+            inputs.forEach(input => {
+                input.value = '';
+            });
+            
+            // Clear hidden ID field
+            const idInput = cleanTemplate.querySelector('input[name$="-id"]');
+            if (idInput) {
+                idInput.value = '';
+            }
+            
+            // Uncheck DELETE checkbox
+            const deleteCheckbox = cleanTemplate.querySelector('input[name$="-DELETE"]');
+            if (deleteCheckbox) {
+                deleteCheckbox.checked = false;
+            }
+            
+            // Clear error messages
+            const errors = cleanTemplate.querySelectorAll('p.text-red-600');
+            errors.forEach(error => error.remove());
+        }
+        
+        // If no forms exist (new team), create the first one
+        if (!firstFormOriginal) {
+            // Need to create a basic template structure
+            const emptyFormHTML = `
+                <div class="member-form bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Nome</label>
+                            <input type="text" name="members-0-name" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent" placeholder="Nome completo">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Função</label>
+                            <input type="text" name="members-0-role" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent" placeholder="Ex: Técnico de Som, Iluminador, etc.">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Telefone</label>
+                            <input type="text" name="members-0-phone" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent" placeholder="(00) 00000-0000">
+                        </div>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-gray-200 flex items-center justify-between">
+                        <button type="button" class="remove-member px-4 py-2 bg-white border border-red-300 text-red-600 text-sm rounded-lg hover:bg-red-50 transition-all">
+                            Remover Membro
+                        </button>
+                        <div class="hidden">
+                            <input type="checkbox" name="members-0-DELETE" id="id_members-0-DELETE">
+                            <input type="hidden" name="members-0-id" id="id_members-0-id">
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            formsetContainer.innerHTML = emptyFormHTML;
+            totalFormsInput.value = '1';
+            
+            const newForm = formsetContainer.querySelector('.member-form');
+            cleanTemplate = newForm.cloneNode(true);
+            
+            // Add event listener to the first form
+            const removeBtn = newForm.querySelector('.remove-member');
+            if (removeBtn) {
+                removeBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    removeForm(newForm);
+                });
+            }
+        }
+        
+        function updateFormIndexes() {
+            let visibleIndex = 0;
+            
+            formsetContainer.querySelectorAll('.member-form').forEach((form) => {
+                // Skip hidden forms (marked for deletion)
+                if (form.style.display === 'none') {
+                    return;
+                }
+                
+                // Update all input/select/textarea names and ids
+                const inputs = form.querySelectorAll('input, select, textarea');
+                inputs.forEach(input => {
+                    if (input.name) {
+                        input.name = input.name.replace(/members-(\d+)-/, `members-${visibleIndex}-`);
+                    }
+                    if (input.id) {
+                        input.id = input.id.replace(/id_members-(\d+)-/, `id_members-${visibleIndex}-`);
+                    }
+                });
+                
+                // Update labels
+                const labels = form.querySelectorAll('label');
+                labels.forEach(label => {
+                    if (label.htmlFor) {
+                        label.htmlFor = label.htmlFor.replace(/id_members-(\d+)-/, `id_members-${visibleIndex}-`);
+                    }
+                });
+                
+                visibleIndex++;
+            });
+            
+            // Update total forms count - must include ALL forms (even hidden ones)
+            totalFormsInput.value = formsetContainer.querySelectorAll('.member-form').length;
+        }
+        
+        function createEmptyForm() {
+            if (!cleanTemplate) {
+                return null;
+            }
+            
+            const newForm = cleanTemplate.cloneNode(true);
+            newForm.style.display = '';
+            
+            return newForm;
+        }
+        
+        addButton.addEventListener('click', function() {
+            const newForm = createEmptyForm();
+            if (newForm) {
+                formsetContainer.appendChild(newForm);
+                
+                // Add remove functionality to the new form
+                const removeBtn = newForm.querySelector('.remove-member');
+                if (removeBtn) {
+                    removeBtn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        removeForm(newForm);
+                    });
+                }
+                
+                updateFormIndexes();
+                
+                // Scroll to the new form
+                newForm.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        });
+        
+        function removeForm(formElement) {
+            // Check if this is an existing member (has an ID)
+            const idInput = formElement.querySelector('input[name$="-id"]');
+            if (idInput && idInput.value) {
+                // Mark for deletion instead of removing
+                const deleteInput = formElement.querySelector('input[name$="-DELETE"]');
+                if (deleteInput) {
+                    deleteInput.checked = true;
+                }
+                
+                formElement.style.display = 'none';
+            } else {
+                // New form, can be removed completely
+                formElement.remove();
+            }
+            
+            updateFormIndexes();
+        }
+        
+        // Add remove functionality to existing forms
+        document.querySelectorAll('.remove-member').forEach(button => {
+            button.addEventListener('click', function() {
+                const formElement = this.closest('.member-form');
+                removeForm(formElement);
+            });
+        });
+        
+        // Phone mask function
+        function applyPhoneMask(input) {
+            let value = input.value.replace(/\D/g, '');
+            
+            if (value.length <= 10) {
+                // Format: (00) 0000-0000
+                value = value.replace(/^(\d{2})(\d{4})(\d{4}).*/, '($1) $2-$3');
+                value = value.replace(/^(\d{2})(\d{4})(\d{0,4}).*/, '($1) $2-$3');
+                value = value.replace(/^(\d{2})(\d{0,4})/, '($1) $2');
+                value = value.replace(/^(\d*)/, '($1');
+            } else {
+                // Format: (00) 00000-0000
+                value = value.replace(/^(\d{2})(\d{5})(\d{4}).*/, '($1) $2-$3');
+                value = value.replace(/^(\d{2})(\d{5})(\d{0,4}).*/, '($1) $2-$3');
+                value = value.replace(/^(\d{2})(\d{0,5})/, '($1) $2');
+            }
+            
+            input.value = value;
+        }
+        
+        // Apply mask to existing phone inputs
+        function attachPhoneMask(input) {
+            input.addEventListener('input', function() {
+                applyPhoneMask(this);
+            });
+            
+            input.addEventListener('keypress', function(e) {
+                // Allow only numbers, backspace, delete, arrows
+                const char = String.fromCharCode(e.which);
+                if (!/[0-9]/.test(char)) {
+                    e.preventDefault();
+                }
+            });
+        }
+        
+        // Apply to all existing phone inputs
+        document.querySelectorAll('input[name$="-phone"]').forEach(attachPhoneMask);
+        
+        // Override createEmptyForm to attach mask to new forms
+        const originalAddClick = addButton.onclick;
+        addButton.onclick = null;
+        addButton.addEventListener('click', function() {
+            const newForm = createEmptyForm();
+            if (newForm) {
+                formsetContainer.appendChild(newForm);
+                
+                // Add remove functionality to the new form
+                const removeBtn = newForm.querySelector('.remove-member');
+                if (removeBtn) {
+                    removeBtn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        removeForm(newForm);
+                    });
+                }
+                
+                // Attach phone mask to the new phone input
+                const phoneInput = newForm.querySelector('input[name$="-phone"]');
+                if (phoneInput) {
+                    attachPhoneMask(phoneInput);
+                }
+                
+                updateFormIndexes();
+                
+                // Scroll to the new form
+                newForm.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        });
+    });
+</script>
+{% endblock %}

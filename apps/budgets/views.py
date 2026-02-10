@@ -11,7 +11,7 @@ from django.http import HttpResponseRedirect, JsonResponse
 
 from apps.common.mixins import AuditMixin
 from .models import Budget
-from .forms import BudgetForm, BudgetSearchForm
+from .forms import BudgetForm, BudgetSearchForm, BudgetItemFormSet
 
 
 class BudgetListView(LoginRequiredMixin, ListView):
@@ -99,7 +99,7 @@ class BudgetCreateView(LoginRequiredMixin, AuditMixin, SuccessMessageMixin, Crea
         return reverse_lazy('budgets:detail', kwargs={'pk': self.object.pk})
     
     def get_context_data(self, **kwargs):
-        """Add breadcrumbs to context."""
+        """Add breadcrumbs and formset to context."""
         context = super().get_context_data(**kwargs)
         context['breadcrumbs'] = [
             {'name': 'Orçamentos', 'url': reverse_lazy('budgets:list')},
@@ -107,7 +107,26 @@ class BudgetCreateView(LoginRequiredMixin, AuditMixin, SuccessMessageMixin, Crea
         ]
         context['form_title'] = 'Novo Orçamento'
         context['submit_text'] = 'Criar Orçamento'
+        
+        if self.request.POST:
+            context['items_formset'] = BudgetItemFormSet(self.request.POST, instance=self.object)
+        else:
+            context['items_formset'] = BudgetItemFormSet(instance=self.object)
+        
         return context
+    
+    def form_valid(self, form):
+        """Save budget and items."""
+        context = self.get_context_data()
+        items_formset = context['items_formset']
+        
+        if items_formset.is_valid():
+            self.object = form.save()
+            items_formset.instance = self.object
+            items_formset.save()
+            return super().form_valid(form)
+        else:
+            return self.form_invalid(form)
 
 
 class BudgetUpdateView(LoginRequiredMixin, AuditMixin, SuccessMessageMixin, UpdateView):
@@ -123,7 +142,7 @@ class BudgetUpdateView(LoginRequiredMixin, AuditMixin, SuccessMessageMixin, Upda
         return reverse_lazy('budgets:detail', kwargs={'pk': self.object.pk})
     
     def get_context_data(self, **kwargs):
-        """Add breadcrumbs to context."""
+        """Add breadcrumbs and formset to context."""
         context = super().get_context_data(**kwargs)
         context['breadcrumbs'] = [
             {'name': 'Orçamentos', 'url': reverse_lazy('budgets:list')},
@@ -132,7 +151,26 @@ class BudgetUpdateView(LoginRequiredMixin, AuditMixin, SuccessMessageMixin, Upda
         ]
         context['form_title'] = f'Editar Orçamento: {self.object.name}'
         context['submit_text'] = 'Salvar Alterações'
+        
+        if self.request.POST:
+            context['items_formset'] = BudgetItemFormSet(self.request.POST, instance=self.object)
+        else:
+            context['items_formset'] = BudgetItemFormSet(instance=self.object)
+        
         return context
+    
+    def form_valid(self, form):
+        """Save budget and items."""
+        context = self.get_context_data()
+        items_formset = context['items_formset']
+        
+        if items_formset.is_valid():
+            self.object = form.save()
+            items_formset.instance = self.object
+            items_formset.save()
+            return super().form_valid(form)
+        else:
+            return self.form_invalid(form)
 
 
 class BudgetDeleteView(LoginRequiredMixin, DeleteView):

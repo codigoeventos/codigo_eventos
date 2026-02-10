@@ -134,7 +134,7 @@
             <dl class="space-y-3">
                 <div>
                     <dt class="text-xs text-gray-500">Criado por</dt>
-                    <dd class="text-sm text-gray-900">{{ technical_visit.created_by.get_full_name|default:technical_visit.created_by.username }}</dd>
+                    <dd class="text-sm text-gray-900">{{ technical_visit.created_by.get_full_name|default:technical_visit.created_by.email }}</dd>
                 </div>
                 <div>
                     <dt class="text-xs text-gray-500">Criado em</dt>
@@ -168,6 +168,8 @@
 
 <!-- Delete Modal -->
 {% include 'components/delete_modal.html' %}
+
+{% csrf_token %}
 
 <script>
 function openTechnicalVisitDeleteModal(visitId, eventName, visitDate, attachmentsCount) {

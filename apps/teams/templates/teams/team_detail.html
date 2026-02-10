@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block title %}{{ team.name }} - Equipes{% endblock %}
+{% block page_title %}Detalhes da Equipe{% endblock %}
+
+{% block content %}
+{% include 'components/breadcrumbs.html' %}
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Team Info Card -->
+    <div class="lg:col-span-2">
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div class="flex justify-between items-start mb-6">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-900">{{ team.name }}</h2>
+                    <p class="text-sm text-gray-500 mt-1">Criada em {{ team.created_at|date:"d/m/Y" }}</p>
+                </div>
+
+                <div class="flex gap-2">
+                    <a href="{% url 'teams:edit' team.pk %}"
+                        class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
+                        Editar
+                    </a>
+                    <button onclick="openTeamDeleteModal({{ team.pk }}, '{{ team.name|escapejs }}', {{ team.members.count }})"
+                        class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all">
+                        Excluir
+                    </button>
+                </div>
+            </div>
+
+            {% if team.description %}
+            <div class="mb-6">
+                <h3 class="text-sm font-medium text-gray-500 mb-2">Descrição</h3>
+                <p class="text-sm text-gray-900">{{ team.description }}</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Team Members Section -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mt-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold text-gray-900">Membros da Equipe</h3>
+                <span class="text-sm text-gray-500">{{ team.members.count }} membro{{ team.members.count|pluralize }}</span>
+            </div>
+
+            {% if team.members.all %}
+            <div class="space-y-3">
+                {% for member in team.members.all %}
+                <div class="p-4 bg-gray-50 rounded-lg">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-sm font-medium text-gray-900">{{ member.name }}</p>
+                            <p class="text-xs text-gray-500 mt-1">{{ member.role }}</p>
+                            <p class="text-xs text-gray-500 mt-1">{{ member.phone }}</p>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-sm text-gray-500 text-center py-4">Nenhum membro cadastrado</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="space-y-6">
+        <!-- Metadata -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Informações</h3>
+            <dl class="space-y-3">
+                {% if team.created_by %}
+                <div>
+                    <dt class="text-xs text-gray-500">Criado por</dt>
+                    <dd class="text-sm text-gray-900">{{ team.created_by.get_full_name|default:team.created_by.email }}</dd>
+                </div>
+                {% endif %}
+                <div>
+                    <dt class="text-xs text-gray-500">Criado em</dt>
+                    <dd class="text-sm text-gray-900">{{ team.created_at|date:"d/m/Y H:i" }}</dd>
+                </div>
+                {% if team.updated_by %}
+                <div>
+                    <dt class="text-xs text-gray-500">Última atualização</dt>
+                    <dd class="text-sm text-gray-900">{{ team.updated_at|date:"d/m/Y H:i" }}</dd>
+                </div>
+                {% endif %}
+            </dl>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Modal -->
+{% include 'components/delete_modal.html' %}
+
+{% csrf_token %}
+
+<script>
+function openTeamDeleteModal(teamId, teamName, membersCount) {
+    const deleteUrl = `/teams/${teamId}/delete/`;
+    const redirectUrl = '{% url "teams:list" %}';
+    
+    const itemDetails = `
+        <div class="space-y-2">
+            <p class="text-sm font-medium text-gray-900">${teamName}</p>
+            <p class="text-sm text-gray-500">${membersCount} membro${membersCount !== 1 ? 's' : ''}</p>
+        </div>
+    `;
+    
+    const warning = membersCount > 0 
+        ? `Esta equipe possui ${membersCount} membro${membersCount > 1 ? 's' : ''} associado${membersCount > 1 ? 's' : ''}.`
+        : null;
+    
+    openDeleteModal(deleteUrl, `a equipe "${teamName}"`, itemDetails, warning, redirectUrl);
+}
+</script>
+{% endblock %}

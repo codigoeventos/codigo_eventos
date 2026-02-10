@@ -136,6 +136,8 @@
 <!-- Delete Modal -->
 {% include 'components/delete_modal.html' %}
 
+{% csrf_token %}
+
 <script>
 function openProposalDeleteModal(proposalId, proposalTitle, eventName, budgetsCount) {
     const deleteUrl = `/proposals/${proposalId}/delete/`;

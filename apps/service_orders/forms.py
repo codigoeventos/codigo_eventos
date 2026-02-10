@@ -3,7 +3,8 @@ Service Order forms for Event Management System.
 """
 
 from django import forms
-from .models import ServiceOrder
+from django.forms import inlineformset_factory
+from .models import ServiceOrder, ServiceOrderItem
 
 
 class ServiceOrderForm(forms.ModelForm):
@@ -28,6 +29,50 @@ class ServiceOrderForm(forms.ModelForm):
             'event': 'Evento',
             'status': 'Status',
         }
+
+
+class ServiceOrderItemForm(forms.ModelForm):
+    """Form for individual service order items."""
+    
+    class Meta:
+        model = ServiceOrderItem
+        fields = ['name', 'description', 'quantity', 'execution_status']
+        widgets = {
+            'name': forms.TextInput(attrs={
+                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent',
+                'placeholder': 'Nome do item'
+            }),
+            'description': forms.Textarea(attrs={
+                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent',
+                'placeholder': 'Descrição detalhada',
+                'rows': 3
+            }),
+            'quantity': forms.NumberInput(attrs={
+                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent',
+                'min': '1'
+            }),
+            'execution_status': forms.Select(attrs={
+                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent'
+            }),
+        }
+        labels = {
+            'name': 'Item',
+            'description': 'Descrição',
+            'quantity': 'Quantidade',
+            'execution_status': 'Status de Execução',
+        }
+
+
+# Formset for ServiceOrderItem
+ServiceOrderItemFormSet = inlineformset_factory(
+    ServiceOrder,
+    ServiceOrderItem,
+    form=ServiceOrderItemForm,
+    extra=0,
+    can_delete=True,
+    min_num=0,
+    validate_min=False
+)
 
 
 class ServiceOrderSearchForm(forms.Form):

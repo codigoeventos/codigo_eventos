@@ -122,6 +122,8 @@
 <!-- Delete Modal -->
 {% include 'components/delete_modal.html' %}
 
+{% csrf_token %}
+
 <script>
 function openTeamMemberDeleteModal(memberId, memberName, memberRole, memberPhone, eventsCount) {
     const deleteUrl = `/teams/${memberId}/delete/`;

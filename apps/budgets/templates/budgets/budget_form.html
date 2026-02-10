@@ -34,26 +34,90 @@
                     {% endif %}
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label for="{{ form.status.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                            {{ form.status.label }}
-                        </label>
-                        {{ form.status }}
-                        {% if form.status.errors %}
-                        <p class="mt-1 text-sm text-red-600">{{ form.status.errors.0 }}</p>
-                        {% endif %}
-                    </div>
+                <div>
+                    <label for="{{ form.status.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        {{ form.status.label }}
+                    </label>
+                    {{ form.status }}
+                    {% if form.status.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.status.errors.0 }}</p>
+                    {% endif %}
+                </div>
 
-                    <div class="flex items-center mt-8">
-                        {{ form.is_selected }}
-                        <label for="{{ form.is_selected.id_for_label }}" class="ml-2 text-sm text-gray-700">
-                            {{ form.is_selected.label }}
-                        </label>
-                        {% if form.is_selected.errors %}
-                        <p class="mt-1 text-sm text-red-600">{{ form.is_selected.errors.0 }}</p>
-                        {% endif %}
+                <!-- Budget Items -->
+                <div class="border-t pt-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-medium text-gray-900">Itens do Orçamento</h3>
+                        <button type="button" id="add-item" class="px-4 py-2 bg-black text-white text-sm rounded-lg hover:bg-gray-800 transition-all">
+                            + Adicionar Item
+                        </button>
                     </div>
+                    
+                    {{ items_formset.management_form }}
+                    
+                    <div id="items-formset" class="space-y-4">
+                        {% for item_form in items_formset %}
+                        <div class="item-form bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                <div class="lg:col-span-2">
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                                        {{ item_form.name.label }}
+                                    </label>
+                                    {{ item_form.name }}
+                                    {% if item_form.name.errors %}
+                                    <p class="mt-1 text-sm text-red-600">{{ item_form.name.errors.0 }}</p>
+                                    {% endif %}
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                                        {{ item_form.quantity.label }}
+                                    </label>
+                                    {{ item_form.quantity }}
+                                    {% if item_form.quantity.errors %}
+                                    <p class="mt-1 text-sm text-red-600">{{ item_form.quantity.errors.0 }}</p>
+                                    {% endif %}
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                                        {{ item_form.unit_price.label }}
+                                    </label>
+                                    {{ item_form.unit_price }}
+                                    {% if item_form.unit_price.errors %}
+                                    <p class="mt-1 text-sm text-red-600">{{ item_form.unit_price.errors.0 }}</p>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="lg:col-span-4">
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                                        {{ item_form.description.label }}
+                                    </label>
+                                    {{ item_form.description }}
+                                    {% if item_form.description.errors %}
+                                    <p class="mt-1 text-sm text-red-600">{{ item_form.description.errors.0 }}</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="mt-4 pt-4 border-t border-gray-200 flex items-center justify-between">
+                                <button type="button" class="remove-item px-4 py-2 bg-white border border-red-300 text-red-600 text-sm rounded-lg hover:bg-red-50 transition-all">
+                                    Remover Item
+                                </button>
+                                <div class="hidden">
+                                    {{ item_form.DELETE }}
+                                    {{ item_form.id }}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    {% if items_formset.non_form_errors %}
+                    <div class="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                        <p class="text-sm text-red-600">{{ items_formset.non_form_errors }}</p>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
 
@@ -70,4 +134,173 @@
         </form>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const formsetContainer = document.getElementById('items-formset');
+        const addButton = document.getElementById('add-item');
+        const totalFormsInput = document.getElementById('id_items-TOTAL_FORMS');
+        
+        // Store a clean template on page load
+        const firstFormOriginal = formsetContainer.querySelector('.item-form');
+        const cleanTemplate = firstFormOriginal ? firstFormOriginal.cloneNode(true) : null;
+        
+        if (cleanTemplate) {
+            console.log('Clean template saved with button:', cleanTemplate.querySelector('.remove-item'));
+        }
+        
+        function updateFormIndexes() {
+            const forms = formsetContainer.querySelectorAll('.item-form:not([style*="display: none"])');
+            let visibleIndex = 0;
+            
+            formsetContainer.querySelectorAll('.item-form').forEach((form) => {
+                // Skip hidden forms (marked for deletion)
+                if (form.style.display === 'none') {
+                    return;
+                }
+                
+                // Update all input/select/textarea names and ids
+                const inputs = form.querySelectorAll('input, select, textarea');
+                inputs.forEach(input => {
+                    if (input.name) {
+                        input.name = input.name.replace(/items-(\d+)-/, `items-${visibleIndex}-`);
+                    }
+                    if (input.id) {
+                        input.id = input.id.replace(/id_items-(\d+)-/, `id_items-${visibleIndex}-`);
+                    }
+                });
+                
+                // Update labels
+                const labels = form.querySelectorAll('label');
+                labels.forEach(label => {
+                    if (label.htmlFor) {
+                        label.htmlFor = label.htmlFor.replace(/id_items-(\d+)-/, `id_items-${visibleIndex}-`);
+                    }
+                });
+                
+                visibleIndex++;
+            });
+            
+            // Update total forms count - must include ALL forms (even hidden ones)
+            totalFormsInput.value = formsetContainer.querySelectorAll('.item-form').length;
+        }
+        
+        function createEmptyForm() {
+            if (!cleanTemplate) {
+                console.log('No clean template available!');
+                return null;
+            }
+            
+            // Always clone from the clean template
+            const newForm = cleanTemplate.cloneNode(true);
+            
+            // Clear all input values
+            const inputs = newForm.querySelectorAll('input:not([type="hidden"]):not([type="checkbox"]), textarea');
+            inputs.forEach(input => {
+                input.value = '';
+            });
+            
+            // Uncheck DELETE checkbox
+            const deleteCheckbox = newForm.querySelector('input[name$="-DELETE"]');
+            if (deleteCheckbox) {
+                deleteCheckbox.checked = false;
+            }
+            
+            // Clear hidden ID field
+            const idInput = newForm.querySelector('input[name$="-id"]');
+            if (idInput) {
+                idInput.value = '';
+            }
+            
+            // Clear error messages - only <p> tags to avoid removing the button
+            const errors = newForm.querySelectorAll('p.text-red-600');
+            errors.forEach(error => error.remove());
+            
+            console.log('New form created, has remove button:', newForm.querySelector('.remove-item'));
+            
+            console.log('New form HTML:', newForm.innerHTML);
+            return newForm;
+        }
+        
+        addButton.addEventListener('click', function() {
+            const newForm = createEmptyForm();
+            if (newForm) {
+                console.log('New form before append:', newForm);
+                console.log('New form HTML before append:', newForm.innerHTML);
+                
+                // Make sure the form is visible
+                newForm.style.display = '';
+                
+                formsetContainer.appendChild(newForm);
+                
+                console.log('New form after append:', newForm);
+                console.log('Looking for .remove-item button...');
+                
+                // Add remove functionality to the new form BEFORE updating indexes
+                const removeBtn = newForm.querySelector('.remove-item');
+                console.log('Remove button found:', removeBtn);
+                
+                if (removeBtn) {
+                    console.log('Found remove button in new form');
+                    removeBtn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        removeForm(newForm);
+                    });
+                } else {
+                    console.log('Remove button NOT found in new form');
+                    console.log('All buttons in form:', newForm.querySelectorAll('button'));
+                }
+                
+                updateFormIndexes();
+                
+                // Scroll to the new form
+                newForm.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        });
+        
+        function removeForm(formElement) {
+            const visibleForms = formsetContainer.querySelectorAll('.item-form:not([style*="display: none"])');
+            
+            // Don't allow removing if it's the only visible form
+            if (visibleForms.length <= 1) {
+                alert('Deve haver pelo menos um item no orçamento.');
+                return;
+            }
+            
+            // Check if this is an existing item (has an ID)
+            const idInput = formElement.querySelector('input[name$="-id"]');
+            if (idInput && idInput.value) {
+                // Mark for deletion instead of removing
+                const deleteInput = formElement.querySelector('input[name$="-DELETE"]');
+                if (deleteInput) {
+                    deleteInput.checked = true;
+                }
+                
+                // Disable all inputs in the form to avoid validation errors
+                const inputs = formElement.querySelectorAll('input:not([name$="-DELETE"]):not([name$="-id"]), textarea, select');
+                inputs.forEach(input => {
+                    input.disabled = true;
+                    input.removeAttribute('required');
+                });
+                
+                formElement.style.display = 'none';
+            } else {
+                // New form, can be removed completely
+                formElement.remove();
+            }
+            
+            updateFormIndexes();
+        }
+        
+        // Add remove functionality to existing forms
+        document.querySelectorAll('.remove-item').forEach(button => {
+            button.addEventListener('click', function() {
+                const formElement = this.closest('.item-form');
+                removeForm(formElement);
+            });
+        });
+    });
+</script>
 {% endblock %}

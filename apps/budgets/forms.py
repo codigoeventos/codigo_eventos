@@ -3,7 +3,8 @@ Budget forms for Event Management System.
 """
 
 from django import forms
-from .models import Budget
+from django.forms import inlineformset_factory
+from .models import Budget, BudgetItem
 
 
 class BudgetForm(forms.ModelForm):
@@ -11,7 +12,7 @@ class BudgetForm(forms.ModelForm):
     
     class Meta:
         model = Budget
-        fields = ['proposal', 'name', 'status', 'is_selected']
+        fields = ['proposal', 'name', 'status']
         widgets = {
             'proposal': forms.Select(attrs={
                 'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent'
@@ -23,16 +24,60 @@ class BudgetForm(forms.ModelForm):
             'status': forms.Select(attrs={
                 'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent'
             }),
-            'is_selected': forms.CheckboxInput(attrs={
-                'class': 'h-4 w-4 text-black focus:ring-black border-gray-300 rounded'
-            }),
         }
         labels = {
             'proposal': 'Proposta',
             'name': 'Nome',
             'status': 'Status',
-            'is_selected': 'Selecionado',
         }
+
+
+class BudgetItemForm(forms.ModelForm):
+    """Form for budget items."""
+    
+    class Meta:
+        model = BudgetItem
+        fields = ['name', 'description', 'quantity', 'unit_price']
+        widgets = {
+            'name': forms.TextInput(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent',
+                'placeholder': 'Nome do item'
+            }),
+            'description': forms.Textarea(attrs={
+                'rows': 2,
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent',
+                'placeholder': 'Descrição do item'
+            }),
+            'quantity': forms.NumberInput(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent',
+                'min': '1',
+                'value': '1'
+            }),
+            'unit_price': forms.NumberInput(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent',
+                'step': '0.01',
+                'min': '0',
+                'placeholder': '0.00'
+            }),
+        }
+        labels = {
+            'name': 'Item',
+            'description': 'Descrição',
+            'quantity': 'Quantidade',
+            'unit_price': 'Preço Unitário',
+        }
+
+
+# Formset for budget items
+BudgetItemFormSet = inlineformset_factory(
+    Budget,
+    BudgetItem,
+    form=BudgetItemForm,
+    extra=0,  # Number of empty forms to display
+    can_delete=True,
+    min_num=1,  # Minimum number of items required
+    validate_min=True
+)
 
 
 class BudgetSearchForm(forms.Form):

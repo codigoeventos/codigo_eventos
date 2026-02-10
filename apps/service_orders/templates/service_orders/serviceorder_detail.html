@@ -121,10 +121,12 @@
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <h3 class="text-lg font-semibold text-gray-900 mb-4">Informações</h3>
             <dl class="space-y-3">
+                {% if service_order.created_by %}
                 <div>
                     <dt class="text-xs text-gray-500">Criado por</dt>
-                    <dd class="text-sm text-gray-900">{{ service_order.created_by.get_full_name|default:service_order.created_by.username }}</dd>
+                    <dd class="text-sm text-gray-900">{{ service_order.created_by.get_full_name|default:service_order.created_by.email }}</dd>
                 </div>
+                {% endif %}
                 <div>
                     <dt class="text-xs text-gray-500">Criado em</dt>
                     <dd class="text-sm text-gray-900">{{ service_order.created_at|date:"d/m/Y H:i" }}</dd>
@@ -150,6 +152,8 @@
 
 <!-- Delete Modal -->
 {% include 'components/delete_modal.html' %}
+
+{% csrf_token %}
 
 <script>
 function openServiceOrderDeleteModal(serviceOrderId, osNumber, eventName, itemsCount) {
