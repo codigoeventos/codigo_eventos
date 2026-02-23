@@ -29,8 +29,8 @@ class Migration(migrations.Migration):
                             updated_at timestamptz NULL,
                             name varchar(255) NOT NULL,
                             description text NULL,
-                            created_by_id integer NULL REFERENCES auth_user(id) ON DELETE SET NULL,
-                            updated_by_id integer NULL REFERENCES auth_user(id) ON DELETE SET NULL
+                            created_by_id integer NULL,
+                            updated_by_id integer NULL
                         );
                     """,
                     reverse_sql='DROP TABLE IF EXISTS contractors_contractor;',

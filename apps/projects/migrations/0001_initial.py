@@ -35,8 +35,8 @@ class Migration(migrations.Migration):
                             status varchar(20) NOT NULL DEFAULT 'draft',
                             original_document varchar(255) NULL,
                             event_id bigint NOT NULL REFERENCES events_event(id) ON DELETE CASCADE,
-                            created_by_id integer NULL REFERENCES auth_user(id) ON DELETE SET NULL,
-                            updated_by_id integer NULL REFERENCES auth_user(id) ON DELETE SET NULL
+                            created_by_id integer NULL,
+                            updated_by_id integer NULL
                         );
                     """,
                     reverse_sql='DROP TABLE IF EXISTS projects_project;',
@@ -59,7 +59,7 @@ class Migration(migrations.Migration):
                             history_type varchar(1) NOT NULL,
                             created_by_id integer NULL,
                             event_id bigint NULL,
-                            history_user_id integer NULL REFERENCES auth_user(id) ON DELETE SET NULL,
+                            history_user_id integer NULL,
                             updated_by_id integer NULL
                         );
                     """,
