@@ -33,7 +33,7 @@ class TechnicalVisit(BaseModel):
     )
     
     responsible = models.ForeignKey(
-        'teams.TeamMember',
+        'contractors.ContractorMember',
         on_delete=models.SET_NULL,
         null=True,
         blank=True,

@@ -20,11 +20,11 @@ urlpatterns = [
     path('dashboard/', include('apps.dashboard.urls')),
     path('clients/', include('apps.clients.urls')),
     path('events/', include('apps.events.urls')),
-    path('proposals/', include('apps.proposals.urls')),
+    path('projects/', include('apps.projects.urls')),
     path('budgets/', include('apps.budgets.urls')),
     path('service-orders/', include('apps.service_orders.urls')),
     path('technical-visits/', include('apps.technical_visits.urls')),
-    path('teams/', include('apps.teams.urls')),
+    path('contractors/', include('apps.contractors.urls')),
     
     # TODO: Add URLs for other apps as they are developed
     # path('documents/', include('apps.documents.urls')),

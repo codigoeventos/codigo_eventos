@@ -1,0 +1,253 @@
+{% extends "base.html" %}
+
+{% block title %}{{ contractor.name }} - Empreiteiras{% endblock %}
+{% block page_title %}Detalhes da Empreiteira{% endblock %}
+
+{% block content %}
+{% include 'components/breadcrumbs.html' %}
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Main Info -->
+    <div class="lg:col-span-2 space-y-6">
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div class="flex justify-between items-start mb-6">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-900">{{ contractor.name }}</h2>
+                    <p class="text-sm text-gray-500 mt-1">Cadastrada em {{ contractor.created_at|date:"d/m/Y" }}</p>
+                </div>
+                <div class="flex gap-2">
+                    <a href="{% url 'contractors:edit' contractor.pk %}"
+                        class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
+                        Editar
+                    </a>
+                    <button onclick="openContractorDeleteModal({{ contractor.pk }}, '{{ contractor.name|escapejs }}', {{ contractor.members.count }})"
+                        class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all">
+                        Excluir
+                    </button>
+                </div>
+            </div>
+
+            <dl class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {% if contractor.trade_name %}
+                <div>
+                    <dt class="text-sm font-medium text-gray-500">Nome Fantasia</dt>
+                    <dd class="mt-1 text-sm text-gray-900">{{ contractor.trade_name }}</dd>
+                </div>
+                {% endif %}
+                <div>
+                    <dt class="text-sm font-medium text-gray-500">CNPJ</dt>
+                    <dd class="mt-1 text-sm text-gray-900">{{ contractor.cnpj|default:"—" }}</dd>
+                </div>
+                {% if contractor.state_registration %}
+                <div>
+                    <dt class="text-sm font-medium text-gray-500">Inscrição Estadual</dt>
+                    <dd class="mt-1 text-sm text-gray-900">{{ contractor.state_registration }}</dd>
+                </div>
+                {% endif %}
+                <div>
+                    <dt class="text-sm font-medium text-gray-500">Responsável Legal</dt>
+                    <dd class="mt-1 text-sm text-gray-900">{{ contractor.legal_representative|default:"—" }}</dd>
+                </div>
+                <div>
+                    <dt class="text-sm font-medium text-gray-500">Telefone</dt>
+                    <dd class="mt-1 text-sm text-gray-900">{{ contractor.phone|default:"—" }}</dd>
+                </div>
+                <div>
+                    <dt class="text-sm font-medium text-gray-500">E-mail</dt>
+                    <dd class="mt-1 text-sm text-gray-900">
+                        {% if contractor.email %}
+                        <a href="mailto:{{ contractor.email }}" class="text-blue-600 hover:underline">{{ contractor.email }}</a>
+                        {% else %}—{% endif %}
+                    </dd>
+                </div>
+                {% if contractor.website %}
+                <div>
+                    <dt class="text-sm font-medium text-gray-500">Website</dt>
+                    <dd class="mt-1 text-sm text-gray-900">
+                        <a href="{{ contractor.website }}" target="_blank" class="text-blue-600 hover:underline">{{ contractor.website }}</a>
+                    </dd>
+                </div>
+                {% endif %}
+                {% if contractor.full_address %}
+                <div class="md:col-span-2">
+                    <dt class="text-sm font-medium text-gray-500">Endereço</dt>
+                    <dd class="mt-1 text-sm text-gray-900">{{ contractor.full_address }}</dd>
+                </div>
+                {% endif %}
+                {% if contractor.notes %}
+                <div class="md:col-span-2">
+                    <dt class="text-sm font-medium text-gray-500">Observações</dt>
+                    <dd class="mt-1 text-sm text-gray-900">{{ contractor.notes }}</dd>
+                </div>
+                {% endif %}
+            </dl>
+        </div>
+
+        <!-- Banking Data -->
+        {% if contractor.bank_name or contractor.bank_pix_key %}
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Dados Bancários</h3>
+            <dl class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {% if contractor.bank_name %}
+                <div>
+                    <dt class="text-sm font-medium text-gray-500">Banco</dt>
+                    <dd class="mt-1 text-sm text-gray-900">{{ contractor.bank_name }}</dd>
+                </div>
+                {% endif %}
+                {% if contractor.bank_agency %}
+                <div>
+                    <dt class="text-sm font-medium text-gray-500">Agência</dt>
+                    <dd class="mt-1 text-sm text-gray-900">{{ contractor.bank_agency }}</dd>
+                </div>
+                {% endif %}
+                {% if contractor.bank_account %}
+                <div>
+                    <dt class="text-sm font-medium text-gray-500">Conta</dt>
+                    <dd class="mt-1 text-sm text-gray-900">
+                        {{ contractor.bank_account }}
+                        {% if contractor.bank_account_type %}
+                        <span class="text-xs text-gray-500">({{ contractor.get_bank_account_type_display }})</span>
+                        {% endif %}
+                    </dd>
+                </div>
+                {% endif %}
+                {% if contractor.bank_pix_key %}
+                <div>
+                    <dt class="text-sm font-medium text-gray-500">Chave PIX</dt>
+                    <dd class="mt-1 text-sm text-gray-900 font-mono">{{ contractor.bank_pix_key }}</dd>
+                </div>
+                {% endif %}
+            </dl>
+        </div>
+        {% endif %}
+
+        <!-- Documentation -->
+        {% if contractor.certifications %}
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Documentação</h3>
+            <p class="text-sm text-gray-900 whitespace-pre-wrap">{{ contractor.certifications }}</p>
+        </div>
+        {% endif %}
+
+        <!-- Members -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold text-gray-900">Membros da Equipe</h3>
+                <a href="{% url 'contractors:member_create' contractor.pk %}"
+                    class="text-sm text-black hover:underline font-medium flex items-center gap-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    Adicionar Membro
+                </a>
+            </div>
+            {% if contractor.members.all %}
+            <div class="space-y-3">
+                {% for member in contractor.members.all %}
+                <a href="{% url 'contractors:member_detail' member.pk %}"
+                    class="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors group">
+                    <div class="flex items-center gap-3">
+                        {% if member.photo %}
+                        <img src="{{ member.photo.url }}" alt="{{ member.name }}"
+                            class="w-10 h-10 rounded-full object-cover border border-gray-200">
+                        {% else %}
+                        <div class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-sm font-semibold">
+                            {{ member.name|first|upper }}
+                        </div>
+                        {% endif %}
+                        <div>
+                            <p class="text-sm font-medium text-gray-900">{{ member.name }}</p>
+                            <p class="text-xs text-gray-500">{{ member.role|default:"—" }}</p>
+                            <div class="flex gap-3 mt-1">
+                                {% if member.aso_expiry_date %}
+                                <span class="text-xs {% if member.aso_is_valid %}text-green-600{% else %}text-red-600{% endif %}">
+                                    ASO: {{ member.aso_expiry_date|date:"d/m/Y" }}
+                                </span>
+                                {% endif %}
+                                {% if member.nr_certificate_expiry %}
+                                <span class="text-xs {% if member.nr_is_valid %}text-green-600{% else %}text-red-600{% endif %}">
+                                    NR: {{ member.nr_certificate_expiry|date:"d/m/Y" }}
+                                </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <svg class="w-5 h-5 text-gray-400 group-hover:text-gray-700 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                </a>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-sm text-gray-500 text-center py-4">Nenhum membro cadastrado</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="space-y-6">
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Informações</h3>
+            <dl class="space-y-3">
+                {% if contractor.created_by %}
+                <div>
+                    <dt class="text-xs text-gray-500">Criado por</dt>
+                    <dd class="text-sm text-gray-900">{{ contractor.created_by.get_full_name|default:contractor.created_by.email }}</dd>
+                </div>
+                {% endif %}
+                <div>
+                    <dt class="text-xs text-gray-500">Criado em</dt>
+                    <dd class="text-sm text-gray-900">{{ contractor.created_at|date:"d/m/Y H:i" }}</dd>
+                </div>
+                {% if contractor.updated_at %}
+                <div>
+                    <dt class="text-xs text-gray-500">Última atualização</dt>
+                    <dd class="text-sm text-gray-900">{{ contractor.updated_at|date:"d/m/Y H:i" }}</dd>
+                </div>
+                {% endif %}
+            </dl>
+        </div>
+
+        <!-- Events associated -->
+        {% if contractor.event_assignments.all %}
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Eventos Vinculados</h3>
+            <div class="space-y-2">
+                {% for assignment in contractor.event_assignments.all %}
+                <a href="{% url 'events:detail' assignment.event.pk %}"
+                    class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors group">
+                    <p class="text-sm font-medium text-gray-900">{{ assignment.event.name }}</p>
+                    <svg class="w-4 h-4 text-gray-400 group-hover:text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% include 'components/delete_modal.html' %}
+{% csrf_token %}
+
+<script>
+function openContractorDeleteModal(contractorId, contractorName, membersCount) {
+    const deleteUrl = `/contractors/${contractorId}/delete/`;
+    const redirectUrl = '{% url "contractors:list" %}';
+
+    const itemDetails = `
+        <div class="space-y-2">
+            <p class="text-sm font-medium text-gray-900">${contractorName}</p>
+            <p class="text-sm text-gray-500">${membersCount} membro${membersCount !== 1 ? 's' : ''}</p>
+        </div>
+    `;
+
+    const warning = membersCount > 0
+        ? `Esta empreiteira possui ${membersCount} membro${membersCount > 1 ? 's' : ''} associado${membersCount > 1 ? 's' : ''}.`
+        : null;
+
+    openDeleteModal(deleteUrl, `a empreiteira "${contractorName}"`, itemDetails, warning, redirectUrl);
+}
+</script>
+{% endblock %}

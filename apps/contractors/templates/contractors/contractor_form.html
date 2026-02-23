@@ -1,0 +1,316 @@
+{% extends "base.html" %}
+
+{% block title %}{{ form_title }} - Empreiteiras{% endblock %}
+{% block page_title %}{{ form_title }}{% endblock %}
+
+{% block content %}
+{% include 'components/breadcrumbs.html' %}
+
+<div class="w-full mx-auto">
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-8 w-full">
+        <form method="post" novalidate>
+            {% csrf_token %}
+            {% include 'components/form_errors.html' %}
+
+            <div class="space-y-8">
+
+                <!-- Identificação -->
+                <div>
+                    <h3 class="text-base font-semibold text-gray-900 mb-4 pb-2 border-b border-gray-200">Identificação</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="{{ form.name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">{{ form.name.label }} *</label>
+                            {{ form.name }}
+                            {% if form.name.errors %}<p class="mt-1 text-sm text-red-600">{{ form.name.errors.0 }}</p>{% endif %}
+                        </div>
+                        <div>
+                            <label for="{{ form.trade_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">{{ form.trade_name.label }}</label>
+                            {{ form.trade_name }}
+                            {% if form.trade_name.errors %}<p class="mt-1 text-sm text-red-600">{{ form.trade_name.errors.0 }}</p>{% endif %}
+                        </div>
+                        <div>
+                            <label for="{{ form.cnpj.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">{{ form.cnpj.label }}</label>
+                            {{ form.cnpj }}
+                            {% if form.cnpj.errors %}<p class="mt-1 text-sm text-red-600">{{ form.cnpj.errors.0 }}</p>{% endif %}
+                        </div>
+                        <div>
+                            <label for="{{ form.state_registration.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">{{ form.state_registration.label }}</label>
+                            {{ form.state_registration }}
+                            {% if form.state_registration.errors %}<p class="mt-1 text-sm text-red-600">{{ form.state_registration.errors.0 }}</p>{% endif %}
+                        </div>
+                        <div>
+                            <label for="{{ form.legal_representative.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">{{ form.legal_representative.label }}</label>
+                            {{ form.legal_representative }}
+                            {% if form.legal_representative.errors %}<p class="mt-1 text-sm text-red-600">{{ form.legal_representative.errors.0 }}</p>{% endif %}
+                        </div>
+                        <div class="md:col-span-2">
+                            <label for="{{ form.notes.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">{{ form.notes.label }}</label>
+                            {{ form.notes }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contato -->
+                <div>
+                    <h3 class="text-base font-semibold text-gray-900 mb-4 pb-2 border-b border-gray-200">Contato</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div>
+                            <label for="{{ form.phone.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">{{ form.phone.label }}</label>
+                            {{ form.phone }}
+                            {% if form.phone.errors %}<p class="mt-1 text-sm text-red-600">{{ form.phone.errors.0 }}</p>{% endif %}
+                        </div>
+                        <div>
+                            <label for="{{ form.email.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">{{ form.email.label }}</label>
+                            {{ form.email }}
+                            {% if form.email.errors %}<p class="mt-1 text-sm text-red-600">{{ form.email.errors.0 }}</p>{% endif %}
+                        </div>
+                        <div>
+                            <label for="{{ form.website.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">{{ form.website.label }}</label>
+                            {{ form.website }}
+                            {% if form.website.errors %}<p class="mt-1 text-sm text-red-600">{{ form.website.errors.0 }}</p>{% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Endereço -->
+                <div>
+                    <h3 class="text-base font-semibold text-gray-900 mb-4 pb-2 border-b border-gray-200">Endereço</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-6 gap-6">
+                        <div class="md:col-span-4">
+                            <label for="{{ form.address_street.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">{{ form.address_street.label }}</label>
+                            {{ form.address_street }}
+                        </div>
+                        <div class="md:col-span-2">
+                            <label for="{{ form.address_number.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">{{ form.address_number.label }}</label>
+                            {{ form.address_number }}
+                        </div>
+                        <div class="md:col-span-2">
+                            <label for="{{ form.address_complement.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">{{ form.address_complement.label }}</label>
+                            {{ form.address_complement }}
+                        </div>
+                        <div class="md:col-span-2">
+                            <label for="{{ form.address_neighborhood.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">{{ form.address_neighborhood.label }}</label>
+                            {{ form.address_neighborhood }}
+                        </div>
+                        <div class="md:col-span-2">
+                            <label for="{{ form.address_zip.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">{{ form.address_zip.label }}</label>
+                            {{ form.address_zip }}
+                        </div>
+                        <div class="md:col-span-4">
+                            <label for="{{ form.address_city.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">{{ form.address_city.label }}</label>
+                            {{ form.address_city }}
+                        </div>
+                        <div class="md:col-span-2">
+                            <label for="{{ form.address_state.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">{{ form.address_state.label }}</label>
+                            {{ form.address_state }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dados Bancários -->
+                <div>
+                    <h3 class="text-base font-semibold text-gray-900 mb-4 pb-2 border-b border-gray-200">Dados Bancários</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div>
+                            <label for="{{ form.bank_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">{{ form.bank_name.label }}</label>
+                            {{ form.bank_name }}
+                        </div>
+                        <div>
+                            <label for="{{ form.bank_agency.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">{{ form.bank_agency.label }}</label>
+                            {{ form.bank_agency }}
+                        </div>
+                        <div>
+                            <label for="{{ form.bank_account.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">{{ form.bank_account.label }}</label>
+                            {{ form.bank_account }}
+                        </div>
+                        <div>
+                            <label for="{{ form.bank_account_type.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">{{ form.bank_account_type.label }}</label>
+                            {{ form.bank_account_type }}
+                        </div>
+                        <div class="md:col-span-2">
+                            <label for="{{ form.bank_pix_key.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">{{ form.bank_pix_key.label }}</label>
+                            {{ form.bank_pix_key }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Documentação -->
+                <div>
+                    <h3 class="text-base font-semibold text-gray-900 mb-4 pb-2 border-b border-gray-200">Documentação</h3>
+                    <div>
+                        <label for="{{ form.certifications.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">{{ form.certifications.label }}</label>
+                        {{ form.certifications }}
+                        <p class="mt-1 text-xs text-gray-400">{{ form.certifications.help_text }}</p>
+                    </div>
+                </div>
+
+                <!-- Membros -->
+                <div class="border-t pt-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-base font-semibold text-gray-900">Membros da Equipe</h3>
+                        <button type="button" id="add-member" class="px-4 py-2 bg-black text-white text-sm rounded-lg hover:bg-gray-800 transition-all">
+                            + Adicionar Membro
+                        </button>
+                    </div>
+
+                    {{ members_formset.management_form }}
+
+                    <div id="members-formset" class="space-y-4">
+                        {% for member_form in members_formset %}
+                        <div class="member-form bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">{{ member_form.name.label }}</label>
+                                    {{ member_form.name }}
+                                    {% if member_form.name.errors %}<p class="mt-1 text-sm text-red-600">{{ member_form.name.errors.0 }}</p>{% endif %}
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">{{ member_form.role.label }}</label>
+                                    {{ member_form.role }}
+                                    {% if member_form.role.errors %}<p class="mt-1 text-sm text-red-600">{{ member_form.role.errors.0 }}</p>{% endif %}
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">{{ member_form.phone.label }}</label>
+                                    {{ member_form.phone }}
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">{{ member_form.email.label }}</label>
+                                    {{ member_form.email }}
+                                </div>
+                            </div>
+                            <div class="mt-4 pt-4 border-t border-gray-200 flex items-center justify-between">
+                                <button type="button" class="remove-member px-4 py-2 bg-white border border-red-300 text-red-600 text-sm rounded-lg hover:bg-red-50 transition-all">
+                                    Remover Membro
+                                </button>
+                                <div class="hidden">
+                                    {{ member_form.DELETE }}
+                                    {{ member_form.id }}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    {% if members_formset.non_form_errors %}
+                    <div class="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                        <p class="text-sm text-red-600">{{ members_formset.non_form_errors }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="mt-8 flex justify-end gap-3">
+                <a href="{% if object %}{% url 'contractors:detail' object.pk %}{% else %}{% url 'contractors:list' %}{% endif %}"
+                    class="px-6 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
+                    Cancelar
+                </a>
+                <button type="submit" class="px-6 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-all">
+                    {{ submit_text }}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const formsetContainer = document.getElementById('members-formset');
+    const addButton = document.getElementById('add-member');
+    const totalFormsInput = document.getElementById('id_members-TOTAL_FORMS');
+
+    const firstFormOriginal = formsetContainer.querySelector('.member-form');
+    let cleanTemplate = null;
+
+    if (firstFormOriginal) {
+        cleanTemplate = firstFormOriginal.cloneNode(true);
+        cleanTemplate.querySelectorAll('input:not([type="hidden"]):not([type="checkbox"]), textarea, select').forEach(i => i.value = '');
+        const idInput = cleanTemplate.querySelector('input[name$="-id"]');
+        if (idInput) idInput.value = '';
+        const deleteCheckbox = cleanTemplate.querySelector('input[name$="-DELETE"]');
+        if (deleteCheckbox) deleteCheckbox.checked = false;
+        cleanTemplate.querySelectorAll('p.text-red-600').forEach(e => e.remove());
+    }
+
+    if (!firstFormOriginal) {
+        const emptyFormHTML = `
+            <div class="member-form bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div><label class="block text-sm font-medium text-gray-700 mb-2">Nome</label>
+                        <input type="text" name="members-0-name" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent" placeholder="Nome completo"></div>
+                    <div><label class="block text-sm font-medium text-gray-700 mb-2">Função</label>
+                        <input type="text" name="members-0-role" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent" placeholder="Ex: Técnico de Som"></div>
+                    <div><label class="block text-sm font-medium text-gray-700 mb-2">Telefone</label>
+                        <input type="text" name="members-0-phone" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent" placeholder="(00) 00000-0000"></div>
+                    <div><label class="block text-sm font-medium text-gray-700 mb-2">E-mail</label>
+                        <input type="email" name="members-0-email" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent" placeholder="email@membro.com"></div>
+                </div>
+                <div class="mt-4 pt-4 border-t border-gray-200 flex items-center justify-between">
+                    <button type="button" class="remove-member px-4 py-2 bg-white border border-red-300 text-red-600 text-sm rounded-lg hover:bg-red-50 transition-all">Remover Membro</button>
+                    <div class="hidden">
+                        <input type="checkbox" name="members-0-DELETE" id="id_members-0-DELETE">
+                        <input type="hidden" name="members-0-id" id="id_members-0-id">
+                    </div>
+                </div>
+            </div>`;
+        formsetContainer.innerHTML = emptyFormHTML;
+        totalFormsInput.value = '1';
+        const newForm = formsetContainer.querySelector('.member-form');
+        cleanTemplate = newForm.cloneNode(true);
+        newForm.querySelector('.remove-member').addEventListener('click', function(e) { e.preventDefault(); removeForm(newForm); });
+    }
+
+    function updateFormIndexes() {
+        let idx = 0;
+        formsetContainer.querySelectorAll('.member-form').forEach(form => {
+            if (form.style.display === 'none') return;
+            form.querySelectorAll('input, select, textarea').forEach(input => {
+                if (input.name) input.name = input.name.replace(/members-(\d+)-/, `members-${idx}-`);
+                if (input.id) input.id = input.id.replace(/id_members-(\d+)-/, `id_members-${idx}-`);
+            });
+            form.querySelectorAll('label').forEach(label => {
+                if (label.htmlFor) label.htmlFor = label.htmlFor.replace(/id_members-(\d+)-/, `id_members-${idx}-`);
+            });
+            idx++;
+        });
+        totalFormsInput.value = formsetContainer.querySelectorAll('.member-form').length;
+    }
+
+    function createEmptyForm() {
+        if (!cleanTemplate) return null;
+        const newForm = cleanTemplate.cloneNode(true);
+        newForm.style.display = '';
+        return newForm;
+    }
+
+    function removeForm(formElement) {
+        const idInput = formElement.querySelector('input[name$="-id"]');
+        if (idInput && idInput.value) {
+            const deleteInput = formElement.querySelector('input[name$="-DELETE"]');
+            if (deleteInput) deleteInput.checked = true;
+            formElement.style.display = 'none';
+        } else {
+            formElement.remove();
+        }
+        updateFormIndexes();
+    }
+
+    addButton.addEventListener('click', function() {
+        const newForm = createEmptyForm();
+        if (newForm) {
+            formsetContainer.appendChild(newForm);
+            newForm.querySelector('.remove-member').addEventListener('click', function(e) { e.preventDefault(); removeForm(newForm); });
+            updateFormIndexes();
+            newForm.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+    });
+
+    document.querySelectorAll('.remove-member').forEach(button => {
+        button.addEventListener('click', function() {
+            removeForm(this.closest('.member-form'));
+        });
+    });
+});
+</script>
+{% endblock %}

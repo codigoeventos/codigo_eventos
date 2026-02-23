@@ -20,7 +20,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         
         # Import models here to avoid circular imports
         from apps.events.models import Event
-        from apps.proposals.models import Proposal
+        from apps.projects.models import Project
         from apps.budgets.models import Budget
         from apps.service_orders.models import ServiceOrder
         from apps.technical_visits.models import TechnicalVisit
@@ -33,8 +33,8 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             event_date__lte=next_month
         )[:5]
         
-        # Pending proposals
-        context['pending_proposals'] = Proposal.objects.filter(
+        # Pending projects
+        context['pending_proposals'] = Project.objects.filter(
             status='sent'
         ).count()
         

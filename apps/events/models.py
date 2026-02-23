@@ -62,13 +62,13 @@ class Event(BaseModel):
             return 'in_progress'
         
         # Check if has approved budget
-        if hasattr(self, 'proposals'):
-            for proposal in self.proposals.all():
-                if proposal.budgets.filter(status='approved').exists():
+        if hasattr(self, 'projects'):
+            for project in self.projects.all():
+                if project.budgets.filter(status='approved').exists():
                     return 'approved'
         
-        # Check if has proposals
-        if hasattr(self, 'proposals') and self.proposals.exists():
+        # Check if has projects
+        if hasattr(self, 'projects') and self.projects.exists():
             return 'proposal_sent'
         
         return 'planning'

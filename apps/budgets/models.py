@@ -23,10 +23,10 @@ class Budget(BaseModel):
     ]
     
     proposal = models.ForeignKey(
-        'proposals.Proposal',
+        'projects.Project',
         on_delete=models.CASCADE,
         related_name='budgets',
-        verbose_name='Proposta'
+        verbose_name='Projeto'
     )
     
     name = models.CharField(

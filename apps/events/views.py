@@ -66,10 +66,10 @@ class EventDetailView(LoginRequiredMixin, DetailView):
             'created_by',
             'updated_by'
         ).prefetch_related(
-            'proposals',
+            'projects',
             'service_orders',
             'technical_visits',
-            'team_assignments__member'
+            'contractors__contractor',
         )
     
     def get_context_data(self, **kwargs):

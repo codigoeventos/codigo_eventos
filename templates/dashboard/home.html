@@ -22,11 +22,11 @@
         </div>
     </div>
 
-    <!-- Pending Proposals -->
+    <!-- Pending Projects -->
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
         <div class="flex items-center justify-between">
             <div>
-                <p class="text-sm font-medium text-gray-600 mb-1">Propostas Pendentes</p>
+                <p class="text-sm font-medium text-gray-600 mb-1">Projetos Pendentes</p>
                 <p class="text-3xl font-bold text-black">{{ pending_proposals }}</p>
             </div>
             <div class="p-3 bg-yellow-500 rounded-lg">
@@ -139,9 +139,9 @@
                     class="block w-full text-left px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors text-sm font-medium">
                     + Novo Evento
                 </a>
-                <a href="{% url 'proposals:create' %}"
+                <a href="{% url 'projects:create' %}"
                     class="block w-full text-left px-4 py-2 bg-white border border-gray-300 text-black rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium">
-                    + Nova Proposta
+                    + Novo Projeto
                 </a>
                 <a href="{% url 'technical_visits:create' %}"
                     class="block w-full text-left px-4 py-2 bg-white border border-gray-300 text-black rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium">

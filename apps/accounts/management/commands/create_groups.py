@@ -19,12 +19,12 @@ class Command(BaseCommand):
             },
             'Comercial': {
                 'description': 'Acesso a propostas, orçamentos, clientes e visualização de eventos',
-                'apps': ['clients', 'events', 'proposals', 'budgets'],
+                'apps': ['clients', 'events', 'projects', 'budgets'],
                 'permissions': ['view', 'add', 'change']
             },
             'Operacional': {
                 'description': 'Acesso a ordens de serviço, equipes e documentos',
-                'apps': ['service_orders', 'teams', 'documents', 'events'],
+                'apps': ['service_orders', 'contractors', 'documents', 'events'],
                 'permissions': ['view', 'add', 'change']
             },
             'Técnico': {

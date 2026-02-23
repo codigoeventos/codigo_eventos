@@ -21,7 +21,7 @@
                         class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
                         Editar
                     </a>
-                    <button onclick="openEventDeleteModal({{ event.pk }}, '{{ event.name|escapejs }}', '{{ event.client.name|escapejs }}', '{{ event.event_date|date:'d/m/Y' }}', {{ event.proposals.count }})"
+                    <button onclick="openEventDeleteModal({{ event.pk }}, '{{ event.name|escapejs }}', '{{ event.client.name|escapejs }}', '{{ event.event_date|date:'d/m/Y' }}', {{ event.projects.count }})"
                         class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all">
                         Excluir
                     </button>
@@ -62,25 +62,47 @@
             </dl>
         </div>
 
-        <!-- Proposals Section -->
+        <!-- Projects Section -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mt-6">
             <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-semibold text-gray-900">Propostas</h3>
+                <h3 class="text-lg font-semibold text-gray-900">Projetos</h3>
+                <a href="{% url 'projects:create' %}?event={{ event.pk }}"
+                    class="text-sm text-black hover:underline font-medium flex items-center gap-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    Novo
+                </a>
             </div>
 
-            {% if event.proposals.all %}
+            {% if event.projects.all %}
             <div class="space-y-3">
-                {% for proposal in event.proposals.all %}
-                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                {% for project in event.projects.all %}
+                <a href="{% url 'projects:detail' project.pk %}"
+                    class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors group">
                     <div>
-                        <p class="text-sm font-medium text-gray-900">{{ proposal.title }}</p>
-                        <p class="text-xs text-gray-500">Status: {{ proposal.get_status_display }}</p>
+                        <p class="text-sm font-medium text-gray-900">{{ project.title }}</p>
+                        <p class="text-xs text-gray-500 mt-0.5">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium
+                                {% if project.status == 'approved' %}bg-green-100 text-green-800
+                                {% elif project.status == 'in_execution' %}bg-blue-100 text-blue-800
+                                {% elif project.status == 'completed' %}bg-emerald-100 text-emerald-800
+                                {% elif project.status == 'rejected' %}bg-red-100 text-red-800
+                                {% elif project.status == 'sent' %}bg-yellow-100 text-yellow-800
+                                {% elif project.status == 'in_development' %}bg-purple-100 text-purple-800
+                                {% else %}bg-gray-200 text-gray-700{% endif %}">
+                                {{ project.get_status_display }}
+                            </span>
+                        </p>
                     </div>
-                </div>
+                    <svg class="w-5 h-5 text-gray-400 group-hover:text-gray-700 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                </a>
                 {% endfor %}
             </div>
             {% else %}
-            <p class="text-sm text-gray-500 text-center py-4">Nenhuma proposta cadastrada</p>
+            <p class="text-sm text-gray-500 text-center py-4">Nenhum projeto cadastrado</p>
             {% endif %}
         </div>
     </div>
@@ -89,14 +111,37 @@
     <div class="space-y-6">
         <!-- Service Orders -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4">Ordens de Serviço</h3>
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold text-gray-900">Ordens de Serviço</h3>
+                <a href="{% url 'service_orders:create' %}"
+                    class="text-sm text-black hover:underline font-medium flex items-center gap-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    Nova
+                </a>
+            </div>
             {% if event.service_orders.all %}
             <div class="space-y-3">
                 {% for order in event.service_orders.all %}
-                <div class="p-3 bg-gray-50 rounded-lg">
-                    <p class="text-sm font-medium text-gray-900">OS #{{ order.pk }}</p>
-                    <p class="text-xs text-gray-500">{{ order.get_status_display }}</p>
-                </div>
+                <a href="{% url 'service_orders:detail' order.pk %}"
+                    class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors group">
+                    <div>
+                        <p class="text-sm font-medium text-gray-900">OS #{{ order.pk }}</p>
+                        <p class="text-xs text-gray-500 mt-0.5">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium
+                                {% if order.status == 'completed' %}bg-green-100 text-green-800
+                                {% elif order.status == 'cancelled' %}bg-red-100 text-red-800
+                                {% elif order.status == 'in_progress' %}bg-blue-100 text-blue-800
+                                {% else %}bg-gray-200 text-gray-700{% endif %}">
+                                {{ order.get_status_display }}
+                            </span>
+                        </p>
+                    </div>
+                    <svg class="w-5 h-5 text-gray-400 group-hover:text-gray-700 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                </a>
                 {% endfor %}
             </div>
             {% else %}
@@ -106,18 +151,75 @@
 
         <!-- Technical Visits -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4">Visitas Técnicas</h3>
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold text-gray-900">Visitas Técnicas</h3>
+                <a href="{% url 'technical_visits:create' %}"
+                    class="text-sm text-black hover:underline font-medium flex items-center gap-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    Nova
+                </a>
+            </div>
             {% if event.technical_visits.all %}
             <div class="space-y-3">
                 {% for visit in event.technical_visits.all %}
-                <div class="p-3 bg-gray-50 rounded-lg">
-                    <p class="text-sm font-medium text-gray-900">{{ visit.visit_date|date:"d/m/Y H:i" }}</p>
-                    <p class="text-xs text-gray-500">{{ visit.get_status_display }}</p>
-                </div>
+                <a href="{% url 'technical_visits:detail' visit.pk %}"
+                    class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors group">
+                    <div>
+                        <p class="text-sm font-medium text-gray-900">{{ visit.visit_date|date:"d/m/Y H:i" }}</p>
+                        <p class="text-xs text-gray-500 mt-0.5">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium
+                                {% if visit.status == 'completed' %}bg-green-100 text-green-800
+                                {% elif visit.status == 'cancelled' %}bg-red-100 text-red-800
+                                {% elif visit.status == 'scheduled' %}bg-blue-100 text-blue-800
+                                {% else %}bg-gray-200 text-gray-700{% endif %}">
+                                {{ visit.get_status_display }}
+                            </span>
+                        </p>
+                    </div>
+                    <svg class="w-5 h-5 text-gray-400 group-hover:text-gray-700 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                </a>
                 {% endfor %}
             </div>
             {% else %}
             <p class="text-sm text-gray-500 text-center py-4">Nenhuma visita</p>
+            {% endif %}
+        </div>
+
+        <!-- Contractors -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold text-gray-900">Empreiteiras</h3>
+                <a href="{% url 'contractors:create' %}"
+                    class="text-sm text-black hover:underline font-medium flex items-center gap-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    Nova
+                </a>
+            </div>
+            {% if event.contractors.all %}
+            <div class="space-y-3">
+                {% for assignment in event.contractors.all %}
+                <a href="{% url 'contractors:detail' assignment.contractor.pk %}"
+                    class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors group">
+                    <div>
+                        <p class="text-sm font-medium text-gray-900">{{ assignment.contractor.name }}</p>
+                        {% if assignment.contractor.legal_representative %}
+                        <p class="text-xs text-gray-500 mt-0.5">{{ assignment.contractor.legal_representative }}</p>
+                        {% endif %}
+                    </div>
+                    <svg class="w-5 h-5 text-gray-400 group-hover:text-gray-700 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                </a>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-sm text-gray-500 text-center py-4">Nenhuma empreiteira</p>
             {% endif %}
         </div>
     </div>
@@ -129,7 +231,7 @@
 {% csrf_token %}
 
 <script>
-function openEventDeleteModal(eventId, eventName, clientName, eventDate, proposalsCount) {
+function openEventDeleteModal(eventId, eventName, clientName, eventDate, projectsCount) {
     const deleteUrl = `/events/${eventId}/delete/`;
     const redirectUrl = '{% url "events:list" %}';
     
@@ -141,8 +243,8 @@ function openEventDeleteModal(eventId, eventName, clientName, eventDate, proposa
         </div>
     `;
     
-    const warning = proposalsCount > 0 
-        ? `Este evento possui ${proposalsCount} proposta${proposalsCount > 1 ? 's' : ''} associada${proposalsCount > 1 ? 's' : ''}.`
+    const warning = projectsCount > 0 
+        ? `Este evento possui ${projectsCount} projeto${projectsCount > 1 ? 's' : ''} associado${projectsCount > 1 ? 's' : ''}.`
         : null;
     
     openDeleteModal(deleteUrl, `o evento "${eventName}"`, itemDetails, warning, redirectUrl);

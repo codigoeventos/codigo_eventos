@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+
+{% block title %}{{ form_title }} - Empreiteiras{% endblock %}
+{% block page_title %}{{ form_title }}{% endblock %}
+
+{% block content %}
+{% include 'components/breadcrumbs.html' %}
+{% include 'components/form_errors.html' %}
+
+<form method="post" enctype="multipart/form-data" class="space-y-6">
+    {% csrf_token %}
+
+    <!-- 1. Dados Pessoais -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-5 pb-3 border-b border-gray-100">Dados Pessoais</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div class="md:col-span-2">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Nome Completo <span class="text-red-500">*</span></label>
+                {{ form.name }}
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">RG</label>
+                {{ form.rg }}
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">CPF</label>
+                {{ form.cpf }}
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Data de Nascimento</label>
+                {{ form.birth_date }}
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Foto do Profissional</label>
+                {{ form.photo }}
+                {% if form.instance.photo %}
+                <p class="text-xs text-gray-500 mt-1">Atual: <a href="{{ form.instance.photo.url }}" target="_blank" class="text-blue-600 hover:underline">ver foto</a></p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Dados Profissionais -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-5 pb-3 border-b border-gray-100">Dados Profissionais</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Função/Cargo</label>
+                {{ form.role }}
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Especialidade</label>
+                {{ form.specialty }}
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Tempo de Experiência (anos)</label>
+                {{ form.experience_years }}
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. NR – Norma Regulamentadora -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-1">NR – Norma Regulamentadora</h3>
+        <p class="text-sm text-gray-500 mb-5">Certificação de Norma Regulamentadora (NR-10, NR-35, NR-33, etc.)</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Número NR</label>
+                {{ form.nr_number }}
+                <p class="text-xs text-gray-400 mt-1">Ex: NR-10, NR-35, NR-33</p>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Validade do Certificado</label>
+                {{ form.nr_certificate_expiry }}
+            </div>
+            <div class="md:col-span-2">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Upload do Certificado NR</label>
+                {{ form.nr_certificate_file }}
+                {% if form.instance.nr_certificate_file %}
+                <p class="text-xs text-gray-500 mt-1">Atual: <a href="{{ form.instance.nr_certificate_file.url }}" target="_blank" class="text-blue-600 hover:underline">ver arquivo</a></p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. ASO – Atestado de Saúde Ocupacional -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-1">ASO – Atestado de Saúde Ocupacional</h3>
+        <p class="text-sm text-gray-500 mb-5">Atestado emitido por médico do trabalho</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Número ASO</label>
+                {{ form.aso_number }}
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Tipo de Exame</label>
+                {{ form.aso_exam_type }}
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Data de Emissão</label>
+                {{ form.aso_issue_date }}
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Data de Validade</label>
+                {{ form.aso_expiry_date }}
+            </div>
+            <div class="md:col-span-2">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Upload do ASO</label>
+                {{ form.aso_file }}
+                {% if form.instance.aso_file %}
+                <p class="text-xs text-gray-500 mt-1">Atual: <a href="{{ form.instance.aso_file.url }}" target="_blank" class="text-blue-600 hover:underline">ver arquivo</a></p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. Contato -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-5 pb-3 border-b border-gray-100">Contato</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Telefone Celular</label>
+                {{ form.phone }}
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Telefone de Emergência</label>
+                {{ form.emergency_phone }}
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">E-mail</label>
+                {{ form.email }}
+            </div>
+        </div>
+    </div>
+
+    <!-- 6. Endereço -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-5 pb-3 border-b border-gray-100">Endereço</h3>
+        <div class="grid grid-cols-1 md:grid-cols-6 gap-5">
+            <div class="md:col-span-4">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Logradouro</label>
+                {{ form.address_street }}
+            </div>
+            <div class="md:col-span-2">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Número</label>
+                {{ form.address_number }}
+            </div>
+            <div class="md:col-span-2">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Complemento</label>
+                {{ form.address_complement }}
+            </div>
+            <div class="md:col-span-2">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Bairro</label>
+                {{ form.address_neighborhood }}
+            </div>
+            <div class="md:col-span-2">
+                <label class="block text-sm font-medium text-gray-700 mb-1">CEP</label>
+                {{ form.address_zip }}
+            </div>
+            <div class="md:col-span-3">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Cidade</label>
+                {{ form.address_city }}
+            </div>
+            <div class="md:col-span-1">
+                <label class="block text-sm font-medium text-gray-700 mb-1">UF</label>
+                {{ form.address_state }}
+            </div>
+        </div>
+    </div>
+
+    <!-- 7. Observações -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-5 pb-3 border-b border-gray-100">Observações</h3>
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Observações gerais</label>
+            {{ form.notes }}
+        </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex justify-end gap-3 pb-6">
+        <a href="{% url 'contractors:detail' contractor.pk %}"
+            class="px-6 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
+            Cancelar
+        </a>
+        <button type="submit"
+            class="px-6 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-all font-medium">
+            {{ submit_text }}
+        </button>
+    </div>
+</form>
+{% endblock %}

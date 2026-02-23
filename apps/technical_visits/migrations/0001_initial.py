@@ -13,7 +13,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('events', '0001_initial'),
-        ('teams', '0001_initial'),
+        ('contractors', '0001_initial'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
@@ -36,7 +36,7 @@ class Migration(migrations.Migration):
                 ('created_by', models.ForeignKey(blank=True, db_constraint=False, null=True, on_delete=django.db.models.deletion.DO_NOTHING, related_name='+', to=settings.AUTH_USER_MODEL, verbose_name='Criado por')),
                 ('event', models.ForeignKey(blank=True, db_constraint=False, null=True, on_delete=django.db.models.deletion.DO_NOTHING, related_name='+', to='events.event', verbose_name='Evento')),
                 ('history_user', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='+', to=settings.AUTH_USER_MODEL)),
-                ('responsible', models.ForeignKey(blank=True, db_constraint=False, null=True, on_delete=django.db.models.deletion.DO_NOTHING, related_name='+', to='teams.teammember', verbose_name='Responsável')),
+                ('responsible', models.ForeignKey(blank=True, db_constraint=False, null=True, on_delete=django.db.models.deletion.DO_NOTHING, related_name='+', to='contractors.contractormember', verbose_name='Responsável')),
                 ('updated_by', models.ForeignKey(blank=True, db_constraint=False, null=True, on_delete=django.db.models.deletion.DO_NOTHING, related_name='+', to=settings.AUTH_USER_MODEL, verbose_name='Atualizado por')),
             ],
             options={
@@ -60,7 +60,7 @@ class Migration(migrations.Migration):
                 ('status', models.CharField(choices=[('scheduled', 'Agendada'), ('completed', 'Realizada'), ('cancelled', 'Cancelada')], default='scheduled', max_length=10, verbose_name='Status')),
                 ('created_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='%(class)s_created', to=settings.AUTH_USER_MODEL, verbose_name='Criado por')),
                 ('event', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='technical_visits', to='events.event', verbose_name='Evento')),
-                ('responsible', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='technical_visits', to='teams.teammember', verbose_name='Responsável')),
+                ('responsible', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='technical_visits', to='contractors.contractormember', verbose_name='Responsável')),
                 ('updated_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='%(class)s_updated', to=settings.AUTH_USER_MODEL, verbose_name='Atualizado por')),
             ],
             options={

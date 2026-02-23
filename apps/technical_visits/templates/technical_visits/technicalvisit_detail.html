@@ -68,7 +68,7 @@
                     <dt class="text-sm font-medium text-gray-500">Responsável</dt>
                     <dd class="mt-1 text-sm text-gray-900">
                         {% if technical_visit.responsible %}
-                            <a href="{% url 'teams:detail' technical_visit.responsible.pk %}" class="text-blue-600 hover:underline">
+                            <a href="{% url 'contractors:detail' technical_visit.responsible.pk %}" class="text-blue-600 hover:underline">
                                 {{ technical_visit.responsible.name }}
                             </a>
                         {% else %}

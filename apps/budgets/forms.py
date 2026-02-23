@@ -110,5 +110,5 @@ class BudgetSearchForm(forms.Form):
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        from apps.proposals.models import Proposal
-        self.fields['proposal'].queryset = Proposal.objects.all().order_by('-created_at')
+        from apps.projects.models import Project
+        self.fields['proposal'].queryset = Project.objects.all().order_by('-created_at')

@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block title %}{{ form_title }} - Projetos{% endblock %}
+{% block page_title %}{{ form_title }}{% endblock %}
+
+{% block content %}
+{% include 'components/breadcrumbs.html' %}
+
+<div class="w-full mx-auto">
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-8 w-full">
+        <form method="post" enctype="multipart/form-data" novalidate>
+            {% csrf_token %}
+
+            {% include 'components/form_errors.html' %}
+
+            <div class="space-y-6">
+
+                <!-- Informações Gerais -->
+                <div class="border-b border-gray-200 pb-6">
+                    <h3 class="text-base font-semibold text-gray-900 mb-4">Informações Gerais</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="{{ form.event.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                {{ form.event.label }} <span class="text-red-500">*</span>
+                            </label>
+                            {{ form.event }}
+                            {% if form.event.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.event.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div>
+                            <label for="{{ form.status.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                {{ form.status.label }} <span class="text-red-500">*</span>
+                            </label>
+                            {{ form.status }}
+                            {% if form.status.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.status.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div class="md:col-span-2">
+                            <label for="{{ form.title.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                {{ form.title.label }} <span class="text-red-500">*</span>
+                            </label>
+                            {{ form.title }}
+                            {% if form.title.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.title.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div class="md:col-span-2">
+                            <label for="{{ form.description.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                {{ form.description.label }}
+                            </label>
+                            {{ form.description }}
+                            {% if form.description.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.description.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Responsável Técnico -->
+                <div class="border-b border-gray-200 pb-6">
+                    <h3 class="text-base font-semibold text-gray-900 mb-4">Responsável Técnico</h3>
+                    <div>
+                        <label for="{{ form.contractor.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            {{ form.contractor.label }}
+                        </label>
+                        {{ form.contractor }}
+                        {% if form.contractor.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.contractor.errors.0 }}</p>
+                        {% endif %}
+                        <p class="mt-1 text-xs text-gray-500">Empreiteira responsável pela execução técnica deste projeto.</p>
+                    </div>
+                </div>
+
+                <!-- Documento Original -->
+                <div>
+                    <h3 class="text-base font-semibold text-gray-900 mb-4">Documento Original</h3>
+                    <div>
+                        <label for="{{ form.original_document.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            {{ form.original_document.label }}
+                        </label>
+                        {{ form.original_document }}
+                        {% if form.original_document.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.original_document.errors.0 }}</p>
+                        {% endif %}
+                        {% if object.original_document %}
+                        <p class="mt-2 text-sm text-gray-500">
+                            Arquivo atual:
+                            <a href="{{ object.original_document.url }}" target="_blank" class="text-blue-600 hover:underline">
+                                {{ object.original_document.name }}
+                            </a>
+                        </p>
+                        {% endif %}
+                        <p class="mt-1 text-xs text-gray-500">PDF ou DOC da proposta original. Outros arquivos (plantas, desenhos) podem ser adicionados na página do projeto.</p>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="mt-8 flex justify-end gap-3">
+                <a href="{% if object %}{% url 'projects:detail' object.pk %}{% else %}{% url 'projects:list' %}{% endif %}"
+                    class="px-6 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
+                    Cancelar
+                </a>
+                <button type="submit"
+                    class="px-6 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-all">
+                    {{ submit_text }}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
