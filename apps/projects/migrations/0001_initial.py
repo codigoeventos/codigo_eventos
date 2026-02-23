@@ -1,5 +1,6 @@
-# Migration: rename proposals tables to projects tables
-# Uses SeparateDatabaseAndState to rename existing DB tables without losing data
+# Migration: create projects tables
+# Uses SeparateDatabaseAndState so local dev (which renamed from proposals) stays compatible.
+# Production (virgin DB): database_operations creates the tables directly.
 
 import apps.projects.models
 import django.db.models.deletion
@@ -19,18 +20,53 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.SeparateDatabaseAndState(
-            # DB: rename the existing proposals tables
+            # DB: create tables directly (works on virgin DB; local dev already has them)
             database_operations=[
                 migrations.RunSQL(
-                    sql='ALTER TABLE proposals_proposal RENAME TO projects_project;',
-                    reverse_sql='ALTER TABLE projects_project RENAME TO proposals_proposal;',
+                    sql="""
+                        CREATE TABLE IF NOT EXISTS projects_project (
+                            id bigserial PRIMARY KEY,
+                            deleted timestamptz NULL,
+                            deleted_by_cascade boolean NOT NULL DEFAULT false,
+                            created_at timestamptz NOT NULL,
+                            updated_at timestamptz NOT NULL,
+                            title varchar(255) NOT NULL,
+                            description text NULL,
+                            status varchar(20) NOT NULL DEFAULT 'draft',
+                            original_document varchar(255) NULL,
+                            event_id bigint NOT NULL REFERENCES events_event(id) ON DELETE CASCADE,
+                            created_by_id integer NULL REFERENCES auth_user(id) ON DELETE SET NULL,
+                            updated_by_id integer NULL REFERENCES auth_user(id) ON DELETE SET NULL
+                        );
+                    """,
+                    reverse_sql='DROP TABLE IF EXISTS projects_project;',
                 ),
                 migrations.RunSQL(
-                    sql='ALTER TABLE proposals_historicalproposal RENAME TO projects_historicalproject;',
-                    reverse_sql='ALTER TABLE projects_historicalproject RENAME TO proposals_historicalproposal;',
+                    sql="""
+                        CREATE TABLE IF NOT EXISTS projects_historicalproject (
+                            id bigint NOT NULL,
+                            deleted timestamptz NULL,
+                            deleted_by_cascade boolean NOT NULL DEFAULT false,
+                            created_at timestamptz NOT NULL,
+                            updated_at timestamptz NOT NULL,
+                            title varchar(255) NOT NULL,
+                            description text NULL,
+                            status varchar(20) NOT NULL DEFAULT 'draft',
+                            original_document varchar(100) NULL,
+                            history_id serial PRIMARY KEY,
+                            history_date timestamptz NOT NULL,
+                            history_change_reason varchar(100) NULL,
+                            history_type varchar(1) NOT NULL,
+                            created_by_id integer NULL,
+                            event_id bigint NULL,
+                            history_user_id integer NULL REFERENCES auth_user(id) ON DELETE SET NULL,
+                            updated_by_id integer NULL
+                        );
+                    """,
+                    reverse_sql='DROP TABLE IF EXISTS projects_historicalproject;',
                 ),
             ],
-            # State: tell Django about the new models
+            # State: tell Django about the new models (unchanged)
             state_operations=[
                 migrations.CreateModel(
                     name='HistoricalProject',

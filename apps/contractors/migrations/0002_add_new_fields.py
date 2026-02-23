@@ -1,5 +1,6 @@
-# Migration to add new columns to contractors tables and rename FK columns
-# from their old teams names.
+# Migration to add new columns to contractors tables.
+# Column renames (member_id→contractor_id, team_id→contractor_id, description→notes)
+# are skipped at DB level for production (virgin DB already has correct column names).
 
 from django.db import migrations, models
 
@@ -11,22 +12,55 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        # --- Rename FK columns at DB level ---
-        # teams_eventteam had column member_id; rename to contractor_id
-        migrations.RunSQL(
-            sql='ALTER TABLE contractors_eventcontractor RENAME COLUMN member_id TO contractor_id',
-            reverse_sql='ALTER TABLE contractors_eventcontractor RENAME COLUMN contractor_id TO member_id',
-        ),
-        # teams_teammember had column team_id; rename to contractor_id
-        migrations.RunSQL(
-            sql='ALTER TABLE contractors_contractormember RENAME COLUMN team_id TO contractor_id',
-            reverse_sql='ALTER TABLE contractors_contractormember RENAME COLUMN contractor_id TO team_id',
-        ),
-        # teams_team had column description; rename to notes (DB level only, state handled by RenameField)
+        # --- Rename FK columns (local dev only — production tables already have correct names) ---
         migrations.SeparateDatabaseAndState(
             database_operations=[
                 migrations.RunSQL(
-                    sql='ALTER TABLE contractors_contractor RENAME COLUMN description TO notes',
+                    sql="""
+                        DO $$
+                        BEGIN
+                            IF EXISTS (
+                                SELECT 1 FROM information_schema.columns
+                                WHERE table_name='contractors_eventcontractor' AND column_name='member_id'
+                            ) THEN
+                                ALTER TABLE contractors_eventcontractor RENAME COLUMN member_id TO contractor_id;
+                            END IF;
+                        END$$;
+                    """,
+                    reverse_sql='ALTER TABLE contractors_eventcontractor RENAME COLUMN contractor_id TO member_id',
+                ),
+                migrations.RunSQL(
+                    sql="""
+                        DO $$
+                        BEGIN
+                            IF EXISTS (
+                                SELECT 1 FROM information_schema.columns
+                                WHERE table_name='contractors_contractormember' AND column_name='team_id'
+                            ) THEN
+                                ALTER TABLE contractors_contractormember RENAME COLUMN team_id TO contractor_id;
+                            END IF;
+                        END$$;
+                    """,
+                    reverse_sql='ALTER TABLE contractors_contractormember RENAME COLUMN contractor_id TO team_id',
+                ),
+            ],
+            state_operations=[],
+        ),
+        # --- Rename description → notes (local dev only) ---
+        migrations.SeparateDatabaseAndState(
+            database_operations=[
+                migrations.RunSQL(
+                    sql="""
+                        DO $$
+                        BEGIN
+                            IF EXISTS (
+                                SELECT 1 FROM information_schema.columns
+                                WHERE table_name='contractors_contractor' AND column_name='description'
+                            ) THEN
+                                ALTER TABLE contractors_contractor RENAME COLUMN description TO notes;
+                            END IF;
+                        END$$;
+                    """,
                     reverse_sql='ALTER TABLE contractors_contractor RENAME COLUMN notes TO description',
                 ),
             ],

@@ -1,5 +1,7 @@
 # Generated migration for contractors app.
-# Uses SeparateDatabaseAndState to rename existing teams DB tables.
+# Uses SeparateDatabaseAndState.
+# Production (virgin DB): database_operations creates tables directly.
+# Local dev: tables already exist from teams rename, IF NOT EXISTS is harmless.
 
 import django.db.models.deletion
 from django.conf import settings
@@ -17,19 +19,47 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.SeparateDatabaseAndState(
-            # --- Rename tables at the DB level ---
+            # --- Create tables directly (safe for virgin DB) ---
             database_operations=[
                 migrations.RunSQL(
-                    sql='ALTER TABLE teams_team RENAME TO contractors_contractor',
-                    reverse_sql='ALTER TABLE contractors_contractor RENAME TO teams_team',
+                    sql="""
+                        CREATE TABLE IF NOT EXISTS contractors_contractor (
+                            id bigserial PRIMARY KEY,
+                            created_at timestamptz NULL,
+                            updated_at timestamptz NULL,
+                            name varchar(255) NOT NULL,
+                            description text NULL,
+                            created_by_id integer NULL REFERENCES auth_user(id) ON DELETE SET NULL,
+                            updated_by_id integer NULL REFERENCES auth_user(id) ON DELETE SET NULL
+                        );
+                    """,
+                    reverse_sql='DROP TABLE IF EXISTS contractors_contractor;',
                 ),
                 migrations.RunSQL(
-                    sql='ALTER TABLE teams_teammember RENAME TO contractors_contractormember',
-                    reverse_sql='ALTER TABLE contractors_contractormember RENAME TO teams_teammember',
+                    sql="""
+                        CREATE TABLE IF NOT EXISTS contractors_contractormember (
+                            id bigserial PRIMARY KEY,
+                            name varchar(255) NOT NULL,
+                            role varchar(100) NOT NULL,
+                            phone varchar(50) NOT NULL,
+                            created_at timestamptz NOT NULL,
+                            updated_at timestamptz NOT NULL,
+                            contractor_id bigint NULL REFERENCES contractors_contractor(id) ON DELETE CASCADE
+                        );
+                    """,
+                    reverse_sql='DROP TABLE IF EXISTS contractors_contractormember;',
                 ),
                 migrations.RunSQL(
-                    sql='ALTER TABLE teams_eventteam RENAME TO contractors_eventcontractor',
-                    reverse_sql='ALTER TABLE contractors_eventcontractor RENAME TO teams_eventteam',
+                    sql="""
+                        CREATE TABLE IF NOT EXISTS contractors_eventcontractor (
+                            id bigserial PRIMARY KEY,
+                            assigned_at timestamptz NOT NULL,
+                            event_id bigint NOT NULL REFERENCES events_event(id) ON DELETE CASCADE,
+                            contractor_id bigint NOT NULL REFERENCES contractors_contractor(id) ON DELETE CASCADE,
+                            UNIQUE (event_id, contractor_id)
+                        );
+                    """,
+                    reverse_sql='DROP TABLE IF EXISTS contractors_eventcontractor;',
                 ),
             ],
             # --- Recreate the model state mirroring what actually exists in the DB after rename ---
