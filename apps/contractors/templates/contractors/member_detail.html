@@ -6,6 +6,32 @@
 {% block content %}
 {% include 'components/breadcrumbs.html' %}
 
+{# ---- Doc status alert banners ---- #}
+{% if member.is_blocked_from_events %}
+<div class="flex items-start gap-3 bg-red-50 border border-red-200 rounded-lg p-4 mb-5">
+    <svg class="w-5 h-5 text-red-600 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636L5.636 18.364M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+    <div>
+        <p class="text-sm font-semibold text-red-800">Profissional bloqueado para novos eventos</p>
+        <p class="text-sm text-red-700 mt-1">
+            Um ou mais documentos obrigatórios estão <strong>vencidos</strong>.
+            Atualize a documentação abaixo e salve para desbloquear.
+        </p>
+    </div>
+</div>
+{% elif member.worst_doc_status == 'expiring_soon' %}
+<div class="flex items-start gap-3 bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-5">
+    <svg class="w-5 h-5 text-yellow-600 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M12 3C6.477 3 2 7.477 2 13s4.477 10 10 10 10-4.477 10-10S17.523 3 12 3z" />
+    </svg>
+    <div>
+        <p class="text-sm font-semibold text-yellow-800">Documentação vence em breve</p>
+        <p class="text-sm text-yellow-700 mt-1">Providencie a renovação para evitar bloqueio do profissional.</p>
+    </div>
+</div>
+{% endif %}
+
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
     <!-- Main Info -->
     <div class="lg:col-span-2 space-y-6">
@@ -96,11 +122,19 @@
                     {% if member.nr_certificate_expiry %}
                     <div>
                         <dt class="text-sm font-medium text-gray-500">Validade do Certificado</dt>
-                        <dd class="mt-1 text-sm font-medium
-                            {% if member.nr_is_valid %}text-green-600{% else %}text-red-600{% endif %}">
-                            {{ member.nr_certificate_expiry|date:"d/m/Y" }}
-                            {% if not member.nr_is_valid %}
-                            <span class="text-xs font-normal">(vencido)</span>
+                        <dd class="mt-1">
+                            <span class="text-sm font-medium
+                                {% if member.nr_doc_status == 'expired' %}text-red-600
+                                {% elif member.nr_doc_status == 'expiring_soon' %}text-yellow-600
+                                {% else %}text-green-600{% endif %}">
+                                {{ member.nr_certificate_expiry|date:"d/m/Y" }}
+                            </span>
+                            {% if member.nr_doc_status == 'expired' %}
+                                <span class="ml-1 inline-block px-1.5 py-0.5 rounded text-xs font-semibold bg-red-100 text-red-700">Vencido</span>
+                            {% elif member.nr_doc_status == 'expiring_soon' %}
+                                <span class="ml-1 inline-block px-1.5 py-0.5 rounded text-xs font-semibold bg-yellow-100 text-yellow-700">{{ member.days_until_nr_expiry }}d restantes</span>
+                            {% else %}
+                                <span class="ml-1 inline-block px-1.5 py-0.5 rounded text-xs font-semibold bg-green-100 text-green-700">Em dia</span>
                             {% endif %}
                         </dd>
                     </div>
@@ -154,11 +188,19 @@
                     {% if member.aso_expiry_date %}
                     <div>
                         <dt class="text-sm font-medium text-gray-500">Validade</dt>
-                        <dd class="mt-1 text-sm font-medium
-                            {% if member.aso_is_valid %}text-green-600{% else %}text-red-600{% endif %}">
-                            {{ member.aso_expiry_date|date:"d/m/Y" }}
-                            {% if not member.aso_is_valid %}
-                            <span class="text-xs font-normal">(vencido)</span>
+                        <dd class="mt-1">
+                            <span class="text-sm font-medium
+                                {% if member.aso_doc_status == 'expired' %}text-red-600
+                                {% elif member.aso_doc_status == 'expiring_soon' %}text-yellow-600
+                                {% else %}text-green-600{% endif %}">
+                                {{ member.aso_expiry_date|date:"d/m/Y" }}
+                            </span>
+                            {% if member.aso_doc_status == 'expired' %}
+                                <span class="ml-1 inline-block px-1.5 py-0.5 rounded text-xs font-semibold bg-red-100 text-red-700">Vencido</span>
+                            {% elif member.aso_doc_status == 'expiring_soon' %}
+                                <span class="ml-1 inline-block px-1.5 py-0.5 rounded text-xs font-semibold bg-yellow-100 text-yellow-700">{{ member.days_until_aso_expiry }}d restantes</span>
+                            {% else %}
+                                <span class="ml-1 inline-block px-1.5 py-0.5 rounded text-xs font-semibold bg-green-100 text-green-700">Em dia</span>
                             {% endif %}
                         </dd>
                     </div>

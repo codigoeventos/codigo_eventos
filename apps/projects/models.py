@@ -28,13 +28,9 @@ class Project(BaseModel):
     """
 
     STATUS_CHOICES = [
-        ('draft', 'Rascunho'),
         ('in_development', 'Em Desenvolvimento'),
-        ('sent', 'Enviado'),
         ('approved', 'Aprovado'),
         ('in_execution', 'Em Execução'),
-        ('rejected', 'Rejeitado'),
-        ('completed', 'Concluído'),
     ]
 
     event = models.ForeignKey(
@@ -68,7 +64,7 @@ class Project(BaseModel):
         'Status',
         max_length=20,
         choices=STATUS_CHOICES,
-        default='draft'
+        default='in_development'
     )
 
     original_document = models.FileField(

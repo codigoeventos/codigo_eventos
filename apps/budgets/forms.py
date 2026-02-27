@@ -37,10 +37,15 @@ class BudgetItemForm(forms.ModelForm):
     
     class Meta:
         model = BudgetItem
-        fields = ['name', 'description', 'quantity', 'unit_price']
+        fields = [
+            'name', 'description', 'quantity',
+            'dim_length', 'dim_width', 'dim_height',
+            'measurement', 'measurement_unit',
+            'weight', 'unit_price',
+        ]
         widgets = {
             'name': forms.TextInput(attrs={
-                'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent',
+                'class': 'item-name w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent',
                 'placeholder': 'Nome do item'
             }),
             'description': forms.Textarea(attrs={
@@ -49,22 +54,49 @@ class BudgetItemForm(forms.ModelForm):
                 'placeholder': 'Descrição do item'
             }),
             'quantity': forms.NumberInput(attrs={
-                'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent',
+                'class': 'item-quantity w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent',
                 'min': '1',
                 'value': '1'
             }),
+            'dim_length': forms.NumberInput(attrs={
+                'class': 'item-dim w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent',
+                'step': '0.001', 'min': '0', 'placeholder': '0.000'
+            }),
+            'dim_width': forms.NumberInput(attrs={
+                'class': 'item-dim w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent',
+                'step': '0.001', 'min': '0', 'placeholder': '0.000'
+            }),
+            'dim_height': forms.NumberInput(attrs={
+                'class': 'item-dim w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent',
+                'step': '0.001', 'min': '0', 'placeholder': '0.000'
+            }),
+            'measurement': forms.NumberInput(attrs={
+                'class': 'item-measurement w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent bg-gray-50',
+                'step': '0.001', 'min': '0', 'placeholder': 'calculado automaticamente'
+            }),
+            'measurement_unit': forms.Select(attrs={
+                'class': 'item-measurement-unit w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent'
+            }),
+            'weight': forms.NumberInput(attrs={
+                'class': 'item-weight w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent',
+                'step': '0.001', 'min': '0', 'placeholder': '0.000'
+            }),
             'unit_price': forms.NumberInput(attrs={
-                'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent',
-                'step': '0.01',
-                'min': '0',
-                'placeholder': '0.00'
+                'class': 'item-unit-price w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent',
+                'step': '0.01', 'min': '0', 'placeholder': '0.00'
             }),
         }
         labels = {
             'name': 'Item',
             'description': 'Descrição',
             'quantity': 'Quantidade',
-            'unit_price': 'Preço Unitário',
+            'dim_length': 'Comprimento (m)',
+            'dim_width': 'Largura (m)',
+            'dim_height': 'Altura (m)',
+            'measurement': 'Volume (m³)',
+            'measurement_unit': 'Unidade',
+            'weight': 'Peso unitário (kg)',
+            'unit_price': 'Preço Unitário (R$)',
         }
 
 

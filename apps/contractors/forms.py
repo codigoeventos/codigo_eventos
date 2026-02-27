@@ -3,8 +3,8 @@ Contractor forms for Event Management System.
 """
 
 from django import forms
-from django.forms import inlineformset_factory
 from .models import Contractor, ContractorMember
+from apps.common.utils import validate_cpf, format_cpf
 
 CSS_INPUT = 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent'
 CSS_SELECT = 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent bg-white'
@@ -26,21 +26,21 @@ class ContractorForm(forms.ModelForm):
             'certifications', 'notes',
         ]
         widgets = {
-            'name': forms.TextInput(attrs={'class': CSS_INPUT, 'placeholder': 'Razão social da empreiteira'}),
-            'trade_name': forms.TextInput(attrs={'class': CSS_INPUT, 'placeholder': 'Nome fantasia'}),
-            'cnpj': forms.TextInput(attrs={'class': CSS_INPUT, 'placeholder': '00.000.000/0001-00'}),
+            'name': forms.TextInput(attrs={'class': CSS_INPUT, 'placeholder': 'Razão social da empreiteira', 'id': 'id_name'}),
+            'trade_name': forms.TextInput(attrs={'class': CSS_INPUT, 'placeholder': 'Nome fantasia', 'id': 'id_trade_name'}),
+            'cnpj': forms.TextInput(attrs={'class': CSS_INPUT, 'placeholder': '00.000.000/0001-00', 'id': 'id_cnpj'}),
             'state_registration': forms.TextInput(attrs={'class': CSS_INPUT, 'placeholder': 'Inscrição estadual'}),
             'legal_representative': forms.TextInput(attrs={'class': CSS_INPUT, 'placeholder': 'Nome do responsável legal'}),
-            'phone': forms.TextInput(attrs={'class': CSS_INPUT, 'placeholder': '(00) 00000-0000'}),
-            'email': forms.EmailInput(attrs={'class': CSS_INPUT, 'placeholder': 'email@empresa.com'}),
+            'phone': forms.TextInput(attrs={'class': CSS_INPUT, 'placeholder': '(00) 00000-0000', 'id': 'id_phone'}),
+            'email': forms.EmailInput(attrs={'class': CSS_INPUT, 'placeholder': 'email@empresa.com', 'id': 'id_email'}),
             'website': forms.URLInput(attrs={'class': CSS_INPUT, 'placeholder': 'https://empresa.com.br'}),
-            'address_street': forms.TextInput(attrs={'class': CSS_INPUT, 'placeholder': 'Rua / Avenida'}),
-            'address_number': forms.TextInput(attrs={'class': CSS_INPUT, 'placeholder': 'Número'}),
-            'address_complement': forms.TextInput(attrs={'class': CSS_INPUT, 'placeholder': 'Apto, Sala, etc.'}),
-            'address_neighborhood': forms.TextInput(attrs={'class': CSS_INPUT, 'placeholder': 'Bairro'}),
-            'address_city': forms.TextInput(attrs={'class': CSS_INPUT, 'placeholder': 'Cidade'}),
-            'address_state': forms.TextInput(attrs={'class': CSS_INPUT, 'placeholder': 'UF', 'maxlength': '2'}),
-            'address_zip': forms.TextInput(attrs={'class': CSS_INPUT, 'placeholder': '00000-000'}),
+            'address_street': forms.TextInput(attrs={'class': CSS_INPUT, 'placeholder': 'Rua / Avenida', 'id': 'id_address_street'}),
+            'address_number': forms.TextInput(attrs={'class': CSS_INPUT, 'placeholder': 'Número', 'id': 'id_address_number'}),
+            'address_complement': forms.TextInput(attrs={'class': CSS_INPUT, 'placeholder': 'Apto, Sala, etc.', 'id': 'id_address_complement'}),
+            'address_neighborhood': forms.TextInput(attrs={'class': CSS_INPUT, 'placeholder': 'Bairro', 'id': 'id_address_neighborhood'}),
+            'address_city': forms.TextInput(attrs={'class': CSS_INPUT, 'placeholder': 'Cidade', 'id': 'id_address_city'}),
+            'address_state': forms.TextInput(attrs={'class': CSS_INPUT, 'placeholder': 'UF', 'maxlength': '2', 'id': 'id_address_state'}),
+            'address_zip': forms.TextInput(attrs={'class': CSS_INPUT, 'placeholder': '00000-000', 'id': 'id_address_zip'}),
             'bank_name': forms.TextInput(attrs={'class': CSS_INPUT, 'placeholder': 'Nome do banco'}),
             'bank_agency': forms.TextInput(attrs={'class': CSS_INPUT, 'placeholder': '0000-0'}),
             'bank_account': forms.TextInput(attrs={'class': CSS_INPUT, 'placeholder': '00000-0'}),
@@ -103,17 +103,24 @@ class ContractorMemberForm(forms.ModelForm):
             'notes': forms.Textarea(attrs={'class': CSS_TEXTAREA, 'rows': 3, 'placeholder': 'Observações sobre o profissional'}),
         }
 
-
-# Inline formset used on Contractor create/edit (quick member addition)
-ContractorMemberFormSet = inlineformset_factory(
-    Contractor,
-    ContractorMember,
-    form=ContractorMemberForm,
-    extra=0,
-    can_delete=True,
-    min_num=0,
-    validate_min=False
-)
+    def clean_cpf(self):
+        cpf = self.cleaned_data.get('cpf', '')
+        if not cpf:
+            return cpf
+        if not validate_cpf(cpf):
+            raise forms.ValidationError('CPF inválido. Verifique os dígitos informados.')
+        cpf = format_cpf(cpf)
+        # Uniqueness check
+        qs = ContractorMember.objects.filter(cpf=cpf)
+        if self.instance.pk:
+            qs = qs.exclude(pk=self.instance.pk)
+        if qs.exists():
+            other = qs.first()
+            contractor_name = other.contractor.name if other.contractor else 'sem empreiteira'
+            raise forms.ValidationError(
+                f'Este CPF já está cadastrado para {other.name} ({contractor_name}).'
+            )
+        return cpf
 
 
 class ContractorSearchForm(forms.Form):

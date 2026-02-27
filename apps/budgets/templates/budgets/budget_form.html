@@ -47,7 +47,10 @@
                 <!-- Budget Items -->
                 <div class="border-t pt-6">
                     <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-lg font-medium text-gray-900">Itens do Orçamento</h3>
+                        <div>
+                            <h3 class="text-lg font-medium text-gray-900">Itens do Orçamento</h3>
+                            <p class="text-sm text-gray-500 mt-1">Preencha as dimensões para cálculo automático de volume e frete</p>
+                        </div>
                         <button type="button" id="add-item" class="px-4 py-2 bg-black text-white text-sm rounded-lg hover:bg-gray-800 transition-all">
                             + Adicionar Item
                         </button>
@@ -57,11 +60,598 @@
                     
                     <div id="items-formset" class="space-y-4">
                         {% for item_form in items_formset %}
-                        <div class="item-form bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
-                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                                <div class="lg:col-span-2">
+                        <div class="item-form bg-gray-50 border-2 border-gray-200 rounded-lg p-5">
+
+                            <!-- Row 1: Name + Quantity + Price + Total -->
+                            <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
+                                <div class="md:col-span-5">
+                                    <label class="block text-xs font-medium text-gray-600 mb-1">
+                                        {{ item_form.name.label }} <span class="text-red-500">*</span>
+                                    </label>
+                                    {{ item_form.name }}
+                                    {% if item_form.name.errors %}<p class="mt-1 text-xs text-red-600">{{ item_form.name.errors.0 }}</p>{% endif %}
+                                </div>
+                                <div class="md:col-span-2">
+                                    <label class="block text-xs font-medium text-gray-600 mb-1">
+                                        {{ item_form.quantity.label }} <span class="text-red-500">*</span>
+                                    </label>
+                                    {{ item_form.quantity }}
+                                    {% if item_form.quantity.errors %}<p class="mt-1 text-xs text-red-600">{{ item_form.quantity.errors.0 }}</p>{% endif %}
+                                </div>
+                                <div class="md:col-span-2">
+                                    <label class="block text-xs font-medium text-gray-600 mb-1">
+                                        {{ item_form.unit_price.label }} <span class="text-red-500">*</span>
+                                    </label>
+                                    {{ item_form.unit_price }}
+                                    {% if item_form.unit_price.errors %}<p class="mt-1 text-xs text-red-600">{{ item_form.unit_price.errors.0 }}</p>{% endif %}
+                                </div>
+                                <div class="md:col-span-3">
+                                    <label class="block text-xs font-medium text-gray-600 mb-1">Valor Total (R$)</label>
+                                    <input type="text" readonly
+                                        class="item-total w-full px-3 py-2 border border-gray-200 rounded-lg bg-white text-gray-800 font-semibold text-sm"
+                                        value="0,00">
+                                </div>
+                            </div>
+
+                            <!-- Row 2: Dimensions → auto volume + weight -->
+                            <div class="mt-3 p-3 bg-blue-50 border border-blue-100 rounded-lg">
+                                <p class="text-xs font-semibold text-blue-700 mb-2 uppercase tracking-wide">
+                                    📦 Dimensões &amp; Logística
+                                    <span class="font-normal text-blue-500 ml-1">(usadas no cálculo de frete)</span>
+                                </p>
+                                <div class="grid grid-cols-2 md:grid-cols-7 gap-3">
+                                    <!-- Comprimento -->
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-600 mb-1">{{ item_form.dim_length.label }}</label>
+                                        {{ item_form.dim_length }}
+                                    </div>
+                                    <!-- Largura -->
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-600 mb-1">{{ item_form.dim_width.label }}</label>
+                                        {{ item_form.dim_width }}
+                                    </div>
+                                    <!-- Altura -->
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-600 mb-1">{{ item_form.dim_height.label }}</label>
+                                        {{ item_form.dim_height }}
+                                    </div>
+                                    <!-- Volume calculado -->
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-600 mb-1">{{ item_form.measurement.label }}</label>
+                                        {{ item_form.measurement }}
+                                        <p class="text-xs text-blue-500 mt-0.5">C×L×A auto</p>
+                                    </div>
+                                    <!-- Unidade -->
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-600 mb-1">{{ item_form.measurement_unit.label }}</label>
+                                        {{ item_form.measurement_unit }}
+                                    </div>
+                                    <!-- Peso unitário -->
+                                    <div class="md:col-span-2">
+                                        <label class="block text-xs font-medium text-gray-600 mb-1">{{ item_form.weight.label }}</label>
+                                        {{ item_form.weight }}
+                                    </div>
+                                </div>
+                                <!-- Per-item logistics summary -->
+                                <div class="item-logistics-summary mt-2 text-xs text-blue-700 hidden">
+                                    Vol. total: <strong class="item-vol-total">–</strong> m³ &nbsp;|&nbsp;
+                                    Peso total: <strong class="item-wt-total">–</strong> kg
+                                </div>
+                            </div>
+
+                            <!-- Row 3: Description + actions -->
+                            <div class="mt-3 grid grid-cols-1 gap-3">
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-600 mb-1">{{ item_form.description.label }}</label>
+                                    {{ item_form.description }}
+                                </div>
+                            </div>
+
+                            <div class="mt-3 pt-3 border-t border-gray-200 flex items-center justify-end">
+                                <div class="hidden">
+                                    {{ item_form.DELETE }}
+                                    {{ item_form.id }}
+                                </div>
+                                <button type="button" class="remove-item px-4 py-2 bg-white border border-red-300 text-red-600 text-sm rounded-lg hover:bg-red-50 transition-all">
+                                    🗑️ Remover Item
+                                </button>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- ── Totals & Freight Panel ─────────────────────── -->
+                    <div class="mt-6 space-y-3">
+
+                        <!-- Logistics summary bar -->
+                        <div id="logistics-bar" class="bg-blue-50 border border-blue-200 rounded-lg px-5 py-3 flex flex-wrap gap-6 text-sm">
+                            <span class="text-blue-700">
+                                Peso total consolidado:
+                                <strong id="total-weight-display" class="text-blue-900">0,000 kg</strong>
+                            </span>
+                            <span class="text-blue-700">
+                                Volume total consolidado:
+                                <strong id="total-volume-display" class="text-blue-900">0,000 m³</strong>
+                            </span>
+                        </div>
+
+                        <!-- Item totals -->
+                        <div class="bg-gray-100 rounded-lg px-5 py-3 flex justify-between items-center">
+                            <span class="text-sm font-medium text-gray-600">Subtotal dos Itens</span>
+                            <span id="items-subtotal" class="text-xl font-bold text-gray-900">R$ 0,00</span>
+                        </div>
+
+                        <!-- Freight preview -->
+                        <div id="freight-panel" class="bg-white border-2 border-dashed border-gray-300 rounded-lg p-5">
+                            <div class="flex items-center justify-between mb-3">
+                                <h4 class="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                                    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                                    </svg>
+                                    Logística / Frete (prévia)
+                                </h4>
+                                <div class="flex items-center gap-3">
+                                    <!-- Urgency selector -->
+                                    <select id="freight-urgency"
+                                        class="text-sm px-3 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent">
+                                        <option value="">Urgência padrão</option>
+                                        {% for um in urgency_options %}
+                                        <option value="{{ um.pk }}" {% if um.is_default %}selected{% endif %}>
+                                            {{ um.label }} (×{{ um.multiplier }})
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                    <!-- Distance -->
+                                    <input type="number" id="freight-distance" step="0.1" min="0" placeholder="km (opcional)"
+                                        class="text-sm w-32 px-3 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent">
+                                </div>
+                            </div>
+                            <!-- Breakdown -->
+                            <div id="freight-breakdown" class="hidden space-y-1.5 text-sm mb-3 border-t border-gray-100 pt-3">
+                                <div class="flex justify-between text-gray-500">
+                                    <span>Base peso (<span class="freight-wt-total">0</span> kg)</span>
+                                    <span class="freight-weight-cost">R$ 0,00</span>
+                                </div>
+                                <div class="flex justify-between text-gray-500">
+                                    <span>Base volume (<span class="freight-vol-total">0</span> m³)</span>
+                                    <span class="freight-volume-cost">R$ 0,00</span>
+                                </div>
+                                <div class="flex justify-between text-gray-500">
+                                    <span>Frete base (modo: <span class="freight-mode-label">–</span>)</span>
+                                    <span class="freight-base">R$ 0,00</span>
+                                </div>
+                                <div class="flex justify-between text-gray-400">
+                                    <span>Taxa fixa</span>
+                                    <span class="freight-fixed">R$ 0,00</span>
+                                </div>
+                                <div class="flex justify-between text-gray-400">
+                                    <span>Percentual</span>
+                                    <span class="freight-pct">R$ 0,00</span>
+                                </div>
+                                <div class="flex justify-between text-gray-400">
+                                    <span>Distância</span>
+                                    <span class="freight-dist">R$ 0,00</span>
+                                </div>
+                                <div class="flex justify-between text-gray-500 border-t border-gray-200 pt-1.5">
+                                    <span>Urgência (<span class="freight-urgency-label">–</span>)</span>
+                                    <span class="freight-mult">×1</span>
+                                </div>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <div id="freight-loading" class="text-xs text-gray-400 hidden">Calculando…</div>
+                                <div id="freight-no-config" class="text-xs text-gray-400">
+                                    <a href="{% url 'logistics:config' %}" target="_blank"
+                                        class="text-blue-600 hover:underline">Configure as tabelas de frete</a>
+                                    para ver a prévia aqui.
+                                </div>
+                                <div class="flex items-center gap-4">
+                                    <span class="text-sm text-gray-600">Frete estimado:</span>
+                                    <span id="freight-total-display" class="text-xl font-bold text-gray-800">R$ 0,00</span>
+                                </div>
+                            </div>
+                            <p class="text-xs text-gray-400 mt-2">
+                                ⚠️ Prévia calculada com as tabelas atuais. O valor final é salvo na tela de detalhes do orçamento.
+                                O cálculo considera a soma de todos os itens, aplicando a tabela de faixas ao total consolidado.
+                            </p>
+                        </div>
+
+                        <!-- Grand total with freight -->
+                        <div class="bg-black rounded-lg p-5 shadow-sm">
+                            <div class="space-y-2">
+                                <div class="flex justify-between items-center text-gray-400 text-sm">
+                                    <span>Subtotal dos itens</span>
+                                    <span id="grand-items-line">R$ 0,00</span>
+                                </div>
+                                <div id="grand-freight-line" class="flex justify-between items-center text-gray-400 text-sm hidden">
+                                    <span>Logística / Frete (<span id="grand-urgency-label">–</span>)</span>
+                                    <span id="grand-freight-value">R$ 0,00</span>
+                                </div>
+                                <div class="flex justify-between items-center border-t border-gray-700 pt-2 mt-2">
+                                    <span class="text-lg font-medium text-gray-300">Total do Orçamento</span>
+                                    <span id="budget-total" class="text-3xl font-bold text-white">R$ 0,00</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if items_formset.non_form_errors %}
+                    <div class="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                        <p class="text-sm text-red-600">{{ items_formset.non_form_errors }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="mt-8 flex justify-end gap-3">
+                <a href="{% if object %}{% url 'budgets:detail' object.pk %}{% else %}{% url 'budgets:list' %}{% endif %}"
+                    class="px-6 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
+                    Cancelar
+                </a>
+                <button type="submit"
+                    class="px-6 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-all">
+                    {{ submit_text }}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const formset      = document.getElementById('items-formset');
+    const addBtn       = document.getElementById('add-item');
+    const totalForms   = document.getElementById('id_items-TOTAL_FORMS');
+    const freightURL   = "{% url 'budgets:freight-preview' %}";
+    const csrfToken    = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+    // ── Keep a pristine clone for adding new rows ──────────────────────────
+    const firstForm  = formset.querySelector('.item-form');
+    const cleanTmpl  = firstForm ? firstForm.cloneNode(true) : null;
+
+    // ── Currency & number helpers ──────────────────────────────────────────
+    const fmt = v => new Intl.NumberFormat('pt-BR', {style:'currency',currency:'BRL'}).format(v);
+    const fmtN = (v, dp=3) => parseFloat(v || 0).toFixed(dp).replace('.', ',');
+    const num  = v => parseFloat(v) || 0;
+
+    // ── Per-item calculations ──────────────────────────────────────────────
+    function calcItem(row) {
+        const qty   = num(row.querySelector('.item-quantity')?.value);
+        const price = num(row.querySelector('.item-unit-price')?.value);
+        const total = qty * price;
+        const tot   = row.querySelector('.item-total');
+        if (tot) tot.value = fmt(total);
+
+        // Volume from dimensions
+        const l = num(row.querySelector('.item-dim[name*="dim_length"]')?.value);
+        const w = num(row.querySelector('.item-dim[name*="dim_width"]')?.value);
+        const h = num(row.querySelector('.item-dim[name*="dim_height"]')?.value);
+        let vol = 0;
+        const measInput    = row.querySelector('.item-measurement');
+        const unitSelect   = row.querySelector('.item-measurement-unit');
+
+        if (l > 0 && w > 0 && h > 0) {
+            vol = l * w * h;
+            if (measInput) measInput.value = vol.toFixed(3);
+            if (unitSelect) unitSelect.value = 'm3';
+        } else if (measInput && unitSelect?.value === 'm3') {
+            vol = num(measInput.value);
+        }
+
+        const weight      = num(row.querySelector('.item-weight')?.value);
+        const volTotal    = vol * qty;
+        const weightTotal = weight * qty;
+
+        // Show per-item logistics summary
+        const logSum = row.querySelector('.item-logistics-summary');
+        if (logSum) {
+            if (volTotal > 0 || weightTotal > 0) {
+                logSum.classList.remove('hidden');
+                row.querySelector('.item-vol-total').textContent = fmtN(volTotal);
+                row.querySelector('.item-wt-total').textContent  = fmtN(weightTotal);
+            } else {
+                logSum.classList.add('hidden');
+            }
+        }
+
+        return { total, vol, weight, qty, unit: unitSelect?.value || '' };
+    }
+
+    // ── Aggregate all items & update totals bar ────────────────────────────
+    let freightDebounce = null;
+    let currentFreight  = 0;
+
+    function recalcAll() {
+        let grandTotal   = 0;
+        let totalWeight  = 0;
+        let totalVolume  = 0;
+        const itemsData  = [];
+
+        formset.querySelectorAll('.item-form:not([style*="display: none"])').forEach(row => {
+            const d = calcItem(row);
+            grandTotal  += d.total;
+            totalWeight += d.weight * d.qty;
+            totalVolume += (d.unit === 'm3') ? d.vol * d.qty : 0;
+            if (d.vol > 0 || d.weight > 0) {
+                itemsData.push({
+                    quantity: d.qty,
+                    weight:   d.weight,
+                    volume:   d.vol,
+                    measurement_unit: d.unit,
+                });
+            }
+        });
+
+        // Logistics bar
+        document.getElementById('total-weight-display').textContent = fmtN(totalWeight) + ' kg';
+        document.getElementById('total-volume-display').textContent = fmtN(totalVolume) + ' m³';
+
+        // Items subtotal
+        document.getElementById('items-subtotal').textContent  = fmt(grandTotal);
+        document.getElementById('grand-items-line').textContent = fmt(grandTotal);
+
+        // Grand total (items + current freight)
+        updateGrandTotal(grandTotal, currentFreight);
+
+        // Debounced freight preview
+        clearTimeout(freightDebounce);
+        freightDebounce = setTimeout(() => {
+            fetchFreightPreview(itemsData, grandTotal);
+        }, 400);
+    }
+
+    function updateGrandTotal(itemsTotal, freight) {
+        const grandTotalEl       = document.getElementById('budget-total');
+        const grandFreightLine   = document.getElementById('grand-freight-line');
+        const grandFreightVal    = document.getElementById('grand-freight-value');
+        const grandUrgencyLabel  = document.getElementById('grand-urgency-label');
+
+        grandTotalEl.textContent = fmt(itemsTotal + freight);
+
+        if (freight > 0) {
+            grandFreightLine.classList.remove('hidden');
+            grandFreightVal.textContent = fmt(freight);
+            grandUrgencyLabel.textContent =
+                document.getElementById('freight-urgency')?.selectedOptions[0]?.text || '–';
+        } else {
+            grandFreightLine.classList.add('hidden');
+        }
+    }
+
+    // ── Freight preview AJAX ───────────────────────────────────────────────
+    function fetchFreightPreview(itemsData, budgetTotal) {
+        const urgencyId  = document.getElementById('freight-urgency')?.value  || '';
+        const distanceKm = document.getElementById('freight-distance')?.value || '';
+
+        const loadingEl   = document.getElementById('freight-loading');
+        const noConfigEl  = document.getElementById('freight-no-config');
+
+        loadingEl?.classList.remove('hidden');
+        noConfigEl?.classList.add('hidden');
+
+        const body = new URLSearchParams({
+            csrfmiddlewaretoken: csrfToken,
+            items_json:  JSON.stringify(itemsData),
+            budget_total: budgetTotal,
+            urgency_id:  urgencyId,
+            distance_km: distanceKm,
+        });
+
+        fetch(freightURL, {method:'POST', body, headers:{'X-Requested-With':'XMLHttpRequest'}})
+            .then(r => r.json())
+            .then(d => {
+                loadingEl?.classList.add('hidden');
+                renderFreightBreakdown(d, itemsData.length > 0 || budgetTotal > 0);
+
+                // Re-run items total to get latest
+                let itemsTotal = 0;
+                formset.querySelectorAll('.item-form:not([style*="display: none"])').forEach(row => {
+                    const qty   = num(row.querySelector('.item-quantity')?.value);
+                    const price = num(row.querySelector('.item-unit-price')?.value);
+                    itemsTotal += qty * price;
+                });
+                currentFreight = d.freight_total || 0;
+                updateGrandTotal(itemsTotal, currentFreight);
+            })
+            .catch(() => {
+                loadingEl?.classList.add('hidden');
+                noConfigEl?.classList.remove('hidden');
+            });
+    }
+
+    function renderFreightBreakdown(d, hasData) {
+        const breakdownEl  = document.getElementById('freight-breakdown');
+        const totalEl      = document.getElementById('freight-total-display');
+        const noConfigEl   = document.getElementById('freight-no-config');
+
+        if (!hasData || d.freight_total === 0) {
+            breakdownEl?.classList.add('hidden');
+            totalEl.textContent = fmt(0);
+            noConfigEl?.classList.remove('hidden');
+            return;
+        }
+
+        noConfigEl?.classList.add('hidden');
+        breakdownEl?.classList.remove('hidden');
+
+        // fill in values
+        const set = (sel, val) => {
+            const el = document.querySelector(sel);
+            if (el) el.textContent = val;
+        };
+
+        set('.freight-wt-total',  fmtN(d.weight_total));
+        set('.freight-vol-total', fmtN(d.volume_total));
+        set('.freight-weight-cost', fmt(d.weight_cost));
+        set('.freight-volume-cost', fmt(d.volume_cost));
+        set('.freight-base',  fmt(d.base_freight));
+        set('.freight-fixed', fmt(d.fixed_fee));
+        set('.freight-pct',   fmt(d.percentage_cost));
+        set('.freight-dist',  fmt(d.distance_cost));
+        set('.freight-urgency-label', d.urgency_label);
+        set('.freight-mult', '×' + parseFloat(d.urgency_multiplier).toFixed(2));
+
+        totalEl.textContent = fmt(d.freight_total);
+
+        // Show which mode is being used
+        const modeLabels = {max:'maior valor', sum:'soma', weight:'só peso', volume:'só volume'};
+        // mode not in d, but we can infer from weight vs volume dominance
+        // just leave blank or show from settings — for now skip
+        set('.freight-mode-label', d.weight_cost >= d.volume_cost ? 'peso' : 'volume');
+    }
+
+    // ── Event listeners ────────────────────────────────────────────────────
+    function bindRow(row) {
+        row.querySelectorAll('.item-quantity, .item-unit-price, .item-dim, .item-measurement, .item-measurement-unit, .item-weight')
+            .forEach(el => el.addEventListener('input', recalcAll));
+
+        row.querySelector('.remove-item')?.addEventListener('click', function () {
+            removeForm(row);
+        });
+    }
+
+    formset.querySelectorAll('.item-form').forEach(bindRow);
+
+    document.getElementById('freight-urgency')?.addEventListener('change', recalcAll);
+    document.getElementById('freight-distance')?.addEventListener('input', recalcAll);
+
+    recalcAll(); // initial pass
+
+    // ── Add item ──────────────────────────────────────────────────────────
+    addBtn.addEventListener('click', function () {
+        const newForm = createEmptyForm();
+        if (!newForm) return;
+        formset.appendChild(newForm);
+        bindRow(newForm);
+        updateIndexes();
+        recalcAll();
+        newForm.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    });
+
+    // ── Remove item ────────────────────────────────────────────────────────
+    function removeForm(row) {
+        const visible = formset.querySelectorAll('.item-form:not([style*="display: none"])');
+        if (visible.length <= 1) { alert('O orçamento precisa ter pelo menos um item.'); return; }
+
+        const idInput = row.querySelector('input[name$="-id"]');
+        if (idInput?.value) {
+            const del = row.querySelector('input[name$="-DELETE"]');
+            if (del) del.checked = true;
+            row.querySelectorAll('input:not([name$="-DELETE"]):not([name$="-id"]), textarea, select')
+               .forEach(el => { el.disabled = true; el.removeAttribute('required'); });
+            row.style.display = 'none';
+        } else {
+            row.remove();
+        }
+        updateIndexes();
+        recalcAll();
+    }
+
+    // ── Index management ──────────────────────────────────────────────────
+    function updateIndexes() {
+        let idx = 0;
+        formset.querySelectorAll('.item-form').forEach(row => {
+            if (row.style.display === 'none') return;
+            row.querySelectorAll('input, select, textarea').forEach(el => {
+                if (el.name) el.name = el.name.replace(/items-\d+-/, `items-${idx}-`);
+                if (el.id)   el.id   = el.id.replace(/id_items-\d+-/, `id_items-${idx}-`);
+            });
+            row.querySelectorAll('label').forEach(label => {
+                if (label.htmlFor) label.htmlFor = label.htmlFor.replace(/id_items-\d+-/, `id_items-${idx}-`);
+            });
+            idx++;
+        });
+        totalForms.value = formset.querySelectorAll('.item-form').length;
+    }
+
+    // ── Clone empty form ──────────────────────────────────────────────────
+    function createEmptyForm() {
+        if (!cleanTmpl) return null;
+        const f = cleanTmpl.cloneNode(true);
+
+        f.querySelectorAll('input:not([type="hidden"]):not([type="checkbox"]):not([readonly]), textarea').forEach(el => {
+            el.value = '';
+        });
+        f.querySelectorAll('select').forEach(el => el.selectedIndex = 0);
+
+        const qty = f.querySelector('.item-quantity');
+        if (qty) qty.value = '1';
+
+        const tot = f.querySelector('.item-total');
+        if (tot) tot.value = fmt(0);
+
+        const del = f.querySelector('input[name$="-DELETE"]');
+        if (del) del.checked = false;
+
+        const idInp = f.querySelector('input[name$="-id"]');
+        if (idInp) idInp.value = '';
+
+        f.querySelectorAll('p.text-red-600').forEach(e => e.remove());
+        f.querySelector('.item-logistics-summary')?.classList.add('hidden');
+        f.style.display = '';
+        return f;
+    }
+});
+</script>
+{% endblock %}
+{% comment %}
+            {% include 'components/form_errors.html' %}
+
+            <div class="space-y-6">
+                <div>
+                    <label for="{{ form.proposal.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        {{ form.proposal.label }}
+                    </label>
+                    {{ form.proposal }}
+                    {% if form.proposal.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.proposal.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label for="{{ form.name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        {{ form.name.label }}
+                    </label>
+                    {{ form.name }}
+                    {% if form.name.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.name.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label for="{{ form.status.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        {{ form.status.label }}
+                    </label>
+                    {{ form.status }}
+                    {% if form.status.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.status.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Budget Items -->
+                <div class="border-t pt-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <div>
+                            <h3 class="text-lg font-medium text-gray-900">Itens do Orçamento</h3>
+                            <p class="text-sm text-gray-500 mt-1">Os valores totais são calculados automaticamente</p>
+                        </div>
+                        <button type="button" id="add-item" class="px-4 py-2 bg-black text-white text-sm rounded-lg hover:bg-gray-800 transition-all">
+                            + Adicionar Item
+                        </button>
+                    </div>
+                    
+                    {{ items_formset.management_form }}
+                    
+                    <div id="items-formset" class="space-y-4">
+                        {% for item_form in items_formset %}
+                        <div class="item-form bg-gray-50 border-2 border-gray-200 rounded-lg p-6">
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
+                                <!-- Nome do Item -->
+                                <div class="lg:col-span-3">
                                     <label class="block text-sm font-medium text-gray-700 mb-2">
-                                        {{ item_form.name.label }}
+                                        {{ item_form.name.label }} <span class="text-red-500">*</span>
                                     </label>
                                     {{ item_form.name }}
                                     {% if item_form.name.errors %}
@@ -69,9 +659,10 @@
                                     {% endif %}
                                 </div>
                                 
+                                <!-- Quantidade -->
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-2">
-                                        {{ item_form.quantity.label }}
+                                        {{ item_form.quantity.label }} <span class="text-red-500">*</span>
                                     </label>
                                     {{ item_form.quantity }}
                                     {% if item_form.quantity.errors %}
@@ -79,9 +670,43 @@
                                     {% endif %}
                                 </div>
                                 
+                                <!-- Metragem -->
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-2">
-                                        {{ item_form.unit_price.label }}
+                                        {{ item_form.measurement.label }}
+                                    </label>
+                                    {{ item_form.measurement }}
+                                    {% if item_form.measurement.errors %}
+                                    <p class="mt-1 text-sm text-red-600">{{ item_form.measurement.errors.0 }}</p>
+                                    {% endif %}
+                                </div>
+                                
+                                <!-- Unidade de Medida -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                                        {{ item_form.measurement_unit.label }}
+                                    </label>
+                                    {{ item_form.measurement_unit }}
+                                    {% if item_form.measurement_unit.errors %}
+                                    <p class="mt-1 text-sm text-red-600">{{ item_form.measurement_unit.errors.0 }}</p>
+                                    {% endif %}
+                                </div>
+                                
+                                <!-- Peso -->
+                                <div class="lg:col-span-2">
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                                        {{ item_form.weight.label }}
+                                    </label>
+                                    {{ item_form.weight }}
+                                    {% if item_form.weight.errors %}
+                                    <p class="mt-1 text-sm text-red-600">{{ item_form.weight.errors.0 }}</p>
+                                    {% endif %}
+                                </div>
+                                
+                                <!-- Preço Unitário -->
+                                <div class="lg:col-span-2">
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                                        {{ item_form.unit_price.label }} <span class="text-red-500">*</span>
                                     </label>
                                     {{ item_form.unit_price }}
                                     {% if item_form.unit_price.errors %}
@@ -89,7 +714,18 @@
                                     {% endif %}
                                 </div>
                                 
-                                <div class="lg:col-span-4">
+                                <!-- Valor Total (calculado) -->
+                                <div class="lg:col-span-2">
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                                        Valor Total (R$)
+                                    </label>
+                                    <input type="text" readonly
+                                        class="item-total w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-700 font-semibold"
+                                        value="0,00">
+                                </div>
+                                
+                                <!-- Descrição -->
+                                <div class="lg:col-span-6">
                                     <label class="block text-sm font-medium text-gray-700 mb-2">
                                         {{ item_form.description.label }}
                                     </label>
@@ -102,7 +738,7 @@
                             
                             <div class="mt-4 pt-4 border-t border-gray-200 flex items-center justify-between">
                                 <button type="button" class="remove-item px-4 py-2 bg-white border border-red-300 text-red-600 text-sm rounded-lg hover:bg-red-50 transition-all">
-                                    Remover Item
+                                    🗑️ Remover Item
                                 </button>
                                 <div class="hidden">
                                     {{ item_form.DELETE }}
@@ -111,6 +747,14 @@
                             </div>
                         </div>
                         {% endfor %}
+                    </div>
+                    
+                    <!-- Total Geral -->
+                    <div class="mt-6 bg-black rounded-lg p-6 shadow-sm">
+                        <div class="flex justify-between items-center">
+                            <span class="text-lg font-medium text-gray-300">Valor Total do Orçamento</span>
+                            <span id="budget-total" class="text-3xl font-bold text-white">R$ 0,00</span>
+                        </div>
                     </div>
                     
                     {% if items_formset.non_form_errors %}
@@ -142,26 +786,77 @@
         const formsetContainer = document.getElementById('items-formset');
         const addButton = document.getElementById('add-item');
         const totalFormsInput = document.getElementById('id_items-TOTAL_FORMS');
+        const budgetTotalElement = document.getElementById('budget-total');
         
         // Store a clean template on page load
         const firstFormOriginal = formsetContainer.querySelector('.item-form');
         const cleanTemplate = firstFormOriginal ? firstFormOriginal.cloneNode(true) : null;
         
-        if (cleanTemplate) {
-            console.log('Clean template saved with button:', cleanTemplate.querySelector('.remove-item'));
+        // Format currency for display
+        function formatCurrency(value) {
+            return new Intl.NumberFormat('pt-BR', {
+                style: 'currency',
+                currency: 'BRL'
+            }).format(value);
         }
+        
+        // Calculate item total
+        function calculateItemTotal(itemForm) {
+            const quantityInput = itemForm.querySelector('.item-quantity');
+            const unitPriceInput = itemForm.querySelector('.item-unit-price');
+            const totalInput = itemForm.querySelector('.item-total');
+            
+            if (!quantityInput || !unitPriceInput || !totalInput) return 0;
+            
+            const quantity = parseFloat(quantityInput.value) || 0;
+            const unitPrice = parseFloat(unitPriceInput.value) || 0;
+            const total = quantity * unitPrice;
+            
+            totalInput.value = formatCurrency(total);
+            return total;
+        }
+        
+        // Calculate budget total
+        function calculateBudgetTotal() {
+            let grandTotal = 0;
+            
+            formsetContainer.querySelectorAll('.item-form:not([style*="display: none"])').forEach(itemForm => {
+                grandTotal += calculateItemTotal(itemForm);
+            });
+            
+            budgetTotalElement.textContent = formatCurrency(grandTotal);
+        }
+        
+        // Add event listeners to calculate on input change
+        function addCalculationListeners(itemForm) {
+            const quantityInput = itemForm.querySelector('.item-quantity');
+            const unitPriceInput = itemForm.querySelector('.item-unit-price');
+            
+            if (quantityInput) {
+                quantityInput.addEventListener('input', calculateBudgetTotal);
+            }
+            if (unitPriceInput) {
+                unitPriceInput.addEventListener('input', calculateBudgetTotal);
+            }
+        }
+        
+        // Add listeners to existing forms
+        formsetContainer.querySelectorAll('.item-form').forEach(itemForm => {
+            addCalculationListeners(itemForm);
+        });
+        
+        // Initial calculation
+        calculateBudgetTotal();
         
         function updateFormIndexes() {
             const forms = formsetContainer.querySelectorAll('.item-form:not([style*="display: none"])');
             let visibleIndex = 0;
             
             formsetContainer.querySelectorAll('.item-form').forEach((form) => {
-                // Skip hidden forms (marked for deletion)
                 if (form.style.display === 'none') {
                     return;
                 }
                 
-                // Update all input/select/textarea names and ids
                 const inputs = form.querySelectorAll('input, select, textarea');
                 inputs.forEach(input => {
                     if (input.name) {
@@ -172,7 +867,6 @@
                     }
                 });
                 
-                // Update labels
                 const labels = form.querySelectorAll('label');
                 labels.forEach(label => {
                     if (label.htmlFor) {
@@ -183,24 +877,33 @@
                 visibleIndex++;
             });
             
-            // Update total forms count - must include ALL forms (even hidden ones)
             totalFormsInput.value = formsetContainer.querySelectorAll('.item-form').length;
         }
         
         function createEmptyForm() {
             if (!cleanTemplate) {
-                console.log('No clean template available!');
                 return null;
             }
             
-            // Always clone from the clean template
             const newForm = cleanTemplate.cloneNode(true);
             
-            // Clear all input values
-            const inputs = newForm.querySelectorAll('input:not([type="hidden"]):not([type="checkbox"]), textarea');
+            // Clear all input values except readonly
+            const inputs = newForm.querySelectorAll('input:not([type="hidden"]):not([type="checkbox"]):not([readonly]), textarea, select');
             inputs.forEach(input => {
-                input.value = '';
+                if (input.tagName === 'SELECT') {
+                    input.selectedIndex = 0;
+                } else {
+                    input.value = '';
+                }
             });
+            
+            // Set default quantity
+            const quantityInput = newForm.querySelector('.item-quantity');
+            if (quantityInput) quantityInput.value = '1';
+            
+            // Clear total field
+            const totalInput = newForm.querySelector('.item-total');
+            if (totalInput) totalInput.value = formatCurrency(0);
             
             // Uncheck DELETE checkbox
             const deleteCheckbox = newForm.querySelector('input[name$="-DELETE"]');
@@ -214,48 +917,35 @@
                 idInput.value = '';
             }
             
-            // Clear error messages - only <p> tags to avoid removing the button
+            // Clear error messages
             const errors = newForm.querySelectorAll('p.text-red-600');
             errors.forEach(error => error.remove());
             
-            console.log('New form created, has remove button:', newForm.querySelector('.remove-item'));
-            
-            console.log('New form HTML:', newForm.innerHTML);
             return newForm;
         }
         
         addButton.addEventListener('click', function() {
             const newForm = createEmptyForm();
             if (newForm) {
-                console.log('New form before append:', newForm);
-                console.log('New form HTML before append:', newForm.innerHTML);
-                
-                // Make sure the form is visible
                 newForm.style.display = '';
                 
                 formsetContainer.appendChild(newForm);
                 
-                console.log('New form after append:', newForm);
-                console.log('Looking for .remove-item button...');
+                // Add calculation listeners to new form
+                addCalculationListeners(newForm);
                 
-                // Add remove functionality to the new form BEFORE updating indexes
+                // Add remove functionality
                 const removeBtn = newForm.querySelector('.remove-item');
-                console.log('Remove button found:', removeBtn);
-                
                 if (removeBtn) {
-                    console.log('Found remove button in new form');
                     removeBtn.addEventListener('click', function(e) {
                         e.preventDefault();
                         removeForm(newForm);
                     });
-                } else {
-                    console.log('Remove button NOT found in new form');
-                    console.log('All buttons in form:', newForm.querySelectorAll('button'));
                 }
                 
                 updateFormIndexes();
+                calculateBudgetTotal();
                 
-                // Scroll to the new form
                 newForm.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             }
         });
@@ -263,22 +953,18 @@
         function removeForm(formElement) {
             const visibleForms = formsetContainer.querySelectorAll('.item-form:not([style*="display: none"])');
             
-            // Don't allow removing if it's the only visible form
             if (visibleForms.length <= 1) {
                 alert('Deve haver pelo menos um item no orçamento.');
                 return;
             }
             
-            // Check if this is an existing item (has an ID)
             const idInput = formElement.querySelector('input[name$="-id"]');
             if (idInput && idInput.value) {
-                // Mark for deletion instead of removing
                 const deleteInput = formElement.querySelector('input[name$="-DELETE"]');
                 if (deleteInput) {
                     deleteInput.checked = true;
                 }
                 
-                // Disable all inputs in the form to avoid validation errors
                 const inputs = formElement.querySelectorAll('input:not([name$="-DELETE"]):not([name$="-id"]), textarea, select');
                 inputs.forEach(input => {
                     input.disabled = true;
@@ -287,11 +973,11 @@
                 
                 formElement.style.display = 'none';
             } else {
-                // New form, can be removed completely
                 formElement.remove();
             }
             
             updateFormIndexes();
+            calculateBudgetTotal();
         }
         
         // Add remove functionality to existing forms
@@ -303,4 +989,4 @@
         });
     });
 </script>
-{% endblock %}
+{% endcomment %}

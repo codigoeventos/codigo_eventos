@@ -1,5 +1,5 @@
 """
-Signals for automatic service order creation from approved budgets.
+Signals for automatic service order creation from budgets.
 """
 
 from django.db.models.signals import post_save
@@ -8,25 +8,25 @@ from .models import Budget
 
 
 @receiver(post_save, sender=Budget)
-def create_service_order_on_approval(sender, instance, created, **kwargs):
+def create_service_order_on_budget_creation(sender, instance, created, **kwargs):
     """
-    Automatically create a Service Order when a budget is approved.
+    Automatically create a Service Order when a budget is created.
     
-    This implements the core business rule:
-    Budget.status = 'approved' -> Create ServiceOrder
+    This implements the business rule:
+    New Budget -> Immediately create ServiceOrder
     """
     # Import here to avoid circular imports
     from apps.service_orders.models import ServiceOrder
     
-    # Only create service order if budget was just approved
-    if instance.status == 'approved' and not created:
-        # Check if service order already exists for this budget
+    # Create service order immediately when budget is created
+    if created:
+        # Check if service order doesn't already exist
         if not hasattr(instance, 'service_order'):
             # Create service order
             ServiceOrder.objects.create(
                 budget=instance,
                 event=instance.proposal.event,
                 status='pending',
-                created_by=instance.updated_by,
-                updated_by=instance.updated_by
+                created_by=instance.created_by,
             )
+

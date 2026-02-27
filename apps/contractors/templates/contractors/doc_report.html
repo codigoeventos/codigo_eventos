@@ -1,0 +1,272 @@
+{% extends "base.html" %}
+
+{% block title %}Relatório de Documentação – Profissionais{% endblock %}
+{% block page_title %}Relatório de Documentação{% endblock %}
+
+{% block content %}
+{% include 'components/breadcrumbs.html' %}
+
+<!-- Summary Cards -->
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 flex items-center gap-3">
+        <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
+            <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+        </div>
+        <div>
+            <p class="text-2xl font-bold text-gray-900">{{ counts.total }}</p>
+            <p class="text-xs text-gray-500 mt-0.5">Total</p>
+        </div>
+    </div>
+
+    <a href="?status=expired" class="bg-white rounded-lg shadow-sm border {% if status_filter == 'expired' %}border-red-400 ring-2 ring-red-300{% else %}border-gray-200{% endif %} p-4 flex items-center gap-3 hover:border-red-300 transition-colors">
+        <div class="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center shrink-0">
+            <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+        </div>
+        <div>
+            <p class="text-2xl font-bold text-red-600">{{ counts.expired }}</p>
+            <p class="text-xs text-gray-500 mt-0.5">Vencidos</p>
+        </div>
+    </a>
+
+    <a href="?status=expiring_soon" class="bg-white rounded-lg shadow-sm border {% if status_filter == 'expiring_soon' %}border-yellow-400 ring-2 ring-yellow-300{% else %}border-gray-200{% endif %} p-4 flex items-center gap-3 hover:border-yellow-300 transition-colors">
+        <div class="w-10 h-10 rounded-full bg-yellow-50 flex items-center justify-center shrink-0">
+            <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+        </div>
+        <div>
+            <p class="text-2xl font-bold text-yellow-600">{{ counts.expiring_soon }}</p>
+            <p class="text-xs text-gray-500 mt-0.5">Vencem em 30 dias</p>
+        </div>
+    </a>
+
+    <a href="?status=valid" class="bg-white rounded-lg shadow-sm border {% if status_filter == 'valid' %}border-green-400 ring-2 ring-green-300{% else %}border-gray-200{% endif %} p-4 flex items-center gap-3 hover:border-green-300 transition-colors">
+        <div class="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center shrink-0">
+            <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+        </div>
+        <div>
+            <p class="text-2xl font-bold text-green-600">{{ counts.valid }}</p>
+            <p class="text-xs text-gray-500 mt-0.5">Em dia</p>
+        </div>
+    </a>
+
+</div>
+
+<!-- Alert banner if there are expired docs -->
+{% if counts.expired > 0 %}
+<div class="flex items-start gap-3 bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+    <svg class="w-5 h-5 text-red-600 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+    </svg>
+    <div>
+        <p class="text-sm font-semibold text-red-800">
+            {{ counts.expired }} profissional{{ counts.expired|pluralize:",is" }} com documentação vencida
+        </p>
+        <p class="text-sm text-red-700 mt-1">
+            Profissionais com documentação vencida <strong>não podem ser vinculados a novos eventos</strong>.
+            Atualize os certificados NR e/ou ASO para desbloqueá-los.
+        </p>
+    </div>
+</div>
+{% endif %}
+
+{% if counts.expiring_soon > 0 %}
+<div class="flex items-start gap-3 bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+    <svg class="w-5 h-5 text-yellow-600 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+    <div>
+        <p class="text-sm font-semibold text-yellow-800">
+            {{ counts.expiring_soon }} profissional{{ counts.expiring_soon|pluralize:",is" }} com documentação vencendo nos próximos 30 dias
+        </p>
+        <p class="text-sm text-yellow-700 mt-1">Providencie a renovação com antecedência.</p>
+    </div>
+</div>
+{% endif %}
+
+<!-- Table -->
+<div class="bg-white rounded-lg shadow-sm border border-gray-200">
+    <!-- Header -->
+    <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+        <div class="flex items-center gap-3">
+            <h2 class="text-base font-semibold text-gray-900">Profissionais</h2>
+            <span class="text-sm text-gray-500">({{ members|length }})</span>
+        </div>
+        <!-- Filter tabs -->
+        <div class="flex gap-1 text-xs">
+            <a href="{% url 'contractors:doc_report' %}"
+               class="px-3 py-1.5 rounded-md font-medium transition-colors {% if status_filter == 'all' %}bg-gray-900 text-white{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+               Todos
+            </a>
+            <a href="?status=expired"
+               class="px-3 py-1.5 rounded-md font-medium transition-colors {% if status_filter == 'expired' %}bg-red-600 text-white{% else %}text-red-600 hover:bg-red-50{% endif %}">
+               Vencidos
+            </a>
+            <a href="?status=expiring_soon"
+               class="px-3 py-1.5 rounded-md font-medium transition-colors {% if status_filter == 'expiring_soon' %}bg-yellow-500 text-white{% else %}text-yellow-700 hover:bg-yellow-50{% endif %}">
+               Vencem em 30d
+            </a>
+            <a href="?status=valid"
+               class="px-3 py-1.5 rounded-md font-medium transition-colors {% if status_filter == 'valid' %}bg-green-600 text-white{% else %}text-green-700 hover:bg-green-50{% endif %}">
+               Em dia
+            </a>
+            <a href="?status=no_doc"
+               class="px-3 py-1.5 rounded-md font-medium transition-colors {% if status_filter == 'no_doc' %}bg-gray-600 text-white{% else %}text-gray-500 hover:bg-gray-100{% endif %}">
+               Sem doc.
+            </a>
+        </div>
+    </div>
+
+    {% if members %}
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead>
+                <tr class="bg-gray-50 border-b border-gray-200">
+                    <th class="text-left px-4 py-3 font-medium text-gray-600">Profissional</th>
+                    <th class="text-left px-4 py-3 font-medium text-gray-600 hidden md:table-cell">Empreiteira</th>
+                    <th class="text-left px-4 py-3 font-medium text-gray-600 hidden lg:table-cell">CPF</th>
+                    <th class="text-center px-4 py-3 font-medium text-gray-600">NR</th>
+                    <th class="text-center px-4 py-3 font-medium text-gray-600">ASO</th>
+                    <th class="text-center px-4 py-3 font-medium text-gray-600">Situação</th>
+                    <th class="text-right px-4 py-3 font-medium text-gray-600"></th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                {% for member in members %}
+                <tr class="hover:bg-gray-50 transition-colors
+                           {% if member.is_blocked_from_events %}bg-red-50 hover:bg-red-100{% endif %}">
+                    <!-- Name + Role -->
+                    <td class="px-4 py-3">
+                        <div class="flex items-center gap-3">
+                            {% if member.photo %}
+                            <img src="{{ member.photo.url }}" alt="{{ member.name }}"
+                                 class="w-8 h-8 rounded-full object-cover border border-gray-200 shrink-0">
+                            {% else %}
+                            <div class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-xs font-semibold shrink-0">
+                                {{ member.name|first|upper }}
+                            </div>
+                            {% endif %}
+                            <div>
+                                <p class="font-medium text-gray-900">{{ member.name }}</p>
+                                <p class="text-xs text-gray-500">{{ member.role|default:"—" }}</p>
+                            </div>
+                        </div>
+                    </td>
+
+                    <!-- Contractor -->
+                    <td class="px-4 py-3 hidden md:table-cell text-gray-700">
+                        {% if member.contractor %}
+                        <a href="{% url 'contractors:detail' member.contractor.pk %}"
+                           class="hover:underline text-blue-600">{{ member.contractor.name }}</a>
+                        {% else %}—{% endif %}
+                    </td>
+
+                    <!-- CPF -->
+                    <td class="px-4 py-3 hidden lg:table-cell text-gray-700 font-mono text-xs">
+                        {{ member.cpf|default:"—" }}
+                    </td>
+
+                    <!-- NR Status -->
+                    <td class="px-4 py-3 text-center">
+                        {% if member.nr_doc_status == 'expired' %}
+                            <span class="inline-flex flex-col items-center">
+                                <span class="inline-block px-2 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-700">Vencido</span>
+                                <span class="text-xs text-red-500 mt-0.5 whitespace-nowrap">{{ member.nr_certificate_expiry|date:"d/m/Y" }}</span>
+                            </span>
+                        {% elif member.nr_doc_status == 'expiring_soon' %}
+                            <span class="inline-flex flex-col items-center">
+                                <span class="inline-block px-2 py-0.5 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-700">{{ member.days_until_nr_expiry }}d</span>
+                                <span class="text-xs text-yellow-600 mt-0.5 whitespace-nowrap">{{ member.nr_certificate_expiry|date:"d/m/Y" }}</span>
+                            </span>
+                        {% elif member.nr_doc_status == 'valid' %}
+                            <span class="inline-flex flex-col items-center">
+                                <span class="inline-block px-2 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-700">Em dia</span>
+                                <span class="text-xs text-green-600 mt-0.5 whitespace-nowrap">{{ member.nr_certificate_expiry|date:"d/m/Y" }}</span>
+                            </span>
+                        {% else %}
+                            <span class="text-xs text-gray-400">—</span>
+                        {% endif %}
+                    </td>
+
+                    <!-- ASO Status -->
+                    <td class="px-4 py-3 text-center">
+                        {% if member.aso_doc_status == 'expired' %}
+                            <span class="inline-flex flex-col items-center">
+                                <span class="inline-block px-2 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-700">Vencido</span>
+                                <span class="text-xs text-red-500 mt-0.5 whitespace-nowrap">{{ member.aso_expiry_date|date:"d/m/Y" }}</span>
+                            </span>
+                        {% elif member.aso_doc_status == 'expiring_soon' %}
+                            <span class="inline-flex flex-col items-center">
+                                <span class="inline-block px-2 py-0.5 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-700">{{ member.days_until_aso_expiry }}d</span>
+                                <span class="text-xs text-yellow-600 mt-0.5 whitespace-nowrap">{{ member.aso_expiry_date|date:"d/m/Y" }}</span>
+                            </span>
+                        {% elif member.aso_doc_status == 'valid' %}
+                            <span class="inline-flex flex-col items-center">
+                                <span class="inline-block px-2 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-700">Em dia</span>
+                                <span class="text-xs text-green-600 mt-0.5 whitespace-nowrap">{{ member.aso_expiry_date|date:"d/m/Y" }}</span>
+                            </span>
+                        {% else %}
+                            <span class="text-xs text-gray-400">—</span>
+                        {% endif %}
+                    </td>
+
+                    <!-- Worst Status -->
+                    <td class="px-4 py-3 text-center">
+                        {% if member.is_blocked_from_events %}
+                            <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700">
+                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M13.477 14.89A6 6 0 015.11 6.524L13.477 14.89zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z" clip-rule="evenodd"/>
+                                </svg>
+                                Bloqueado
+                            </span>
+                        {% elif member.worst_doc_status == 'expiring_soon' %}
+                            <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-700">
+                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+                                </svg>
+                                Alerta
+                            </span>
+                        {% elif member.worst_doc_status == 'valid' %}
+                            <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">
+                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                </svg>
+                                OK
+                            </span>
+                        {% else %}
+                            <span class="px-2 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-500">Sem doc.</span>
+                        {% endif %}
+                    </td>
+
+                    <!-- Actions -->
+                    <td class="px-4 py-3 text-right">
+                        <a href="{% url 'contractors:member_detail' member.pk %}"
+                           class="text-xs text-blue-600 hover:underline">Ver</a>
+                        <span class="text-gray-300 mx-1">|</span>
+                        <a href="{% url 'contractors:member_edit' member.pk %}"
+                           class="text-xs text-gray-600 hover:underline">Editar</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="px-6 py-12 text-center">
+        <svg class="w-10 h-10 text-gray-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <p class="text-sm text-gray-500">Nenhum profissional encontrado para o filtro selecionado.</p>
+        <a href="{% url 'contractors:doc_report' %}" class="mt-2 inline-block text-sm text-blue-600 hover:underline">Ver todos</a>
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}

@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aprovação de Orçamento - {{ budget.name }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white; }
+            * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .bg-black { background-color: #000 !important; color: #fff !important; }
+            .border-black { border-color: #000 !important; }
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="min-h-screen py-8 px-4">
+        <div class="max-w-7xl mx-auto">
+            
+            <!-- Header with Logo and Title -->
+            <div class="bg-white rounded-t-lg shadow-lg p-8 border-b-4 border-black">
+                <div class="flex justify-between items-start flex-wrap gap-4">
+                    <div class="flex-1">
+                        <h1 class="text-4xl font-bold text-black mb-2">ORÇAMENTO</h1>
+                        <p class="text-xl text-gray-700 font-semibold">{{ budget.name }}</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="inline-block px-6 py-3 rounded-lg text-sm font-bold uppercase border
+                            {% if budget.approval_status == 'approved' %}bg-green-500 text-white border-green-600
+                            {% elif budget.approval_status == 'rejected' %}bg-red-500 text-white border-red-600
+                            {% else %}bg-gray-100 text-gray-900 border-black{% endif %}">
+                            {{ budget.get_approval_status_display }}
+                        </div>
+                        {% if budget.approved_at %}
+                        <p class="text-sm text-gray-500 mt-2">{{ budget.approved_at|date:"d/m/Y às H:i" }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Budget Info Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 pt-6 border-t border-gray-200">
+                    <div>
+                        <p class="text-sm text-gray-500 uppercase tracking-wide mb-1">Projeto</p>
+                        <p class="text-lg font-semibold text-gray-900">{{ budget.proposal.title }}</p>
+                    </div>
+                    {% if budget.proposal.event %}
+                    <div>
+                        <p class="text-sm text-gray-500 uppercase tracking-wide mb-1">Evento</p>
+                        <p class="text-lg font-semibold text-gray-900">{{ budget.proposal.event.name }}</p>
+                    </div>
+                    {% endif %}
+                    {% if budget.proposal.event.client %}
+                    <div>
+                        <p class="text-sm text-gray-500 uppercase tracking-wide mb-1">Cliente</p>
+                        <p class="text-lg font-semibold text-gray-900">{{ budget.proposal.event.client.name }}</p>
+                    </div>
+                    {% endif %}
+                    <div>
+                        <p class="text-sm text-gray-500 uppercase tracking-wide mb-1">Data de Criação</p>
+                        <p class="text-lg font-semibold text-gray-900">{{ budget.created_at|date:"d/m/Y" }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Messages -->
+            {% if messages %}
+            <div class="my-4 space-y-2 no-print">
+                {% for message in messages %}
+                <div class="p-4 rounded-lg shadow-md {% if message.tags == 'success' %}bg-green-100 border-l-4 border-green-500 text-green-800
+                    {% elif message.tags == 'error' %}bg-red-100 border-l-4 border-red-500 text-red-800
+                    {% else %}bg-blue-100 border-l-4 border-blue-500 text-blue-800{% endif %}">
+                    <p class="font-semibold">{{ message }}</p>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Form -->
+            <form method="post" id="approval-form" class="bg-white shadow-lg">
+                {% csrf_token %}
+                
+                <!-- Items Table -->
+                <div class="overflow-hidden">
+                    <div class="bg-gray-50 px-8 py-4 border-b border-gray-200">
+                        <div class="flex justify-between items-center">
+                            <h2 class="text-2xl font-bold text-gray-900">ITENS DO ORÇAMENTO</h2>
+                            {% if is_editable %}
+                            <label class="flex items-center gap-2 cursor-pointer hover:bg-gray-100 px-4 py-2 rounded-lg transition">
+                                <input type="checkbox" id="select-all" 
+                                    class="w-5 h-5 text-black border-gray-400 rounded focus:ring-black"
+                                    checked>
+                                <span class="text-sm font-semibold text-gray-700">SELECIONAR TODOS</span>
+                            </label>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full">
+                            <thead class="bg-black text-white">
+                                <tr>
+                                    {% if is_editable %}
+                                    <th class="px-6 py-4 text-center text-sm font-bold uppercase w-16">
+                                        Sel.
+                                    </th>
+                                    {% endif %}
+                                    <th class="px-6 py-4 text-left text-sm font-bold uppercase">
+                                        ITEM / DESCRIÇÃO
+                                    </th>
+                                    <th class="px-6 py-4 text-center text-sm font-bold uppercase w-24">
+                                        QTD
+                                    </th>
+                                    <th class="px-6 py-4 text-right text-sm font-bold uppercase w-32">
+                                        VALOR UNIT.
+                                    </th>
+                                    <th class="px-6 py-4 text-right text-sm font-bold uppercase w-40">
+                                        TOTAL
+                                    </th>
+                                    {% if not is_editable %}
+                                    <th class="px-6 py-4 text-center text-sm font-bold uppercase w-32">
+                                        STATUS
+                                    </th>
+                                    {% endif %}
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200">
+                                {% for item in items %}
+                                <tr class="item-row hover:bg-gray-50 transition odd:bg-white even:bg-gray-50/50 {% if not item.is_approved and not is_editable %}bg-red-50{% endif %}">
+                                    {% if is_editable %}
+                                    <td class="px-6 py-4 text-center">
+                                        <input type="checkbox" name="items" value="{{ item.id }}" 
+                                            class="item-checkbox w-6 h-6 text-black border-gray-400 rounded focus:ring-black cursor-pointer"
+                                            data-price="{{ item.total_price }}"
+                                            data-name="{{ item.name|escapejs }}"
+                                            {% if item.is_approved %}checked{% endif %}>
+                                    </td>
+                                    {% endif %}
+                                    <td class="px-6 py-4">
+                                        <div class="font-semibold text-gray-900 text-base">{{ item.name }}</div>
+                                        {% if item.description %}
+                                        <div class="text-sm text-gray-600 mt-1">{{ item.description }}</div>
+                                        {% endif %}
+                                        {% if item.measurement %}
+                                        <div class="text-xs text-gray-500 mt-1">
+                                            Metragem: {{ item.measurement }} {{ item.get_measurement_unit_display|default:"" }}
+                                            {% if item.weight %} | Peso: {{ item.weight }} kg{% endif %}
+                                        </div>
+                                        {% endif %}
+                                    </td>
+                                    <td class="px-6 py-4 text-center font-semibold text-gray-900">
+                                        {{ item.quantity }}
+                                    </td>
+                                    <td class="px-6 py-4 text-right font-semibold text-gray-900">
+                                        R$ {{ item.unit_price|floatformat:2 }}
+                                    </td>
+                                    <td class="px-6 py-4 text-right font-bold text-gray-900 text-lg">
+                                        R$ {{ item.total_price|floatformat:2 }}
+                                    </td>
+                                    {% if not is_editable %}
+                                    <td class="px-6 py-4 text-center">
+                                        {% if item.is_approved %}
+                                        <span class="inline-block px-3 py-1 text-xs font-bold bg-green-500 text-white rounded-full uppercase">
+                                            ✓ Aprovado
+                                        </span>
+                                        {% else %}
+                                        <span class="inline-block px-3 py-1 text-xs font-bold bg-red-500 text-white rounded-full uppercase">
+                                            ✗ Não Aprovado
+                                        </span>
+                                        {% endif %}
+                                    </td>
+                                    {% endif %}
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Total Section -->
+                    <div class="bg-black text-white p-8">
+                        <div class="flex justify-end items-center max-w-4xl ml-auto">
+                            <div class="text-right">
+                                <p class="text-sm uppercase tracking-wider opacity-75 mb-1">
+                                    {% if is_editable %}Total Selecionado{% else %}Total Aprovado{% endif %}
+                                </p>
+                                <p class="text-4xl font-bold" id="total-value">
+                                    {% if is_editable %}R$ {{ budget.total_value|floatformat:2 }}{% else %}R$ {{ budget.approved_value|floatformat:2 }}{% endif %}
+                                </p>
+                                <p class="text-xs opacity-75 mt-1">Atualiza instantaneamente conforme a seleção dos itens.</p>
+                            </div>
+                            {% if not is_editable and budget.total_value != budget.approved_value %}
+                            <div class="text-right opacity-75">
+                                <p class="text-sm uppercase tracking-wider mb-1">Total Original</p>
+                                <p class="text-2xl font-semibold line-through">R$ {{ budget.total_value|floatformat:2 }}</p>
+                                <p class="text-xs mt-1">Diferença aplicada pelos itens reprovados.</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                {% if is_editable %}
+                <!-- Notes Section -->
+                <div class="bg-white p-8 border-t border-gray-200">
+                    <label for="notes" class="block text-sm font-bold text-gray-700 uppercase tracking-wide mb-3">
+                        Observações / Comentários (Opcional)
+                    </label>
+                    <textarea name="notes" id="notes" rows="4"
+                        class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-black text-gray-900"
+                        placeholder="Adicione observações, dúvidas ou comentários sobre o orçamento..."></textarea>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="bg-gray-50 p-8 rounded-b-lg border-t border-gray-200">
+                    <div class="flex flex-col lg:flex-row gap-4 justify-between items-center">
+                        <!-- PDF Button -->
+                        <button type="button" onclick="downloadPDF()" 
+                            class="w-full lg:w-auto px-8 py-4 bg-white border-2 border-gray-800 text-gray-800 rounded-lg hover:bg-gray-800 hover:text-white transition-all font-bold uppercase text-sm shadow-md flex items-center justify-center gap-2 no-print">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            Baixar PDF
+                        </button>
+                        
+                        <div class="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
+                            <!-- Reject Button -->
+                            <button type="button" data-confirm-action="reject"
+                                class="flex-1 lg:flex-none px-8 py-4 bg-white border-2 border-red-500 text-red-600 rounded-lg hover:bg-red-500 hover:text-white transition-all font-bold uppercase text-sm shadow-md flex items-center justify-center gap-2 no-print">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                                Rejeitar
+                            </button>
+                            
+                            <!-- Approve Button -->
+                            <button type="button" data-confirm-action="approve"
+                                class="flex-1 lg:flex-none px-8 py-4 bg-black text-white rounded-lg hover:bg-gray-800 transition-all font-bold uppercase text-sm shadow-lg flex items-center justify-center gap-2 no-print">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                                Aprovar Selecionados
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Confirmation Modal -->
+                <div id="confirm-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm no-print">
+                    <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg mx-4 border border-gray-200">
+                        <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+                            <div>
+                                <p id="confirm-badge" class="inline-block px-3 py-1 text-xs font-bold rounded-full bg-black text-white">Ação</p>
+                                <h3 id="confirm-title" class="text-xl font-bold text-gray-900 mt-2">Confirmar ação</h3>
+                            </div>
+                            <button type="button" id="confirm-close" class="text-gray-400 hover:text-black text-xl font-bold">×</button>
+                        </div>
+                        <div class="px-6 py-5 space-y-2 text-gray-700" id="confirm-message">
+                            <!-- mensagem preenchida via JS -->
+                        </div>
+                        <div class="px-6 py-4 bg-gray-50 flex flex-col sm:flex-row gap-3 justify-end">
+                            <button type="button" id="confirm-cancel" class="w-full sm:w-auto px-5 py-3 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 font-semibold">Voltar</button>
+                            <button type="button" id="confirm-ok" class="w-full sm:w-auto px-5 py-3 rounded-lg bg-black text-white hover:bg-gray-800 font-semibold">Confirmar</button>
+                        </div>
+                    </div>
+                </div>
+                <input type="hidden" name="action" id="action-input" value="">
+                {% else %}
+                <!-- Read-only State -->
+                <div class="bg-white p-8 border-t border-gray-200">
+                    {% if budget.client_notes %}
+                    <div class="mb-6">
+                        <h3 class="text-lg font-bold text-gray-900 uppercase tracking-wide mb-3">Observações do Cliente</h3>
+                        <div class="p-4 bg-gray-100 rounded-lg border-l-4 border-black">
+                            <p class="text-gray-800">{{ budget.client_notes }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                        <button type="button" onclick="downloadPDF()" 
+                            class="px-8 py-4 bg-black text-white rounded-lg hover:bg-gray-800 transition-all font-bold uppercase text-sm shadow-lg flex items-center gap-2 no-print">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            Baixar PDF
+                        </button>
+                        
+                        <button type="button" onclick="window.print()" 
+                            class="px-8 py-4 bg-white border-2 border-black text-black rounded-lg hover:bg-gray-100 transition-all font-bold uppercase text-sm shadow-md flex items-center gap-2 no-print">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
+                            </svg>
+                            Imprimir
+                        </button>
+                    </div>
+                </div>
+                <div class="bg-gray-50 p-6 rounded-b-lg text-center border-t border-gray-200">
+                    <p class="text-sm text-gray-600">
+                        <strong>Status:</strong> Este orçamento foi 
+                        <span class="font-bold {% if budget.approval_status == 'approved' %}text-green-600{% else %}text-red-600{% endif %}">
+                            {{ budget.get_approval_status_display|upper }}
+                        </span> 
+                        e não pode mais ser modificado.
+                    </p>
+                </div>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Format currency
+        function formatCurrency(value) {
+            return new Intl.NumberFormat('pt-BR', {
+                style: 'currency',
+                currency: 'BRL'
+            }).format(value);
+        }
+
+        // Calculate total from selected items
+        function updateTotal() {
+            const checkboxes = document.querySelectorAll('.item-checkbox:checked');
+            let total = 0;
+            
+            checkboxes.forEach(checkbox => {
+                total += parseFloat(checkbox.dataset.price);
+            });
+            
+            document.getElementById('total-value').textContent = formatCurrency(total);
+        }
+
+        // Select/deselect all
+        document.getElementById('select-all')?.addEventListener('change', function() {
+            const checkboxes = document.querySelectorAll('.item-checkbox');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = this.checked;
+            });
+            updateTotal();
+        });
+
+        // Update total when individual items change
+        document.querySelectorAll('.item-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('change', updateTotal);
+        });
+
+        // Initial total calculation
+        if (document.querySelectorAll('.item-checkbox').length) {
+            updateTotal();
+        }
+
+        // Download PDF (usa impressão do navegador)
+        function downloadPDF() {
+            window.print();
+        }
+
+        // Custom confirm modal (approve / reject)
+        const confirmModal = document.getElementById('confirm-modal');
+        const confirmTitle = document.getElementById('confirm-title');
+        const confirmMessage = document.getElementById('confirm-message');
+        const confirmBadge = document.getElementById('confirm-badge');
+        const actionInput = document.getElementById('action-input');
+        const form = document.getElementById('approval-form');
+
+        function openConfirm(action) {
+            const isApprove = action === 'approve';
+            confirmTitle.textContent = isApprove ? 'Confirmar aprovação' : 'Confirmar rejeição';
+            confirmBadge.textContent = isApprove ? 'Aprovar' : 'Rejeitar';
+            confirmBadge.className = `inline-block px-3 py-1 text-xs font-bold rounded-full ${isApprove ? 'bg-black text-white' : 'bg-red-600 text-white'}`;
+
+            if (isApprove) {
+                const allBoxes = document.querySelectorAll('.item-checkbox');
+                const approved = [];
+                const notApproved = [];
+                allBoxes.forEach(cb => {
+                    const name = cb.dataset.name;
+                    const price = formatCurrency(parseFloat(cb.dataset.price));
+                    if (cb.checked) approved.push({ name, price });
+                    else notApproved.push({ name, price });
+                });
+
+                const renderList = (items, colorClass, icon) =>
+                    items.length
+                        ? `<ul class="mt-1 space-y-1">${items.map(i =>
+                            `<li class="flex justify-between gap-4 text-sm ${colorClass}">
+                                <span>${icon} ${i.name}</span>
+                                <span class="font-semibold whitespace-nowrap">${i.price}</span>
+                            </li>`).join('')}</ul>`
+                        : `<p class="text-sm text-gray-400 italic mt-1">Nenhum</p>`;
+
+                confirmMessage.innerHTML = `
+                    <p class="text-sm text-gray-700 mb-3">Após confirmar, este orçamento ficará <strong>bloqueado para edição</strong>.</p>
+                    <div class="rounded-lg border border-green-200 bg-green-50 p-3 mb-3">
+                        <p class="text-xs font-bold text-green-800 uppercase tracking-wide mb-1">✓ Serão aprovados (${approved.length})</p>
+                        ${renderList(approved, 'text-green-700', '✓')}
+                    </div>
+                    ${notApproved.length ? `<div class="rounded-lg border border-red-200 bg-red-50 p-3">
+                        <p class="text-xs font-bold text-red-800 uppercase tracking-wide mb-1">✗ Não aprovados (${notApproved.length})</p>
+                        ${renderList(notApproved, 'text-red-700', '✗')}
+                    </div>` : ''}
+                `;
+            } else {
+                confirmMessage.innerHTML = '<p>Você está prestes a <strong>rejeitar</strong> este orçamento. Esta ação não poderá ser desfeita.</p>';
+            }
+
+            actionInput.value = action;
+            confirmModal.classList.remove('hidden');
+        }
+
+        function closeConfirm() {
+            confirmModal.classList.add('hidden');
+        }
+
+        document.querySelectorAll('[data-confirm-action]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const action = btn.getAttribute('data-confirm-action');
+                // Para aprovação, garantir que haja ao menos 1 item selecionado
+                if (action === 'approve') {
+                    const checked = document.querySelectorAll('.item-checkbox:checked');
+                    if (!checked.length) {
+                        alert('Selecione ao menos um item para aprovar.');
+                        return;
+                    }
+                }
+                openConfirm(action);
+            });
+        });
+
+        document.getElementById('confirm-close').addEventListener('click', closeConfirm);
+        document.getElementById('confirm-cancel').addEventListener('click', closeConfirm);
+        document.getElementById('confirm-ok').addEventListener('click', () => {
+            form.submit();
+        });
+    </script>
+</body>
+</html>

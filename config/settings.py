@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'apps.contractors',
     'apps.documents',
     'apps.dashboard',
+    'apps.logistics',
 ]
 
 MIDDLEWARE = [

@@ -3,8 +3,10 @@ Contractor models for event contractor management.
 """
 
 from django.db import models
+from django.core.exceptions import ValidationError
 from django.utils import timezone
 from apps.common.models import BaseModel
+from apps.common.utils import validate_cpf, format_cpf
 
 
 class Contractor(BaseModel):
@@ -381,6 +383,10 @@ class ContractorMember(models.Model):
         contractor_name = self.contractor.name if self.contractor else 'Sem empreiteira'
         return f"{self.name} ({contractor_name})"
 
+    # ------------------------------------------------------------------ #
+    # Validity helpers
+    # ------------------------------------------------------------------ #
+
     @property
     def aso_is_valid(self):
         if self.aso_expiry_date:
@@ -392,6 +398,88 @@ class ContractorMember(models.Model):
         if self.nr_certificate_expiry:
             return self.nr_certificate_expiry >= timezone.now().date()
         return None
+
+    @property
+    def days_until_nr_expiry(self):
+        """Days until NR certificate expires. Negative = already expired."""
+        if self.nr_certificate_expiry:
+            return (self.nr_certificate_expiry - timezone.now().date()).days
+        return None
+
+    @property
+    def days_until_aso_expiry(self):
+        """Days until ASO expires. Negative = already expired."""
+        if self.aso_expiry_date:
+            return (self.aso_expiry_date - timezone.now().date()).days
+        return None
+
+    @property
+    def nr_doc_status(self):
+        """Returns: 'expired' | 'expiring_soon' (<=30d) | 'valid' | 'no_doc'"""
+        d = self.days_until_nr_expiry
+        if d is None:
+            return 'no_doc'
+        if d < 0:
+            return 'expired'
+        if d <= 30:
+            return 'expiring_soon'
+        return 'valid'
+
+    @property
+    def aso_doc_status(self):
+        """Returns: 'expired' | 'expiring_soon' (<=30d) | 'valid' | 'no_doc'"""
+        d = self.days_until_aso_expiry
+        if d is None:
+            return 'no_doc'
+        if d < 0:
+            return 'expired'
+        if d <= 30:
+            return 'expiring_soon'
+        return 'valid'
+
+    @property
+    def is_blocked_from_events(self):
+        """True if any tracked document has already expired."""
+        return self.nr_doc_status == 'expired' or self.aso_doc_status == 'expired'
+
+    @property
+    def worst_doc_status(self):
+        """Overall worst status across NR and ASO."""
+        statuses = [self.nr_doc_status, self.aso_doc_status]
+        if 'expired' in statuses:
+            return 'expired'
+        if 'expiring_soon' in statuses:
+            return 'expiring_soon'
+        if 'valid' in statuses:
+            return 'valid'
+        return 'no_doc'
+
+    # ------------------------------------------------------------------ #
+    # Validation
+    # ------------------------------------------------------------------ #
+
+    def clean(self):
+        super().clean()
+        errors = {}
+
+        # CPF: format + digit validation + duplicate check
+        if self.cpf:
+            if not validate_cpf(self.cpf):
+                errors['cpf'] = 'CPF inválido. Verifique os dígitos informados.'
+            else:
+                self.cpf = format_cpf(self.cpf)
+                qs = ContractorMember.objects.filter(cpf=self.cpf)
+                if self.pk:
+                    qs = qs.exclude(pk=self.pk)
+                if qs.exists():
+                    other = qs.first()
+                    contractor_name = other.contractor.name if other.contractor else 'sem empreiteira'
+                    errors['cpf'] = (
+                        f'CPF já cadastrado para {other.name} ({contractor_name}).'
+                    )
+
+        if errors:
+            raise ValidationError(errors)
 
 
 class EventContractor(models.Model):
@@ -429,3 +517,25 @@ class EventContractor(models.Model):
 
     def __str__(self):
         return f"{self.event} - {self.contractor}"
+
+    def clean(self):
+        """Block assignment when the contractor has members with expired docs."""
+        super().clean()
+        # Only enforce on new (first-time) assignments to avoid retro-locking
+        if self.pk or not self.contractor_id:
+            return
+        blocked = [
+            m for m in self.contractor.members.all()
+            if m.is_blocked_from_events
+        ]
+        if blocked:
+            names = ', '.join(m.name for m in blocked)
+            raise ValidationError(
+                f'Não é possível vincular {self.contractor.name} a este evento: '
+                f'os seguintes profissionais possuem documentação vencida — {names}. '
+                'Atualize a documentação antes de prosseguir.'
+            )
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)

@@ -20,8 +20,12 @@ django-filter>=23.5
 # File Handling
 Pillow>=10.1.0
 
+# PDF Generation
+reportlab>=4.0.7
+
 # Utilities
 django-extensions>=3.2.3
+requests>=2.31.0
 
 # Development
 django-debug-toolbar>=4.2.0

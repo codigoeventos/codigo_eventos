@@ -8,6 +8,12 @@ from . import views
 app_name = 'contractors'
 
 urlpatterns = [
+    # Report
+    path('doc-report/', views.DocumentationReportView.as_view(), name='doc_report'),
+
+    # API endpoint
+    path('api/cnpj-lookup/', views.CNPJLookupView.as_view(), name='cnpj_lookup'),
+    
     # Contractor CRUD
     path('', views.ContractorListView.as_view(), name='list'),
     path('create/', views.ContractorCreateView.as_view(), name='create'),
