@@ -48,25 +48,6 @@ class ContractorListView(LoginRequiredMixin, ListView):
         return context
 
 
-class ContractorDetailView(LoginRequiredMixin, DetailView):
-    """Display contractor details and members."""
-
-    model = Contractor
-    template_name = 'contractors/contractor_detail.html'
-    context_object_name = 'contractor'
-
-    def get_queryset(self):
-        return Contractor.objects.prefetch_related('members')
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['breadcrumbs'] = [
-            {'name': 'Empreiteiras', 'url': reverse_lazy('contractors:list')},
-            {'name': self.object.name, 'url': None}
-        ]
-        return context
-
-
 class ContractorCreateView(LoginRequiredMixin, AuditMixin, SuccessMessageMixin, CreateView):
     """Create a new contractor."""
 
