@@ -3,434 +3,735 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aprovação de Orçamento - {{ budget.name }}</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Orçamento - {{ budget.name }}</title>
     <style>
+        /* ── Reset & Base ─────────────────────────── */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 11px;
+            color: #000;
+            background: #d4d4d4;
+            line-height: 1.4;
+            zoom: 1.5;
+            padding: 32px 16px;
+        }
+
+        /* ── Palette (exact from PDF) ─────────────── */
+        :root {
+            --os-dark:    #3f3f3f;
+            --os-cream:   #eeece1;
+            --os-white:   #ffffff;
+            --os-black:   #000000;
+            --os-border:  #3f3f3f;
+        }
+
+        /* ── Document container ───────────────────── */
+        .os-doc {
+            max-width: 794px;
+            margin: 0 auto;
+            background: var(--os-white);
+            border: 1px solid #999;
+            box-shadow: 0 4px 24px rgba(0,0,0,.25);
+        }
+
+        /* ── Header strip ─────────────────────────── */
+        .os-header {
+            background: var(--os-white);
+            padding: 14px 16px 10px;
+            border-bottom: 2px solid var(--os-dark);
+        }
+        .os-header-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--os-black);
+        }
+        .os-header-sub {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--os-black);
+            margin-top: 2px;
+        }
+        .os-header-right {
+            text-align: right;
+            font-size: 10px;
+            color: var(--os-black);
+        }
+        .os-header-right strong { font-weight: 700; }
+
+        /* ── Section headers (dark gray bar) ──────── */
+        .os-section-bar {
+            background: var(--os-dark);
+            color: var(--os-white);
+            font-size: 9px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            padding: 3px 16px;
+        }
+
+        /* ── Big section title (cream text on dark) ── */
+        .os-section-title {
+            background: var(--os-dark);
+            color: var(--os-cream);
+            font-size: 14px;
+            font-weight: 700;
+            text-transform: uppercase;
+            text-align: center;
+            padding: 6px 16px;
+        }
+
+        /* ── Info grid (form fields) ─────────────── */
+        .os-info-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .os-info-table td {
+            border: 1px solid var(--os-border);
+            padding: 3px 8px;
+            vertical-align: top;
+            font-size: 10px;
+        }
+        .os-info-label {
+            font-weight: 700;
+            font-size: 9px;
+            color: var(--os-black);
+        }
+        .os-info-value {
+            font-weight: 400;
+            font-size: 10px;
+            color: var(--os-black);
+            min-height: 14px;
+        }
+
+        /* ── Italic description line ─────────────── */
+        .os-description {
+            font-style: italic;
+            font-size: 10px;
+            text-align: center;
+            padding: 8px 16px;
+            color: var(--os-black);
+        }
+
+        /* ── Items table ─────────────────────────── */
+        .os-items-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .os-items-table thead th {
+            background: var(--os-white);
+            border: 1px solid var(--os-border);
+            font-size: 9px;
+            font-weight: 700;
+            text-transform: uppercase;
+            padding: 5px 8px;
+            color: var(--os-black);
+        }
+        .os-items-table tbody td {
+            border: 1px solid #c0c0c0;
+            padding: 5px 8px;
+            font-size: 10px;
+            color: var(--os-black);
+            vertical-align: top;
+        }
+        .os-items-table tbody tr:nth-child(even) td {
+            background: #f5f5f0;
+        }
+        /* Dark gray left "number" column */
+        .os-items-table tbody td.os-item-num {
+            background: var(--os-dark);
+            color: var(--os-white);
+            font-weight: 700;
+            text-align: center;
+            width: 40px;
+        }
+        .os-items-table tbody td.os-item-name {
+            font-weight: 600;
+        }
+        .os-items-table tbody td.os-item-desc {
+            color: #444;
+            font-size: 9px;
+        }
+
+        /* ── Total row ────────────────────────────── */
+        .os-total-row td {
+            background: var(--os-dark) !important;
+            color: var(--os-cream) !important;
+            font-weight: 700;
+            font-size: 12px;
+            padding: 6px 8px;
+            border: 1px solid var(--os-dark) !important;
+        }
+
+        /* ── Footer / pagination ──────────────────── */
+        .os-footer {
+            font-size: 8px;
+            font-weight: 700;
+            text-align: right;
+            padding: 4px 16px;
+            color: var(--os-black);
+            border-top: 1px solid var(--os-border);
+        }
+
+        /* ── Status badge ─────────────────────────── */
+        .os-badge {
+            display: inline-block;
+            font-size: 9px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 2px 8px;
+            border: 1px solid;
+        }
+        .os-badge-pending  { color: var(--os-dark); border-color: var(--os-dark); background: var(--os-white); }
+        .os-badge-approved { color: var(--os-white); border-color: #2e7d32; background: #2e7d32; }
+        .os-badge-rejected { color: var(--os-white); border-color: #c62828; background: #c62828; }
+
+        /* ── Checkbox ─────────────────────────────── */
+        .os-check {
+            width: 16px; height: 16px;
+            accent-color: var(--os-dark);
+            cursor: pointer;
+        }
+
+        /* ── Action bar (floating, no print) ──────── */
+        .os-action-bar {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            z-index: 100;
+            background: var(--os-white);
+            border-top: 2px solid var(--os-dark);
+            box-shadow: 0 -4px 16px rgba(0,0,0,.15);
+            padding: 10px 16px;
+        }
+        .os-action-inner {
+            max-width: 794px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .os-action-total {
+            font-size: 11px;
+            color: #555;
+        }
+        .os-action-total strong {
+            font-size: 16px;
+            color: var(--os-black);
+        }
+        .os-btn {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 8px 18px;
+            border: 2px solid var(--os-dark);
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .os-btn-outline {
+            background: var(--os-white);
+            color: var(--os-dark);
+        }
+        .os-btn-outline:hover {
+            background: var(--os-dark);
+            color: var(--os-white);
+        }
+        .os-btn-filled {
+            background: var(--os-dark);
+            color: var(--os-white);
+            border-color: var(--os-dark);
+        }
+        .os-btn-filled:hover {
+            background: #2a2a2a;
+        }
+
+        /* ── Notes Section ────────────────────────── */
+        .os-notes-section {
+            padding: 12px 16px;
+            border-top: 1px solid #c0c0c0;
+        }
+        .os-notes-label {
+            font-size: 9px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--os-dark);
+            margin-bottom: 4px;
+        }
+        .os-notes-textarea {
+            width: 100%;
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 10px;
+            border: 1px solid #c0c0c0;
+            padding: 6px 8px;
+            resize: vertical;
+            outline: none;
+        }
+        .os-notes-textarea:focus {
+            border-color: var(--os-dark);
+        }
+        .os-notes-display {
+            border-left: 3px solid var(--os-dark);
+            padding: 4px 10px;
+            font-size: 10px;
+            color: #333;
+        }
+
+        /* ── Utility ────────────────────────────── */
+        .text-right { text-align: right; }
+        .text-center { text-align: center; }
+        .flex-row { display: flex; gap: 8px; }
+        .flex-between { display: flex; justify-content: space-between; align-items: center; }
+        .mt-8 { margin-top: 8px; }
+
+        /* ── Print ───────────────────────────────── */
         @media print {
             .no-print { display: none !important; }
-            body { background: white; }
-            * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-            .bg-black { background-color: #000 !important; color: #fff !important; }
-            .border-black { border-color: #000 !important; }
+            body { background: white !important; }
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            .os-doc { box-shadow: none !important; border: none !important; margin: 0 !important; }
+        }
+
+        /* ── Modal ───────────────────────────────── */
+        .os-modal-overlay {
+            position: fixed; inset: 0; z-index: 200;
+            background: rgba(0,0,0,.6);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .os-modal-overlay.hidden { display: none; }
+        .os-modal {
+            background: var(--os-white);
+            width: 100%; max-width: 440px;
+            margin: 16px;
+            border: 2px solid var(--os-dark);
+        }
+        .os-modal-header {
+            background: var(--os-dark);
+            color: var(--os-white);
+            padding: 10px 16px;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .os-modal-header h3 { font-size: 12px; font-weight: 700; text-transform: uppercase; }
+        .os-modal-header button { background: none; border: none; color: #aaa; font-size: 20px; cursor: pointer; }
+        .os-modal-header button:hover { color: #fff; }
+        .os-modal-body { padding: 14px 16px; font-size: 10px; color: #333; }
+        .os-modal-body ul { margin: 6px 0; padding: 0; list-style: none; }
+        .os-modal-body li {
+            display: flex; justify-content: space-between; padding: 2px 0;
+            font-size: 10px;
+        }
+        .os-modal-footer {
+            padding: 10px 16px;
+            border-top: 1px solid #ddd;
+            display: flex; gap: 8px; justify-content: flex-end;
+        }
+
+        /* ── Responsive ──────────────────────────── */
+        @media (max-width: 640px) {
+            .os-action-inner { flex-direction: column; text-align: center; }
+            .os-header-flex { flex-direction: column !important; gap: 8px !important; }
         }
     </style>
 </head>
-<body class="bg-gray-100">
-    <div class="min-h-screen py-8 px-4">
-        <div class="max-w-7xl mx-auto">
-            
-            <!-- Header with Logo and Title -->
-            <div class="bg-white rounded-t-lg shadow-lg p-8 border-b-4 border-black">
-                <div class="flex justify-between items-start flex-wrap gap-4">
-                    <div class="flex-1">
-                        <h1 class="text-4xl font-bold text-black mb-2">ORÇAMENTO</h1>
-                        <p class="text-xl text-gray-700 font-semibold">{{ budget.name }}</p>
-                    </div>
-                    <div class="text-right">
-                        <div class="inline-block px-6 py-3 rounded-lg text-sm font-bold uppercase border
-                            {% if budget.approval_status == 'approved' %}bg-green-500 text-white border-green-600
-                            {% elif budget.approval_status == 'rejected' %}bg-red-500 text-white border-red-600
-                            {% else %}bg-gray-100 text-gray-900 border-black{% endif %}">
-                            {{ budget.get_approval_status_display }}
-                        </div>
-                        {% if budget.approved_at %}
-                        <p class="text-sm text-gray-500 mt-2">{{ budget.approved_at|date:"d/m/Y às H:i" }}</p>
-                        {% endif %}
-                    </div>
+<body>
+
+    <!-- ══ Floating action bar (editable only) ══════════════════════════════ -->
+    {% if is_editable %}
+    <div class="os-action-bar no-print">
+        <div class="os-action-inner">
+            <div class="os-action-total">
+                Total selecionado: <strong id="total-bar">R$ 0,00</strong>
+            </div>
+            <div class="flex-row">
+                <button type="button" data-confirm-action="reject" class="os-btn os-btn-outline">
+                    ✗ Rejeitar
+                </button>
+                <button type="button" data-confirm-action="approve" class="os-btn os-btn-filled">
+                    ✓ Aprovar Selecionados
+                </button>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ══ Messages ═════════════════════════════════════════════════════════ -->
+    {% if messages %}
+    <div style="max-width:794px;margin:12px auto 0;padding:0 4px;" class="no-print">
+        {% for message in messages %}
+        <div style="padding:8px 12px;margin-bottom:6px;font-size:10px;font-weight:700;border-left:4px solid
+            {% if message.tags == 'success' %}#2e7d32;background:#e8f5e9;color:#1b5e20{% elif message.tags == 'error' %}#c62828;background:#ffebee;color:#b71c1c{% else %}#1565c0;background:#e3f2fd;color:#0d47a1{% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- ══ DOCUMENT ═════════════════════════════════════════════════════════ -->
+    <div class="os-doc" id="approval-doc">
+
+        <!-- ── Header ─────────────────────────────────────────────────── -->
+        <div class="os-header">
+            <div class="flex-between os-header-flex" style="display:flex;align-items:flex-start;gap:16px;">
+                <div>
+                    <div class="os-header-title">Ordem de Serviços</div>
+                    <div><strong>Data Proposta:</strong> {{ budget.created_at|date:"d/m/Y" }}</div>
+                    <div style="margin-top:2px;"><strong>Proposta nº</strong> {{ budget.id|stringformat:"05d" }}</div>
                 </div>
-                
-                <!-- Budget Info Grid -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 pt-6 border-t border-gray-200">
-                    <div>
-                        <p class="text-sm text-gray-500 uppercase tracking-wide mb-1">Projeto</p>
-                        <p class="text-lg font-semibold text-gray-900">{{ budget.proposal.title }}</p>
-                    </div>
-                    {% if budget.proposal.event %}
-                    <div>
-                        <p class="text-sm text-gray-500 uppercase tracking-wide mb-1">Evento</p>
-                        <p class="text-lg font-semibold text-gray-900">{{ budget.proposal.event.name }}</p>
-                    </div>
-                    {% endif %}
-                    {% if budget.proposal.event.client %}
-                    <div>
-                        <p class="text-sm text-gray-500 uppercase tracking-wide mb-1">Cliente</p>
-                        <p class="text-lg font-semibold text-gray-900">{{ budget.proposal.event.client.name }}</p>
-                    </div>
-                    {% endif %}
-                    <div>
-                        <p class="text-sm text-gray-500 uppercase tracking-wide mb-1">Data de Criação</p>
-                        <p class="text-lg font-semibold text-gray-900">{{ budget.created_at|date:"d/m/Y" }}</p>
+                <div class="os-header-right">
+                    <div style="margin-top:6px;">
+                        <span class="os-badge
+                            {% if budget.approval_status == 'approved' %}os-badge-approved
+                            {% elif budget.approval_status == 'rejected' %}os-badge-rejected
+                            {% else %}os-badge-pending{% endif %}">
+                            {{ budget.get_approval_status_display }}
+                        </span>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <!-- Messages -->
-            {% if messages %}
-            <div class="my-4 space-y-2 no-print">
-                {% for message in messages %}
-                <div class="p-4 rounded-lg shadow-md {% if message.tags == 'success' %}bg-green-100 border-l-4 border-green-500 text-green-800
-                    {% elif message.tags == 'error' %}bg-red-100 border-l-4 border-red-500 text-red-800
-                    {% else %}bg-blue-100 border-l-4 border-blue-500 text-blue-800{% endif %}">
-                    <p class="font-semibold">{{ message }}</p>
-                </div>
-                {% endfor %}
+        <!-- ── Client + Event info ────────────────────────────────────── -->
+        <table class="os-info-table">
+            <tr>
+                <td colspan="2" class="os-section-bar" style="padding:3px 16px;border:none;">DADOS CLIENTE</td>
+                <td colspan="2" class="os-section-bar" style="padding:3px 16px;border:none;">DADOS DO EVENTO</td>
+            </tr>
+            <tr>
+                <td style="width:13%"><span class="os-info-label">Cliente:</span></td>
+                <td style="width:37%">
+                    <span class="os-info-value">{% if budget.proposal.event.client %}{{ budget.proposal.event.client.name }}{% endif %}</span>
+                </td>
+                <td style="width:18%"><span class="os-info-label">Prazo de Montagem:</span></td>
+                <td style="width:32%"><span class="os-info-value">—</span></td>
+            </tr>
+            <tr>
+                <td><span class="os-info-label">Contato:</span></td>
+                <td><span class="os-info-value">{% if budget.proposal.event.client %}{{ budget.proposal.event.client.contact_name|default:"—" }}{% endif %}</span></td>
+                <td><span class="os-info-label">Data do Evento:</span></td>
+                <td><span class="os-info-value">{% if budget.proposal.event.event_date %}{{ budget.proposal.event.event_date|date:"d/m/Y" }}{% else %}—{% endif %}</span></td>
+            </tr>
+            <tr>
+                <td><span class="os-info-label">E-mail:</span></td>
+                <td><span class="os-info-value">{% if budget.proposal.event.client %}{{ budget.proposal.event.client.email|default:"—" }}{% endif %}</span></td>
+                <td><span class="os-info-label">Prazo de Desmontagem:</span></td>
+                <td><span class="os-info-value">—</span></td>
+            </tr>
+            <tr>
+                <td><span class="os-info-label">Telefones:</span></td>
+                <td><span class="os-info-value">{% if budget.proposal.event.client %}{{ budget.proposal.event.client.phone|default:"—" }}{% endif %}</span></td>
+                <td><span class="os-info-label">Local do Evento:</span></td>
+                <td><span class="os-info-value">{% if budget.proposal.event.location %}{{ budget.proposal.event.location }}{% else %}—{% endif %}</span></td>
+            </tr>
+        </table>
+
+        <!-- ── Description line ───────────────────────────────────────── -->
+        <div class="os-description">
+            Conforme solicitação, segue abaixo descritivo e custos de locação, das seguintes estruturas:
+        </div>
+
+        <!-- ── Section title ──────────────────────────────────────────── -->
+        <div class="os-section-title">{{ budget.name }}</div>
+
+        <!-- ── Items table ────────────────────────────────────────────── -->
+        <form method="post" id="approval-form">
+            {% csrf_token %}
+
+            {% if is_editable %}
+            <div class="os-section-bar no-print" style="display:flex;justify-content:space-between;align-items:center;">
+                <span>Itens do Orçamento</span>
+                <label style="cursor:pointer;display:flex;align-items:center;gap:4px;">
+                    <input type="checkbox" id="select-all" checked class="os-check" style="width:13px;height:13px;">
+                    <span style="font-size:8px;text-transform:uppercase;">Selecionar todos</span>
+                </label>
             </div>
             {% endif %}
 
-            <!-- Form -->
-            <form method="post" id="approval-form" class="bg-white shadow-lg">
-                {% csrf_token %}
-                
-                <!-- Items Table -->
-                <div class="overflow-hidden">
-                    <div class="bg-gray-50 px-8 py-4 border-b border-gray-200">
-                        <div class="flex justify-between items-center">
-                            <h2 class="text-2xl font-bold text-gray-900">ITENS DO ORÇAMENTO</h2>
+            <table class="os-items-table">
+                <thead>
+                    <tr>
+                        {% if is_editable %}
+                        <th style="width:40px;" class="no-print">Sel.</th>
+                        {% endif %}
+                        <th style="width:40px;">Nº</th>
+                        <th style="text-align:left;">Item</th>
+                        <th style="text-align:left;">Descritivo</th>
+                        <th style="width:50px;">Qtd.</th>
+                        <th style="width:90px;text-align:right;">Valor Unit.</th>
+                        <th style="width:100px;text-align:right;">Total</th>
+                        {% if not is_editable %}
+                        <th style="width:80px;text-align:center;">Status</th>
+                        {% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if sections %}
+                        {% for section in sections %}
+                        <!-- Section header row -->
+                        <tr>
+                            {% if is_editable %}<td class="no-print"></td>{% endif %}
+                            <td colspan="{% if is_editable %}6{% else %}7{% endif %}"
+                                style="background:#3f3f3f;color:#eeece1;font-weight:700;font-size:10px;
+                                       text-transform:uppercase;letter-spacing:.05em;padding:6px 8px;">
+                                {{ section.title }}
+                            </td>
+                        </tr>
+                        {% for item in section.section_items.all %}
+                        <tr class="item-row">
                             {% if is_editable %}
-                            <label class="flex items-center gap-2 cursor-pointer hover:bg-gray-100 px-4 py-2 rounded-lg transition">
-                                <input type="checkbox" id="select-all" 
-                                    class="w-5 h-5 text-black border-gray-400 rounded focus:ring-black"
-                                    checked>
-                                <span class="text-sm font-semibold text-gray-700">SELECIONAR TODOS</span>
-                            </label>
+                            <td class="text-center no-print" style="padding:4px;">
+                                <input type="checkbox" name="items" value="{{ item.id }}"
+                                    class="item-checkbox os-check"
+                                    data-price="{{ item.total_price }}"
+                                    data-name="{{ item.name|escapejs }}"
+                                    {% if item.is_approved %}checked{% endif %}>
+                            </td>
                             {% endif %}
-                        </div>
-                    </div>
-                    
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full">
-                            <thead class="bg-black text-white">
-                                <tr>
-                                    {% if is_editable %}
-                                    <th class="px-6 py-4 text-center text-sm font-bold uppercase w-16">
-                                        Sel.
-                                    </th>
-                                    {% endif %}
-                                    <th class="px-6 py-4 text-left text-sm font-bold uppercase">
-                                        ITEM / DESCRIÇÃO
-                                    </th>
-                                    <th class="px-6 py-4 text-center text-sm font-bold uppercase w-24">
-                                        QTD
-                                    </th>
-                                    <th class="px-6 py-4 text-right text-sm font-bold uppercase w-32">
-                                        VALOR UNIT.
-                                    </th>
-                                    <th class="px-6 py-4 text-right text-sm font-bold uppercase w-40">
-                                        TOTAL
-                                    </th>
-                                    {% if not is_editable %}
-                                    <th class="px-6 py-4 text-center text-sm font-bold uppercase w-32">
-                                        STATUS
-                                    </th>
-                                    {% endif %}
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-200">
-                                {% for item in items %}
-                                <tr class="item-row hover:bg-gray-50 transition odd:bg-white even:bg-gray-50/50 {% if not item.is_approved and not is_editable %}bg-red-50{% endif %}">
-                                    {% if is_editable %}
-                                    <td class="px-6 py-4 text-center">
-                                        <input type="checkbox" name="items" value="{{ item.id }}" 
-                                            class="item-checkbox w-6 h-6 text-black border-gray-400 rounded focus:ring-black cursor-pointer"
-                                            data-price="{{ item.total_price }}"
-                                            data-name="{{ item.name|escapejs }}"
-                                            {% if item.is_approved %}checked{% endif %}>
-                                    </td>
-                                    {% endif %}
-                                    <td class="px-6 py-4">
-                                        <div class="font-semibold text-gray-900 text-base">{{ item.name }}</div>
-                                        {% if item.description %}
-                                        <div class="text-sm text-gray-600 mt-1">{{ item.description }}</div>
-                                        {% endif %}
-                                        {% if item.measurement %}
-                                        <div class="text-xs text-gray-500 mt-1">
-                                            Metragem: {{ item.measurement }} {{ item.get_measurement_unit_display|default:"" }}
-                                            {% if item.weight %} | Peso: {{ item.weight }} kg{% endif %}
-                                        </div>
-                                        {% endif %}
-                                    </td>
-                                    <td class="px-6 py-4 text-center font-semibold text-gray-900">
-                                        {{ item.quantity }}
-                                    </td>
-                                    <td class="px-6 py-4 text-right font-semibold text-gray-900">
-                                        R$ {{ item.unit_price|floatformat:2 }}
-                                    </td>
-                                    <td class="px-6 py-4 text-right font-bold text-gray-900 text-lg">
-                                        R$ {{ item.total_price|floatformat:2 }}
-                                    </td>
-                                    {% if not is_editable %}
-                                    <td class="px-6 py-4 text-center">
-                                        {% if item.is_approved %}
-                                        <span class="inline-block px-3 py-1 text-xs font-bold bg-green-500 text-white rounded-full uppercase">
-                                            ✓ Aprovado
-                                        </span>
-                                        {% else %}
-                                        <span class="inline-block px-3 py-1 text-xs font-bold bg-red-500 text-white rounded-full uppercase">
-                                            ✗ Não Aprovado
-                                        </span>
-                                        {% endif %}
-                                    </td>
-                                    {% endif %}
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                    
-                    <!-- Total Section -->
-                    <div class="bg-black text-white p-8">
-                        <div class="flex justify-end items-center max-w-4xl ml-auto">
-                            <div class="text-right">
-                                <p class="text-sm uppercase tracking-wider opacity-75 mb-1">
-                                    {% if is_editable %}Total Selecionado{% else %}Total Aprovado{% endif %}
-                                </p>
-                                <p class="text-4xl font-bold" id="total-value">
-                                    {% if is_editable %}R$ {{ budget.total_value|floatformat:2 }}{% else %}R$ {{ budget.approved_value|floatformat:2 }}{% endif %}
-                                </p>
-                                <p class="text-xs opacity-75 mt-1">Atualiza instantaneamente conforme a seleção dos itens.</p>
-                            </div>
-                            {% if not is_editable and budget.total_value != budget.approved_value %}
-                            <div class="text-right opacity-75">
-                                <p class="text-sm uppercase tracking-wider mb-1">Total Original</p>
-                                <p class="text-2xl font-semibold line-through">R$ {{ budget.total_value|floatformat:2 }}</p>
-                                <p class="text-xs mt-1">Diferença aplicada pelos itens reprovados.</p>
-                            </div>
+                            <td class="os-item-num">{{ forloop.counter }}</td>
+                            <td class="os-item-name">
+                                {{ item.name }}
+                                {% if item.measurement %}
+                                <div style="font-size:8px;color:#666;font-weight:400;margin-top:1px;">
+                                    {{ item.measurement }} {{ item.get_measurement_unit_display|default:"" }}{% if item.weight %} · {{ item.weight }} kg{% endif %}
+                                </div>
+                                {% endif %}
+                            </td>
+                            <td class="os-item-desc">{{ item.description|default:"—" }}</td>
+                            <td class="text-center" style="font-weight:600;">{{ item.quantity }}</td>
+                            <td class="text-right">R$ {{ item.unit_price|floatformat:2 }}</td>
+                            <td class="text-right" style="font-weight:700;">R$ {{ item.total_price|floatformat:2 }}</td>
+                            {% if not is_editable %}
+                            <td class="text-center">
+                                {% if item.is_approved %}
+                                <span class="os-badge os-badge-approved" style="font-size:8px;">✓</span>
+                                {% else %}
+                                <span class="os-badge os-badge-rejected" style="font-size:8px;">✗</span>
+                                {% endif %}
+                            </td>
                             {% endif %}
-                        </div>
-                    </div>
-                </div>
-
-                {% if is_editable %}
-                <!-- Notes Section -->
-                <div class="bg-white p-8 border-t border-gray-200">
-                    <label for="notes" class="block text-sm font-bold text-gray-700 uppercase tracking-wide mb-3">
-                        Observações / Comentários (Opcional)
-                    </label>
-                    <textarea name="notes" id="notes" rows="4"
-                        class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-black text-gray-900"
-                        placeholder="Adicione observações, dúvidas ou comentários sobre o orçamento..."></textarea>
-                </div>
-
-                <!-- Action Buttons -->
-                <div class="bg-gray-50 p-8 rounded-b-lg border-t border-gray-200">
-                    <div class="flex flex-col lg:flex-row gap-4 justify-between items-center">
-                        <!-- PDF Button -->
-                        <button type="button" onclick="downloadPDF()" 
-                            class="w-full lg:w-auto px-8 py-4 bg-white border-2 border-gray-800 text-gray-800 rounded-lg hover:bg-gray-800 hover:text-white transition-all font-bold uppercase text-sm shadow-md flex items-center justify-center gap-2 no-print">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                            </svg>
-                            Baixar PDF
-                        </button>
-                        
-                        <div class="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
-                            <!-- Reject Button -->
-                            <button type="button" data-confirm-action="reject"
-                                class="flex-1 lg:flex-none px-8 py-4 bg-white border-2 border-red-500 text-red-600 rounded-lg hover:bg-red-500 hover:text-white transition-all font-bold uppercase text-sm shadow-md flex items-center justify-center gap-2 no-print">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                                </svg>
-                                Rejeitar
-                            </button>
-                            
-                            <!-- Approve Button -->
-                            <button type="button" data-confirm-action="approve"
-                                class="flex-1 lg:flex-none px-8 py-4 bg-black text-white rounded-lg hover:bg-gray-800 transition-all font-bold uppercase text-sm shadow-lg flex items-center justify-center gap-2 no-print">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                                </svg>
-                                Aprovar Selecionados
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Confirmation Modal -->
-                <div id="confirm-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm no-print">
-                    <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg mx-4 border border-gray-200">
-                        <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-                            <div>
-                                <p id="confirm-badge" class="inline-block px-3 py-1 text-xs font-bold rounded-full bg-black text-white">Ação</p>
-                                <h3 id="confirm-title" class="text-xl font-bold text-gray-900 mt-2">Confirmar ação</h3>
-                            </div>
-                            <button type="button" id="confirm-close" class="text-gray-400 hover:text-black text-xl font-bold">×</button>
-                        </div>
-                        <div class="px-6 py-5 space-y-2 text-gray-700" id="confirm-message">
-                            <!-- mensagem preenchida via JS -->
-                        </div>
-                        <div class="px-6 py-4 bg-gray-50 flex flex-col sm:flex-row gap-3 justify-end">
-                            <button type="button" id="confirm-cancel" class="w-full sm:w-auto px-5 py-3 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 font-semibold">Voltar</button>
-                            <button type="button" id="confirm-ok" class="w-full sm:w-auto px-5 py-3 rounded-lg bg-black text-white hover:bg-gray-800 font-semibold">Confirmar</button>
-                        </div>
-                    </div>
-                </div>
-                <input type="hidden" name="action" id="action-input" value="">
-                {% else %}
-                <!-- Read-only State -->
-                <div class="bg-white p-8 border-t border-gray-200">
-                    {% if budget.client_notes %}
-                    <div class="mb-6">
-                        <h3 class="text-lg font-bold text-gray-900 uppercase tracking-wide mb-3">Observações do Cliente</h3>
-                        <div class="p-4 bg-gray-100 rounded-lg border-l-4 border-black">
-                            <p class="text-gray-800">{{ budget.client_notes }}</p>
-                        </div>
-                    </div>
+                        </tr>
+                        {% endfor %}
+                        {% endfor %}
+                    {% else %}
+                        {# Fallback: no sections – flat list (legacy/unsectioned items) #}
+                        {% for item in unsectioned_items %}
+                        <tr class="item-row">
+                            {% if is_editable %}
+                            <td class="text-center no-print" style="padding:4px;">
+                                <input type="checkbox" name="items" value="{{ item.id }}"
+                                    class="item-checkbox os-check"
+                                    data-price="{{ item.total_price }}"
+                                    data-name="{{ item.name|escapejs }}"
+                                    {% if item.is_approved %}checked{% endif %}>
+                            </td>
+                            {% endif %}
+                            <td class="os-item-num">{{ forloop.counter }}</td>
+                            <td class="os-item-name">
+                                {{ item.name }}
+                                {% if item.measurement %}
+                                <div style="font-size:8px;color:#666;font-weight:400;margin-top:1px;">
+                                    {{ item.measurement }} {{ item.get_measurement_unit_display|default:"" }}{% if item.weight %} · {{ item.weight }} kg{% endif %}
+                                </div>
+                                {% endif %}
+                            </td>
+                            <td class="os-item-desc">{{ item.description|default:"—" }}</td>
+                            <td class="text-center" style="font-weight:600;">{{ item.quantity }}</td>
+                            <td class="text-right">R$ {{ item.unit_price|floatformat:2 }}</td>
+                            <td class="text-right" style="font-weight:700;">R$ {{ item.total_price|floatformat:2 }}</td>
+                            {% if not is_editable %}
+                            <td class="text-center">
+                                {% if item.is_approved %}
+                                <span class="os-badge os-badge-approved" style="font-size:8px;">✓</span>
+                                {% else %}
+                                <span class="os-badge os-badge-rejected" style="font-size:8px;">✗</span>
+                                {% endif %}
+                            </td>
+                            {% endif %}
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="7" style="text-align:center;padding:16px;color:#888;">Nenhum item cadastrado</td></tr>
+                        {% endfor %}
                     {% endif %}
-                    
-                    <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                        <button type="button" onclick="downloadPDF()" 
-                            class="px-8 py-4 bg-black text-white rounded-lg hover:bg-gray-800 transition-all font-bold uppercase text-sm shadow-lg flex items-center gap-2 no-print">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                            </svg>
-                            Baixar PDF
-                        </button>
-                        
-                        <button type="button" onclick="window.print()" 
-                            class="px-8 py-4 bg-white border-2 border-black text-black rounded-lg hover:bg-gray-100 transition-all font-bold uppercase text-sm shadow-md flex items-center gap-2 no-print">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
-                            </svg>
-                            Imprimir
-                        </button>
-                    </div>
-                </div>
-                <div class="bg-gray-50 p-6 rounded-b-lg text-center border-t border-gray-200">
-                    <p class="text-sm text-gray-600">
-                        <strong>Status:</strong> Este orçamento foi 
-                        <span class="font-bold {% if budget.approval_status == 'approved' %}text-green-600{% else %}text-red-600{% endif %}">
-                            {{ budget.get_approval_status_display|upper }}
-                        </span> 
-                        e não pode mais ser modificado.
-                    </p>
-                </div>
+                </tbody>
+                <!-- Total row -->
+                <tfoot>
+                    {% if not is_editable and budget.total_value != budget.approved_value %}
+                    <tr class="os-total-row" style="opacity:.6;">
+                        {% if is_editable %}<td class="no-print"></td>{% endif %}
+                        <td></td>
+                        <td colspan="3" style="text-align:right;text-decoration:line-through;">TOTAL ORIGINAL</td>
+                        <td class="text-right" style="text-decoration:line-through;">R$ {{ budget.total_value|floatformat:2 }}</td>
+                        <td></td>
+                        {% if not is_editable %}<td></td>{% endif %}
+                    </tr>
+                    {% endif %}
+                    <tr class="os-total-row">
+                        {% if is_editable %}<td class="no-print"></td>{% endif %}
+                        <td></td>
+                        <td colspan="3" style="text-align:right;">
+                            {% if is_editable %}TOTAL SELECIONADO{% else %}TOTAL APROVADO{% endif %}
+                        </td>
+                        <td class="text-right" style="font-size:14px;" id="total-value">
+                            {% if is_editable %}R$ {{ budget.total_value|floatformat:2 }}{% else %}R$ {{ budget.approved_value|floatformat:2 }}{% endif %}
+                        </td>
+                        <td></td>
+                        {% if not is_editable %}<td></td>{% endif %}
+                    </tr>
+                </tfoot>
+            </table>
+
+            <!-- ── Notes (editable only) ──────────────────────────────── -->
+            {% if is_editable %}
+            <div class="os-notes-section no-print">
+                <div class="os-notes-label">Observações / Comentários (opcional)</div>
+                <textarea name="notes" id="notes" rows="3" class="os-notes-textarea"
+                    placeholder="Adicione comentários ou dúvidas sobre este orçamento..."></textarea>
+            </div>
+            {% endif %}
+
+            <!-- ── Read-only notes ────────────────────────────────────── -->
+            {% if not is_editable and budget.client_notes %}
+            <div class="os-notes-section">
+                <div class="os-notes-label">Observações do Cliente</div>
+                <div class="os-notes-display">{{ budget.client_notes }}</div>
+            </div>
+            {% endif %}
+
+            <!-- ── Utility buttons ────────────────────────────────────── -->
+            <div class="os-notes-section no-print" style="text-align:right;">
+                <button type="button" onclick="window.print()" class="os-btn os-btn-outline" style="font-size:9px;padding:6px 14px;">
+                    Imprimir / PDF
+                </button>
+            </div>
+
+            <!-- ── Read-only status footer ────────────────────────────── -->
+            {% if not is_editable %}
+            <div style="background:var(--os-cream);padding:8px 16px;text-align:center;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--os-dark);border-top:1px solid var(--os-dark);">
+                Este orçamento foi {{ budget.get_approval_status_display|upper }}
+                e não pode mais ser modificado.
+                {% if budget.approved_at %}
+                · {{ budget.approved_at|date:"d/m/Y \à\s H:i" }}
                 {% endif %}
-            </form>
+            </div>
+            {% endif %}
+
+            <input type="hidden" name="action" id="action-input" value="">
+        </form>
+
+        <!-- ── Footer ─────────────────────────────────────────────────── -->
+        <div class="os-footer">
+            Código Eventos · Documento confidencial
+        </div>
+    </div>
+
+    <!-- ══ CONFIRMATION MODAL ═══════════════════════════════════════════════ -->
+    <div id="confirm-modal" class="os-modal-overlay hidden no-print">
+        <div class="os-modal">
+            <div class="os-modal-header">
+                <h3 id="confirm-title">Confirmar ação</h3>
+                <button type="button" id="confirm-close">&times;</button>
+            </div>
+            <div class="os-modal-body" id="confirm-message"></div>
+            <div class="os-modal-footer">
+                <button type="button" id="confirm-cancel" class="os-btn os-btn-outline" style="font-size:9px;padding:6px 14px;">Voltar</button>
+                <button type="button" id="confirm-ok" class="os-btn os-btn-filled" style="font-size:9px;padding:6px 14px;">Confirmar</button>
+            </div>
         </div>
     </div>
 
     <script>
-        // Format currency
-        function formatCurrency(value) {
-            return new Intl.NumberFormat('pt-BR', {
-                style: 'currency',
-                currency: 'BRL'
-            }).format(value);
-        }
+        /* ── Currency formatter ─────────────────────────────────────────── */
+        const fmt = v => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
 
-        // Calculate total from selected items
+        /* ── Total update ───────────────────────────────────────────────── */
         function updateTotal() {
-            const checkboxes = document.querySelectorAll('.item-checkbox:checked');
             let total = 0;
-            
-            checkboxes.forEach(checkbox => {
-                total += parseFloat(checkbox.dataset.price);
+            document.querySelectorAll('.item-checkbox:checked').forEach(cb => {
+                total += parseFloat(cb.dataset.price) || 0;
             });
-            
-            document.getElementById('total-value').textContent = formatCurrency(total);
+            const fmtVal = fmt(total);
+            const el = document.getElementById('total-value');
+            const bar = document.getElementById('total-bar');
+            if (el) el.textContent = fmtVal;
+            if (bar) bar.textContent = fmtVal;
         }
 
-        // Select/deselect all
-        document.getElementById('select-all')?.addEventListener('change', function() {
-            const checkboxes = document.querySelectorAll('.item-checkbox');
-            checkboxes.forEach(checkbox => {
-                checkbox.checked = this.checked;
-            });
+        /* ── Select all ─────────────────────────────────────────────────── */
+        document.getElementById('select-all')?.addEventListener('change', function () {
+            document.querySelectorAll('.item-checkbox').forEach(cb => cb.checked = this.checked);
             updateTotal();
         });
 
-        // Update total when individual items change
-        document.querySelectorAll('.item-checkbox').forEach(checkbox => {
-            checkbox.addEventListener('change', updateTotal);
+        document.querySelectorAll('.item-checkbox').forEach(cb => {
+            cb.addEventListener('change', updateTotal);
         });
 
-        // Initial total calculation
-        if (document.querySelectorAll('.item-checkbox').length) {
-            updateTotal();
-        }
+        if (document.querySelectorAll('.item-checkbox').length) updateTotal();
 
-        // Download PDF (usa impressão do navegador)
-        function downloadPDF() {
-            window.print();
-        }
-
-        // Custom confirm modal (approve / reject)
-        const confirmModal = document.getElementById('confirm-modal');
-        const confirmTitle = document.getElementById('confirm-title');
-        const confirmMessage = document.getElementById('confirm-message');
-        const confirmBadge = document.getElementById('confirm-badge');
-        const actionInput = document.getElementById('action-input');
-        const form = document.getElementById('approval-form');
+        /* ── Confirm modal ──────────────────────────────────────────────── */
+        const modal  = document.getElementById('confirm-modal');
+        const mTitle = document.getElementById('confirm-title');
+        const mBody  = document.getElementById('confirm-message');
+        const aInput = document.getElementById('action-input');
+        const form   = document.getElementById('approval-form');
 
         function openConfirm(action) {
             const isApprove = action === 'approve';
-            confirmTitle.textContent = isApprove ? 'Confirmar aprovação' : 'Confirmar rejeição';
-            confirmBadge.textContent = isApprove ? 'Aprovar' : 'Rejeitar';
-            confirmBadge.className = `inline-block px-3 py-1 text-xs font-bold rounded-full ${isApprove ? 'bg-black text-white' : 'bg-red-600 text-white'}`;
+            mTitle.textContent = isApprove ? 'Confirmar aprovação' : 'Confirmar rejeição';
 
             if (isApprove) {
-                const allBoxes = document.querySelectorAll('.item-checkbox');
-                const approved = [];
-                const notApproved = [];
-                allBoxes.forEach(cb => {
-                    const name = cb.dataset.name;
-                    const price = formatCurrency(parseFloat(cb.dataset.price));
-                    if (cb.checked) approved.push({ name, price });
-                    else notApproved.push({ name, price });
+                const approved = [], not = [];
+                document.querySelectorAll('.item-checkbox').forEach(cb => {
+                    const obj = { name: cb.dataset.name, price: fmt(parseFloat(cb.dataset.price)) };
+                    (cb.checked ? approved : not).push(obj);
                 });
+                const list = (arr, icon) => arr.length
+                    ? '<ul>' + arr.map(i =>
+                        `<li><span>${icon} ${i.name}</span><span style="font-weight:700;">${i.price}</span></li>`
+                    ).join('') + '</ul>'
+                    : '<p style="color:#999;font-style:italic;">Nenhum</p>';
 
-                const renderList = (items, colorClass, icon) =>
-                    items.length
-                        ? `<ul class="mt-1 space-y-1">${items.map(i =>
-                            `<li class="flex justify-between gap-4 text-sm ${colorClass}">
-                                <span>${icon} ${i.name}</span>
-                                <span class="font-semibold whitespace-nowrap">${i.price}</span>
-                            </li>`).join('')}</ul>`
-                        : `<p class="text-sm text-gray-400 italic mt-1">Nenhum</p>`;
-
-                confirmMessage.innerHTML = `
-                    <p class="text-sm text-gray-700 mb-3">Após confirmar, este orçamento ficará <strong>bloqueado para edição</strong>.</p>
-                    <div class="rounded-lg border border-green-200 bg-green-50 p-3 mb-3">
-                        <p class="text-xs font-bold text-green-800 uppercase tracking-wide mb-1">✓ Serão aprovados (${approved.length})</p>
-                        ${renderList(approved, 'text-green-700', '✓')}
+                mBody.innerHTML = `
+                    <p style="margin-bottom:8px;">Após confirmar, este orçamento ficará <strong>bloqueado para edição</strong>.</p>
+                    <div style="border:1px solid #c0c0c0;padding:8px;margin-bottom:8px;">
+                        <div style="font-size:9px;font-weight:700;text-transform:uppercase;color:#3f3f3f;margin-bottom:4px;">✓ Serão aprovados (${approved.length})</div>
+                        ${list(approved, '✓')}
                     </div>
-                    ${notApproved.length ? `<div class="rounded-lg border border-red-200 bg-red-50 p-3">
-                        <p class="text-xs font-bold text-red-800 uppercase tracking-wide mb-1">✗ Não aprovados (${notApproved.length})</p>
-                        ${renderList(notApproved, 'text-red-700', '✗')}
-                    </div>` : ''}
-                `;
+                    ${not.length ? `<div style="border:1px solid #c0c0c0;padding:8px;">
+                        <div style="font-size:9px;font-weight:700;text-transform:uppercase;color:#999;margin-bottom:4px;">✗ Não aprovados (${not.length})</div>
+                        ${list(not, '✗')}
+                    </div>` : ''}`;
             } else {
-                confirmMessage.innerHTML = '<p>Você está prestes a <strong>rejeitar</strong> este orçamento. Esta ação não poderá ser desfeita.</p>';
+                mBody.innerHTML = '<p>Você está prestes a <strong>rejeitar</strong> este orçamento. Esta ação não poderá ser desfeita.</p>';
             }
 
-            actionInput.value = action;
-            confirmModal.classList.remove('hidden');
+            aInput.value = action;
+            modal.classList.remove('hidden');
         }
 
-        function closeConfirm() {
-            confirmModal.classList.add('hidden');
-        }
+        function closeConfirm() { modal.classList.add('hidden'); }
 
         document.querySelectorAll('[data-confirm-action]').forEach(btn => {
             btn.addEventListener('click', () => {
                 const action = btn.getAttribute('data-confirm-action');
-                // Para aprovação, garantir que haja ao menos 1 item selecionado
                 if (action === 'approve') {
                     const checked = document.querySelectorAll('.item-checkbox:checked');
-                    if (!checked.length) {
-                        alert('Selecione ao menos um item para aprovar.');
-                        return;
-                    }
+                    if (!checked.length) { alert('Selecione ao menos um item para aprovar.'); return; }
                 }
                 openConfirm(action);
             });
         });
 
-        document.getElementById('confirm-close').addEventListener('click', closeConfirm);
-        document.getElementById('confirm-cancel').addEventListener('click', closeConfirm);
-        document.getElementById('confirm-ok').addEventListener('click', () => {
-            form.submit();
-        });
+        document.getElementById('confirm-close')?.addEventListener('click', closeConfirm);
+        document.getElementById('confirm-cancel')?.addEventListener('click', closeConfirm);
+        document.getElementById('confirm-ok')?.addEventListener('click', () => form.submit());
     </script>
+
+    {% if is_editable %}
+    <div style="height:70px;"></div>
+    {% endif %}
 </body>
 </html>

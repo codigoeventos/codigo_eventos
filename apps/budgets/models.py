@@ -165,6 +165,48 @@ class Budget(BaseModel):
         return total
 
 
+class BudgetSection(models.Model):
+    """
+    Section grouping for budget items.
+
+    A budget can have multiple sections (e.g. "Estrutura", "AV", "Decoração").
+    Each section contains one or more BudgetItems.
+    """
+
+    budget = models.ForeignKey(
+        'Budget',
+        on_delete=models.CASCADE,
+        related_name='sections',
+        verbose_name='Orçamento'
+    )
+
+    title = models.CharField(
+        'Título da Seção',
+        max_length=255,
+        help_text='Nome da seção do orçamento'
+    )
+
+    order = models.PositiveIntegerField(
+        'Ordem',
+        default=0,
+        help_text='Posição da seção dentro do orçamento'
+    )
+
+    class Meta:
+        verbose_name = 'Seção do Orçamento'
+        verbose_name_plural = 'Seções do Orçamento'
+        ordering = ['order', 'id']
+
+    def __str__(self):
+        return f"{self.title} ({self.budget.name})"
+
+    @property
+    def subtotal(self):
+        """Sum of total_price for all items in this section."""
+        total = self.section_items.aggregate(total=Sum('total_price'))['total']
+        return total or 0
+
+
 class BudgetItem(models.Model):
     """
     Individual line item in a budget.
@@ -177,6 +219,16 @@ class BudgetItem(models.Model):
         on_delete=models.CASCADE,
         related_name='items',
         verbose_name='Orçamento'
+    )
+
+    section = models.ForeignKey(
+        'BudgetSection',
+        on_delete=models.CASCADE,
+        related_name='section_items',
+        verbose_name='Seção',
+        null=True,
+        blank=True,
+        help_text='Seção a qual este item pertence'
     )
     
     name = models.CharField(
@@ -288,3 +340,34 @@ class BudgetItem(models.Model):
             self.measurement_unit = 'm3'
         self.total_price = self.quantity * self.unit_price
         super().save(*args, **kwargs)
+
+
+class ItemDescription(models.Model):
+    """
+    Reusable item description library.
+
+    Pre-defined descriptions that can be selected when building budget items.
+    The selected body text is copied into the BudgetItem.description field.
+    """
+
+    title = models.CharField(
+        'Título',
+        max_length=255,
+        help_text='Nome curto exibido no seletor (ex.: "Painel modulado 3×3")'
+    )
+
+    body = models.TextField(
+        'Descrição',
+        blank=True,
+        help_text='Texto completo que será copiado para o item do orçamento'
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Descrição de Item'
+        verbose_name_plural = 'Descrições de Itens'
+        ordering = ['title']
+
+    def __str__(self):
+        return self.title

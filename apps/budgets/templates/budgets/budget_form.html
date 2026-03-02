@@ -8,20 +8,20 @@
 
 <div class="w-full mx-auto">
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-8 w-full">
-        <form method="post" novalidate>
+        <form method="post" id="budget-form" novalidate>
             {% csrf_token %}
-            
+            <input type="hidden" name="sections_data" id="sections-data" value="">
+
             {% include 'components/form_errors.html' %}
 
+            <!-- ── Budget header fields ──────────────────────────────── -->
             <div class="space-y-6">
                 <div>
                     <label for="{{ form.proposal.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
                         {{ form.proposal.label }}
                     </label>
                     {{ form.proposal }}
-                    {% if form.proposal.errors %}
-                    <p class="mt-1 text-sm text-red-600">{{ form.proposal.errors.0 }}</p>
-                    {% endif %}
+                    {% if form.proposal.errors %}<p class="mt-1 text-sm text-red-600">{{ form.proposal.errors.0 }}</p>{% endif %}
                 </div>
 
                 <div>
@@ -29,9 +29,7 @@
                         {{ form.name.label }}
                     </label>
                     {{ form.name }}
-                    {% if form.name.errors %}
-                    <p class="mt-1 text-sm text-red-600">{{ form.name.errors.0 }}</p>
-                    {% endif %}
+                    {% if form.name.errors %}<p class="mt-1 text-sm text-red-600">{{ form.name.errors.0 }}</p>{% endif %}
                 </div>
 
                 <div>
@@ -39,282 +37,564 @@
                         {{ form.status.label }}
                     </label>
                     {{ form.status }}
-                    {% if form.status.errors %}
-                    <p class="mt-1 text-sm text-red-600">{{ form.status.errors.0 }}</p>
-                    {% endif %}
-                </div>
-
-                <!-- Budget Items -->
-                <div class="border-t pt-6">
-                    <div class="flex justify-between items-center mb-4">
-                        <div>
-                            <h3 class="text-lg font-medium text-gray-900">Itens do Orçamento</h3>
-                            <p class="text-sm text-gray-500 mt-1">Preencha as dimensões para cálculo automático de volume e frete</p>
-                        </div>
-                        <button type="button" id="add-item" class="px-4 py-2 bg-black text-white text-sm rounded-lg hover:bg-gray-800 transition-all">
-                            + Adicionar Item
-                        </button>
-                    </div>
-                    
-                    {{ items_formset.management_form }}
-                    
-                    <div id="items-formset" class="space-y-4">
-                        {% for item_form in items_formset %}
-                        <div class="item-form bg-gray-50 border-2 border-gray-200 rounded-lg p-5">
-
-                            <!-- Row 1: Name + Quantity + Price + Total -->
-                            <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
-                                <div class="md:col-span-5">
-                                    <label class="block text-xs font-medium text-gray-600 mb-1">
-                                        {{ item_form.name.label }} <span class="text-red-500">*</span>
-                                    </label>
-                                    {{ item_form.name }}
-                                    {% if item_form.name.errors %}<p class="mt-1 text-xs text-red-600">{{ item_form.name.errors.0 }}</p>{% endif %}
-                                </div>
-                                <div class="md:col-span-2">
-                                    <label class="block text-xs font-medium text-gray-600 mb-1">
-                                        {{ item_form.quantity.label }} <span class="text-red-500">*</span>
-                                    </label>
-                                    {{ item_form.quantity }}
-                                    {% if item_form.quantity.errors %}<p class="mt-1 text-xs text-red-600">{{ item_form.quantity.errors.0 }}</p>{% endif %}
-                                </div>
-                                <div class="md:col-span-2">
-                                    <label class="block text-xs font-medium text-gray-600 mb-1">
-                                        {{ item_form.unit_price.label }} <span class="text-red-500">*</span>
-                                    </label>
-                                    {{ item_form.unit_price }}
-                                    {% if item_form.unit_price.errors %}<p class="mt-1 text-xs text-red-600">{{ item_form.unit_price.errors.0 }}</p>{% endif %}
-                                </div>
-                                <div class="md:col-span-3">
-                                    <label class="block text-xs font-medium text-gray-600 mb-1">Valor Total (R$)</label>
-                                    <input type="text" readonly
-                                        class="item-total w-full px-3 py-2 border border-gray-200 rounded-lg bg-white text-gray-800 font-semibold text-sm"
-                                        value="0,00">
-                                </div>
-                            </div>
-
-                            <!-- Row 2: Dimensions → auto volume + weight -->
-                            <div class="mt-3 p-3 bg-blue-50 border border-blue-100 rounded-lg">
-                                <p class="text-xs font-semibold text-blue-700 mb-2 uppercase tracking-wide">
-                                    📦 Dimensões &amp; Logística
-                                    <span class="font-normal text-blue-500 ml-1">(usadas no cálculo de frete)</span>
-                                </p>
-                                <div class="grid grid-cols-2 md:grid-cols-7 gap-3">
-                                    <!-- Comprimento -->
-                                    <div>
-                                        <label class="block text-xs font-medium text-gray-600 mb-1">{{ item_form.dim_length.label }}</label>
-                                        {{ item_form.dim_length }}
-                                    </div>
-                                    <!-- Largura -->
-                                    <div>
-                                        <label class="block text-xs font-medium text-gray-600 mb-1">{{ item_form.dim_width.label }}</label>
-                                        {{ item_form.dim_width }}
-                                    </div>
-                                    <!-- Altura -->
-                                    <div>
-                                        <label class="block text-xs font-medium text-gray-600 mb-1">{{ item_form.dim_height.label }}</label>
-                                        {{ item_form.dim_height }}
-                                    </div>
-                                    <!-- Volume calculado -->
-                                    <div>
-                                        <label class="block text-xs font-medium text-gray-600 mb-1">{{ item_form.measurement.label }}</label>
-                                        {{ item_form.measurement }}
-                                        <p class="text-xs text-blue-500 mt-0.5">C×L×A auto</p>
-                                    </div>
-                                    <!-- Unidade -->
-                                    <div>
-                                        <label class="block text-xs font-medium text-gray-600 mb-1">{{ item_form.measurement_unit.label }}</label>
-                                        {{ item_form.measurement_unit }}
-                                    </div>
-                                    <!-- Peso unitário -->
-                                    <div class="md:col-span-2">
-                                        <label class="block text-xs font-medium text-gray-600 mb-1">{{ item_form.weight.label }}</label>
-                                        {{ item_form.weight }}
-                                    </div>
-                                </div>
-                                <!-- Per-item logistics summary -->
-                                <div class="item-logistics-summary mt-2 text-xs text-blue-700 hidden">
-                                    Vol. total: <strong class="item-vol-total">–</strong> m³ &nbsp;|&nbsp;
-                                    Peso total: <strong class="item-wt-total">–</strong> kg
-                                </div>
-                            </div>
-
-                            <!-- Row 3: Description + actions -->
-                            <div class="mt-3 grid grid-cols-1 gap-3">
-                                <div>
-                                    <label class="block text-xs font-medium text-gray-600 mb-1">{{ item_form.description.label }}</label>
-                                    {{ item_form.description }}
-                                </div>
-                            </div>
-
-                            <div class="mt-3 pt-3 border-t border-gray-200 flex items-center justify-end">
-                                <div class="hidden">
-                                    {{ item_form.DELETE }}
-                                    {{ item_form.id }}
-                                </div>
-                                <button type="button" class="remove-item px-4 py-2 bg-white border border-red-300 text-red-600 text-sm rounded-lg hover:bg-red-50 transition-all">
-                                    🗑️ Remover Item
-                                </button>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-
-                    <!-- ── Totals & Freight Panel ─────────────────────── -->
-                    <div class="mt-6 space-y-3">
-
-                        <!-- Logistics summary bar -->
-                        <div id="logistics-bar" class="bg-blue-50 border border-blue-200 rounded-lg px-5 py-3 flex flex-wrap gap-6 text-sm">
-                            <span class="text-blue-700">
-                                Peso total consolidado:
-                                <strong id="total-weight-display" class="text-blue-900">0,000 kg</strong>
-                            </span>
-                            <span class="text-blue-700">
-                                Volume total consolidado:
-                                <strong id="total-volume-display" class="text-blue-900">0,000 m³</strong>
-                            </span>
-                        </div>
-
-                        <!-- Item totals -->
-                        <div class="bg-gray-100 rounded-lg px-5 py-3 flex justify-between items-center">
-                            <span class="text-sm font-medium text-gray-600">Subtotal dos Itens</span>
-                            <span id="items-subtotal" class="text-xl font-bold text-gray-900">R$ 0,00</span>
-                        </div>
-
-                        <!-- Freight preview -->
-                        <div id="freight-panel" class="bg-white border-2 border-dashed border-gray-300 rounded-lg p-5">
-                            <div class="flex items-center justify-between mb-3">
-                                <h4 class="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                                    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                                    </svg>
-                                    Logística / Frete (prévia)
-                                </h4>
-                                <div class="flex items-center gap-3">
-                                    <!-- Urgency selector -->
-                                    <select id="freight-urgency"
-                                        class="text-sm px-3 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent">
-                                        <option value="">Urgência padrão</option>
-                                        {% for um in urgency_options %}
-                                        <option value="{{ um.pk }}" {% if um.is_default %}selected{% endif %}>
-                                            {{ um.label }} (×{{ um.multiplier }})
-                                        </option>
-                                        {% endfor %}
-                                    </select>
-                                    <!-- Distance -->
-                                    <input type="number" id="freight-distance" step="0.1" min="0" placeholder="km (opcional)"
-                                        class="text-sm w-32 px-3 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent">
-                                </div>
-                            </div>
-                            <!-- Breakdown -->
-                            <div id="freight-breakdown" class="hidden space-y-1.5 text-sm mb-3 border-t border-gray-100 pt-3">
-                                <div class="flex justify-between text-gray-500">
-                                    <span>Base peso (<span class="freight-wt-total">0</span> kg)</span>
-                                    <span class="freight-weight-cost">R$ 0,00</span>
-                                </div>
-                                <div class="flex justify-between text-gray-500">
-                                    <span>Base volume (<span class="freight-vol-total">0</span> m³)</span>
-                                    <span class="freight-volume-cost">R$ 0,00</span>
-                                </div>
-                                <div class="flex justify-between text-gray-500">
-                                    <span>Frete base (modo: <span class="freight-mode-label">–</span>)</span>
-                                    <span class="freight-base">R$ 0,00</span>
-                                </div>
-                                <div class="flex justify-between text-gray-400">
-                                    <span>Taxa fixa</span>
-                                    <span class="freight-fixed">R$ 0,00</span>
-                                </div>
-                                <div class="flex justify-between text-gray-400">
-                                    <span>Percentual</span>
-                                    <span class="freight-pct">R$ 0,00</span>
-                                </div>
-                                <div class="flex justify-between text-gray-400">
-                                    <span>Distância</span>
-                                    <span class="freight-dist">R$ 0,00</span>
-                                </div>
-                                <div class="flex justify-between text-gray-500 border-t border-gray-200 pt-1.5">
-                                    <span>Urgência (<span class="freight-urgency-label">–</span>)</span>
-                                    <span class="freight-mult">×1</span>
-                                </div>
-                            </div>
-                            <div class="flex justify-between items-center">
-                                <div id="freight-loading" class="text-xs text-gray-400 hidden">Calculando…</div>
-                                <div id="freight-no-config" class="text-xs text-gray-400">
-                                    <a href="{% url 'logistics:config' %}" target="_blank"
-                                        class="text-blue-600 hover:underline">Configure as tabelas de frete</a>
-                                    para ver a prévia aqui.
-                                </div>
-                                <div class="flex items-center gap-4">
-                                    <span class="text-sm text-gray-600">Frete estimado:</span>
-                                    <span id="freight-total-display" class="text-xl font-bold text-gray-800">R$ 0,00</span>
-                                </div>
-                            </div>
-                            <p class="text-xs text-gray-400 mt-2">
-                                ⚠️ Prévia calculada com as tabelas atuais. O valor final é salvo na tela de detalhes do orçamento.
-                                O cálculo considera a soma de todos os itens, aplicando a tabela de faixas ao total consolidado.
-                            </p>
-                        </div>
-
-                        <!-- Grand total with freight -->
-                        <div class="bg-black rounded-lg p-5 shadow-sm">
-                            <div class="space-y-2">
-                                <div class="flex justify-between items-center text-gray-400 text-sm">
-                                    <span>Subtotal dos itens</span>
-                                    <span id="grand-items-line">R$ 0,00</span>
-                                </div>
-                                <div id="grand-freight-line" class="flex justify-between items-center text-gray-400 text-sm hidden">
-                                    <span>Logística / Frete (<span id="grand-urgency-label">–</span>)</span>
-                                    <span id="grand-freight-value">R$ 0,00</span>
-                                </div>
-                                <div class="flex justify-between items-center border-t border-gray-700 pt-2 mt-2">
-                                    <span class="text-lg font-medium text-gray-300">Total do Orçamento</span>
-                                    <span id="budget-total" class="text-3xl font-bold text-white">R$ 0,00</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {% if items_formset.non_form_errors %}
-                    <div class="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-                        <p class="text-sm text-red-600">{{ items_formset.non_form_errors }}</p>
-                    </div>
-                    {% endif %}
+                    {% if form.status.errors %}<p class="mt-1 text-sm text-red-600">{{ form.status.errors.0 }}</p>{% endif %}
                 </div>
             </div>
 
+            <!-- ── Sections ──────────────────────────────────────────── -->
+            <div class="mt-8 border-t pt-6">
+                <div class="flex justify-between items-center mb-5">
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900">Seções do Orçamento</h3>
+                        <p class="text-sm text-gray-500 mt-0.5">Organize os itens em seções (ex.: Estrutura, AV, Decoração)</p>
+                    </div>
+                    <button type="button" id="add-section"
+                        class="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-700 transition-all">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                        </svg>
+                        Adicionar Seção
+                    </button>
+                </div>
+
+                <!-- Sections container -->
+                <div id="sections-container" class="space-y-5">
+                    <!-- Sections are rendered by JS -->
+                </div>
+
+                <div id="no-sections-msg" class="py-10 text-center text-gray-400 border-2 border-dashed border-gray-200 rounded-lg hidden">
+                    Nenhuma seção adicionada ainda. Clique em <strong>Adicionar Seção</strong> para começar.
+                </div>
+            </div>
+
+            <!-- ── Totals & Freight Panel ─────────────────────────────── -->
+            <div class="mt-8 space-y-3">
+
+                <!-- Logistics summary bar -->
+                <div id="logistics-bar" class="bg-blue-50 border border-blue-200 rounded-lg px-5 py-3 flex flex-wrap gap-6 text-sm">
+                    <span class="text-blue-700">
+                        Peso total consolidado:
+                        <strong id="total-weight-display" class="text-blue-900">0,000 kg</strong>
+                    </span>
+                    <span class="text-blue-700">
+                        Volume total consolidado:
+                        <strong id="total-volume-display" class="text-blue-900">0,000 m³</strong>
+                    </span>
+                </div>
+
+                <!-- Items subtotal -->
+                <div class="bg-gray-100 rounded-lg px-5 py-3 flex justify-between items-center">
+                    <span class="text-sm font-medium text-gray-600">Subtotal dos Itens</span>
+                    <span id="items-subtotal" class="text-xl font-bold text-gray-900">R$ 0,00</span>
+                </div>
+
+                <!-- Freight preview -->
+                <div id="freight-panel" class="bg-white border-2 border-dashed border-gray-300 rounded-lg p-5">
+                    <div class="flex items-center justify-between mb-3">
+                        <h4 class="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                            <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                            </svg>
+                            Logística / Frete (prévia)
+                        </h4>
+                        <div class="flex items-center gap-3">
+                            <select id="freight-urgency"
+                                class="text-sm px-3 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent">
+                                <option value="">Urgência padrão</option>
+                                {% for um in urgency_options %}
+                                <option value="{{ um.pk }}" {% if um.is_default %}selected{% endif %}>
+                                    {{ um.label }} (×{{ um.multiplier }})
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <input type="number" id="freight-distance" step="0.1" min="0" placeholder="km (opcional)"
+                                class="text-sm w-32 px-3 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent">
+                        </div>
+                    </div>
+                    <div id="freight-breakdown" class="hidden space-y-1.5 text-sm mb-3 border-t border-gray-100 pt-3">
+                        <div class="flex justify-between text-gray-500">
+                            <span>Base peso (<span class="freight-wt-total">0</span> kg)</span>
+                            <span class="freight-weight-cost">R$ 0,00</span>
+                        </div>
+                        <div class="flex justify-between text-gray-500">
+                            <span>Base volume (<span class="freight-vol-total">0</span> m³)</span>
+                            <span class="freight-volume-cost">R$ 0,00</span>
+                        </div>
+                        <div class="flex justify-between text-gray-500">
+                            <span>Frete base (modo: <span class="freight-mode-label">–</span>)</span>
+                            <span class="freight-base">R$ 0,00</span>
+                        </div>
+                        <div class="flex justify-between text-gray-400">
+                            <span>Taxa fixa</span><span class="freight-fixed">R$ 0,00</span>
+                        </div>
+                        <div class="flex justify-between text-gray-400">
+                            <span>Percentual</span><span class="freight-pct">R$ 0,00</span>
+                        </div>
+                        <div class="flex justify-between text-gray-400">
+                            <span>Distância</span><span class="freight-dist">R$ 0,00</span>
+                        </div>
+                        <div class="flex justify-between text-gray-500 border-t border-gray-200 pt-1.5">
+                            <span>Urgência (<span class="freight-urgency-label">–</span>)</span>
+                            <span class="freight-mult">×1</span>
+                        </div>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <div id="freight-loading" class="text-xs text-gray-400 hidden">Calculando…</div>
+                        <div id="freight-no-config" class="text-xs text-gray-400">
+                            <a href="{% url 'logistics:config' %}" target="_blank" class="text-blue-600 hover:underline">Configure as tabelas de frete</a>
+                            para ver a prévia aqui.
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <span class="text-sm text-gray-600">Frete estimado:</span>
+                            <span id="freight-total-display" class="text-xl font-bold text-gray-800">R$ 0,00</span>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-400 mt-2">
+                        ⚠️ Prévia calculada com as tabelas atuais. O valor final é salvo na tela de detalhes do orçamento.
+                    </p>
+                </div>
+
+                <!-- Grand total -->
+                <div class="bg-black rounded-lg p-5 shadow-sm">
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-center text-gray-400 text-sm">
+                            <span>Subtotal dos itens</span>
+                            <span id="grand-items-line">R$ 0,00</span>
+                        </div>
+                        <div id="grand-freight-line" class="flex justify-between items-center text-gray-400 text-sm hidden">
+                            <span>Logística / Frete (<span id="grand-urgency-label">–</span>)</span>
+                            <span id="grand-freight-value">R$ 0,00</span>
+                        </div>
+                        <div class="flex justify-between items-center border-t border-gray-700 pt-2 mt-2">
+                            <span class="text-lg font-medium text-gray-300">Total do Orçamento</span>
+                            <span id="budget-total" class="text-3xl font-bold text-white">R$ 0,00</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Submit row -->
             <div class="mt-8 flex justify-end gap-3">
                 <a href="{% if object %}{% url 'budgets:detail' object.pk %}{% else %}{% url 'budgets:list' %}{% endif %}"
                     class="px-6 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
                     Cancelar
                 </a>
-                <button type="submit"
-                    class="px-6 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-all">
+                <button type="submit" class="px-6 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-all">
                     {{ submit_text }}
                 </button>
             </div>
         </form>
     </div>
 </div>
+
+<!-- ── Hidden Templates (cloned by JS) ────────────────────────────────────── -->
+
+<!-- Section template -->
+<template id="section-template">
+    <div class="section-card border-2 border-gray-200 rounded-xl overflow-hidden" data-section-id="">
+        <div class="section-header flex items-center justify-between px-4 py-3 bg-gray-900 cursor-pointer select-none">
+            <div class="flex items-center gap-3 flex-1 min-w-0">
+                <button type="button" class="toggle-section text-gray-400 hover:text-white transition-colors flex-shrink-0">
+                    <svg class="toggle-icon w-4 h-4 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                    </svg>
+                </button>
+                <input type="text"
+                    class="section-title-input bg-transparent border-0 border-b border-gray-600 text-white font-semibold text-sm w-full focus:outline-none focus:border-white placeholder-gray-500 py-0.5"
+                    placeholder="Título da seção (ex.: Estrutura, AV, Decoração…)" value="">
+            </div>
+            <div class="flex items-center gap-2 ml-3 flex-shrink-0">
+                <span class="section-subtotal text-xs text-gray-400 font-mono">R$ 0,00</span>
+                <button type="button" class="add-item-btn text-xs px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors">
+                    + Item
+                </button>
+                <button type="button" class="delete-section text-gray-500 hover:text-red-400 transition-colors ml-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <div class="section-body bg-gray-50">
+            <div class="items-list space-y-3 p-4"></div>
+            <div class="empty-section-msg px-4 pb-4 pt-0 text-center text-sm text-gray-400 hidden">
+                Nenhum item nesta seção. Clique em <strong>+ Item</strong> para adicionar.
+            </div>
+        </div>
+    </div>
+</template>
+
+<!-- Item template -->
+<template id="item-template">
+    <div class="item-form bg-white border border-gray-200 rounded-lg p-4"
+         data-item-id="" data-deleted="false">
+
+        <!-- Row 1: Name + Qty + Price + Total -->
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
+            <div class="md:col-span-5">
+                <label class="block text-xs font-medium text-gray-600 mb-1">Item <span class="text-red-500">*</span></label>
+                <input type="text" class="item-name w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-sm" placeholder="Nome do item">
+            </div>
+            <div class="md:col-span-2">
+                <label class="block text-xs font-medium text-gray-600 mb-1">Quantidade <span class="text-red-500">*</span></label>
+                <input type="number" class="item-quantity w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-sm" min="1" value="1">
+            </div>
+            <div class="md:col-span-2">
+                <label class="block text-xs font-medium text-gray-600 mb-1">Preço Unitário (R$) <span class="text-red-500">*</span></label>
+                <input type="number" class="item-unit-price w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-sm" step="0.01" min="0" placeholder="0,00">
+            </div>
+            <div class="md:col-span-3">
+                <label class="block text-xs font-medium text-gray-600 mb-1">Valor Total (R$)</label>
+                <input type="text" readonly class="item-total w-full px-3 py-2 border border-gray-200 rounded-lg bg-white text-gray-800 font-semibold text-sm" value="R$ 0,00">
+            </div>
+        </div>
+
+        <!-- Row 2: Dimensions & logistics -->
+        <div class="mt-3 p-3 bg-blue-50 border border-blue-100 rounded-lg">
+            <p class="text-xs font-semibold text-blue-700 mb-2 uppercase tracking-wide">
+                📦 Dimensões &amp; Logística
+                <span class="font-normal text-blue-500 ml-1">(usadas no cálculo de frete)</span>
+            </p>
+            <div class="grid grid-cols-2 md:grid-cols-7 gap-3">
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Comprimento (m)</label>
+                    <input type="number" class="item-dim item-dim-length w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-sm" step="0.001" min="0" placeholder="0.000">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Largura (m)</label>
+                    <input type="number" class="item-dim item-dim-width w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-sm" step="0.001" min="0" placeholder="0.000">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Altura (m)</label>
+                    <input type="number" class="item-dim item-dim-height w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-sm" step="0.001" min="0" placeholder="0.000">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Volume (m³)</label>
+                    <input type="number" class="item-measurement w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent bg-gray-50 text-sm" step="0.001" min="0" placeholder="auto">
+                    <p class="text-xs text-blue-500 mt-0.5">C×L×A auto</p>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Unidade</label>
+                    <select class="item-measurement-unit w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-sm">
+                        <option value="">–</option>
+                        <option value="m">m</option>
+                        <option value="m2">m²</option>
+                        <option value="m3">m³</option>
+                    </select>
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Peso unit. (kg)</label>
+                    <input type="number" class="item-weight w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-sm" step="0.001" min="0" placeholder="0.000">
+                </div>
+            </div>
+            <div class="item-logistics-summary mt-2 text-xs text-blue-700 hidden">
+                Vol. total: <strong class="item-vol-total">–</strong> m³ &nbsp;|&nbsp;
+                Peso total: <strong class="item-wt-total">–</strong> kg
+            </div>
+        </div>
+
+        <!-- Row 3: Description + remove -->
+        <div class="mt-3 grid grid-cols-1 gap-3">
+            <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1 flex items-center justify-between">
+                    <span>Descrição</span>
+                    <a href="#" class="new-description-link text-xs text-blue-600 hover:text-blue-800 font-medium">+ Nova descrição</a>
+                </label>
+                <select class="item-description-select w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-sm bg-white">
+                    <option value="">— selecione uma descrição —</option>
+                </select>
+                <textarea class="item-description w-full mt-2 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-sm" rows="2" placeholder="Ou escreva uma descrição personalizada…"></textarea>
+            </div>
+        </div>
+
+        <div class="mt-3 pt-3 border-t border-gray-200 flex justify-end">
+            <button type="button" class="remove-item px-4 py-2 bg-white border border-red-300 text-red-600 text-sm rounded-lg hover:bg-red-50 transition-all">
+                🗑️ Remover Item
+            </button>
+        </div>
+    </div>
+</template>
+
+<!-- ── Modal: Nova Descrição de Item ────────────────────────────────────────────── -->
+<div id="item-desc-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4" role="dialog" aria-modal="true">
+    <div class="absolute inset-0 bg-black/50" id="item-desc-modal-backdrop"></div>
+    <div class="relative bg-white rounded-xl shadow-xl w-full max-w-lg p-6 z-10">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-base font-semibold text-gray-900">Nova Descrição de Item</h3>
+            <button type="button" id="item-desc-modal-close" class="text-gray-400 hover:text-gray-600">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Título <span class="text-red-500">*</span></label>
+                <input id="item-desc-title" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-sm" placeholder="Ex.: Painel modulado 3×3">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Descrição</label>
+                <textarea id="item-desc-body" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-sm" placeholder="Texto completo que será copiado para o item…"></textarea>
+            </div>
+            <p id="item-desc-error" class="text-sm text-red-600 hidden"></p>
+        </div>
+        <div class="mt-5 flex justify-end gap-3">
+            <button type="button" id="item-desc-modal-cancel" class="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">Cancelar</button>
+            <button type="button" id="item-desc-modal-save" class="px-4 py-2 text-sm bg-black text-white rounded-lg hover:bg-gray-800">Salvar</button>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block extra_js %}
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    const formset      = document.getElementById('items-formset');
-    const addBtn       = document.getElementById('add-item');
-    const totalForms   = document.getElementById('id_items-TOTAL_FORMS');
-    const freightURL   = "{% url 'budgets:freight-preview' %}";
-    const csrfToken    = document.querySelector('[name=csrfmiddlewaretoken]').value;
+(function () {
+    'use strict';
 
-    // ── Keep a pristine clone for adding new rows ──────────────────────────
-    const firstForm  = formset.querySelector('.item-form');
-    const cleanTmpl  = firstForm ? firstForm.cloneNode(true) : null;
+    // ── Existing data passed from view (for edit mode) ─────────────────────
+    const INITIAL_SECTIONS      = {{ sections_json|safe }};
+    const ITEM_DESCRIPTIONS     = {{ item_descriptions_json|safe }};
+    const ITEM_DESC_URL         = "{% url 'budgets:item-descriptions' %}";
 
-    // ── Currency & number helpers ──────────────────────────────────────────
-    const fmt = v => new Intl.NumberFormat('pt-BR', {style:'currency',currency:'BRL'}).format(v);
+    // ── Description helpers ─────────────────────────────────────────────────
+    function populateDescriptionSelect(sel) {
+        // Clear existing options (keep the blank placeholder)
+        while (sel.options.length > 1) sel.remove(1);
+        ITEM_DESCRIPTIONS.forEach(d => {
+            const opt = document.createElement('option');
+            opt.value       = d.id;
+            opt.textContent = d.title;
+            opt.dataset.body = d.body;
+            sel.appendChild(opt);
+        });
+    }
+
+    function refreshAllDescriptionSelects() {
+        document.querySelectorAll('.item-description-select').forEach(sel => {
+            populateDescriptionSelect(sel);
+        });
+    }
+
+    let _activeDescItemNode = null;
+
+    const descModal        = document.getElementById('item-desc-modal');
+    const descTitleInput   = document.getElementById('item-desc-title');
+    const descBodyInput    = document.getElementById('item-desc-body');
+    const descErrorEl      = document.getElementById('item-desc-error');
+    const descSaveBtn      = document.getElementById('item-desc-modal-save');
+
+    function openDescriptionModal(itemNode) {
+        _activeDescItemNode  = itemNode;
+        descTitleInput.value = '';
+        descBodyInput.value  = '';
+        descErrorEl.classList.add('hidden');
+        descModal.classList.remove('hidden');
+        setTimeout(() => descTitleInput.focus(), 50);
+    }
+
+    function closeDescriptionModal() {
+        descModal.classList.add('hidden');
+        _activeDescItemNode = null;
+    }
+
+    document.getElementById('item-desc-modal-close').addEventListener('click',  closeDescriptionModal);
+    document.getElementById('item-desc-modal-cancel').addEventListener('click', closeDescriptionModal);
+    document.getElementById('item-desc-modal-backdrop').addEventListener('click', closeDescriptionModal);
+
+    descSaveBtn.addEventListener('click', async () => {
+        const title = descTitleInput.value.trim();
+        const body  = descBodyInput.value.trim();
+        if (!title) {
+            descErrorEl.textContent = 'Título é obrigatório.';
+            descErrorEl.classList.remove('hidden');
+            descTitleInput.focus();
+            return;
+        }
+        descSaveBtn.disabled    = true;
+        descSaveBtn.textContent = 'Salvando…';
+        try {
+            const res  = await fetch(ITEM_DESC_URL, {
+                method:  'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+                body:    JSON.stringify({ title, body }),
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Erro ao salvar.');
+
+            // Add to local list
+            ITEM_DESCRIPTIONS.push(data);
+            refreshAllDescriptionSelects();
+
+            // Select the new description on the triggering item and copy body
+            if (_activeDescItemNode) {
+                const sel = _activeDescItemNode.querySelector('.item-description-select');
+                if (sel) sel.value = data.id;
+                const ta = _activeDescItemNode.querySelector('.item-description');
+                if (ta) ta.value = data.body;
+            }
+            closeDescriptionModal();
+        } catch (err) {
+            descErrorEl.textContent = err.message;
+            descErrorEl.classList.remove('hidden');
+        } finally {
+            descSaveBtn.disabled    = false;
+            descSaveBtn.textContent = 'Salvar';
+        }
+    });
+
+    // Allow Escape to close modal
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !descModal.classList.contains('hidden')) closeDescriptionModal();
+    });
+
+    // ── DOM refs ───────────────────────────────────────────────────────────
+    const sectionsContainer = document.getElementById('sections-container');
+    const noSectionsMsg     = document.getElementById('no-sections-msg');
+    const addSectionBtn     = document.getElementById('add-section');
+    const sectionTmpl       = document.getElementById('section-template');
+    const itemTmpl          = document.getElementById('item-template');
+    const sectionsDataInput = document.getElementById('sections-data');
+    const freightURL        = "{% url 'budgets:freight-preview' %}";
+    const csrfToken         = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+    // ── Helpers ────────────────────────────────────────────────────────────
+    const fmt  = v => new Intl.NumberFormat('pt-BR', {style:'currency',currency:'BRL'}).format(v);
     const fmtN = (v, dp=3) => parseFloat(v || 0).toFixed(dp).replace('.', ',');
     const num  = v => parseFloat(v) || 0;
+
+    let _sectionCounter = 0;
+    let currentFreight  = 0;
+    let freightDebounce = null;
+
+    // ── Section management ─────────────────────────────────────────────────
+    function addSection(data) {
+        const node = sectionTmpl.content.cloneNode(true).firstElementChild;
+        const uid  = ++_sectionCounter;
+        node.dataset.uid = uid;
+
+        if (data && data.id) node.dataset.sectionId = data.id;
+        if (data && data.title) node.querySelector('.section-title-input').value = data.title;
+
+        // Toggle collapse
+        const body       = node.querySelector('.section-body');
+        const toggleBtn  = node.querySelector('.toggle-section');
+        const toggleIcon = node.querySelector('.toggle-icon');
+        toggleBtn.addEventListener('click', () => {
+            const open = body.style.display !== 'none' && body.style.display !== '';
+            if (open) {
+                body.style.display = 'none';
+                toggleIcon.style.transform = 'rotate(-90deg)';
+            } else {
+                body.style.display = '';
+                toggleIcon.style.transform = '';
+            }
+        });
+
+        // Delete section
+        node.querySelector('.delete-section').addEventListener('click', () => {
+            if (!confirm('Remover esta seção e todos os seus itens?')) return;
+            node.remove();
+            updateNoSectionsMsg();
+            recalcAll();
+        });
+
+        // Enter no título da seção → adiciona item (não envia o form)
+        node.querySelector('.section-title-input').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                addItem(node, null);
+                updateEmptySectionMsg(node);
+                // Foca no campo nome do item recém-criado
+                const lastItem = node.querySelector('.items-list .item-form:last-child');
+                if (lastItem) lastItem.querySelector('.item-name')?.focus();
+            }
+        });
+
+        // Add item button
+        node.querySelector('.add-item-btn').addEventListener('click', () => {
+            addItem(node, null);
+            updateEmptySectionMsg(node);
+        });
+
+        sectionsContainer.appendChild(node);
+        updateNoSectionsMsg();
+
+        // Pre-fill items if data provided
+        if (data && data.items) {
+            data.items.forEach(itemData => addItem(node, itemData));
+        }
+        updateEmptySectionMsg(node);
+        return node;
+    }
+
+    function updateNoSectionsMsg() {
+        const hasSections = sectionsContainer.querySelectorAll('.section-card').length > 0;
+        noSectionsMsg.classList.toggle('hidden', hasSections);
+    }
+
+    function updateEmptySectionMsg(sectionNode) {
+        const list    = sectionNode.querySelector('.items-list');
+        const msg     = sectionNode.querySelector('.empty-section-msg');
+        const visible = list.querySelectorAll('.item-form[data-deleted="false"]').length;
+        msg.classList.toggle('hidden', visible > 0);
+    }
+
+    // ── Item management ────────────────────────────────────────────────────
+    function addItem(sectionNode, data) {
+        const node = itemTmpl.content.cloneNode(true).firstElementChild;
+
+        if (data && data.id)               node.dataset.itemId    = data.id;
+        if (data && data.name)             node.querySelector('.item-name').value         = data.name;
+        if (data && data.quantity)         node.querySelector('.item-quantity').value      = data.quantity;
+        if (data && data.unit_price)       node.querySelector('.item-unit-price').value    = data.unit_price;
+        if (data && data.dim_length)       node.querySelector('.item-dim-length').value    = data.dim_length;
+        if (data && data.dim_width)        node.querySelector('.item-dim-width').value     = data.dim_width;
+        if (data && data.dim_height)       node.querySelector('.item-dim-height').value    = data.dim_height;
+        if (data && data.measurement)      node.querySelector('.item-measurement').value   = data.measurement;
+        if (data && data.measurement_unit) {
+            const sel = node.querySelector('.item-measurement-unit');
+            sel.value = data.measurement_unit;
+        }
+        if (data && data.weight)           node.querySelector('.item-weight').value        = data.weight;
+        if (data && data.description)      node.querySelector('.item-description').value   = data.description;
+
+        // Populate description select
+        populateDescriptionSelect(node.querySelector('.item-description-select'));
+
+        // When a description is selected, copy its body to the textarea
+        node.querySelector('.item-description-select').addEventListener('change', function () {
+            const desc = ITEM_DESCRIPTIONS.find(d => String(d.id) === this.value);
+            if (desc) {
+                node.querySelector('.item-description').value = desc.body;
+            }
+        });
+
+        // "+ Nova descrição" link opens the modal
+        node.querySelector('.new-description-link').addEventListener('click', (e) => {
+            e.preventDefault();
+            openDescriptionModal(node);
+        });
+
+        // Remove button
+        node.querySelector('.remove-item').addEventListener('click', () => {
+            node.dataset.deleted = 'true';
+            node.style.display   = 'none';
+            updateEmptySectionMsg(sectionNode);
+            recalcAll();
+        });
+
+        // Live recalc on input
+        node.querySelectorAll('.item-quantity, .item-unit-price, .item-dim, .item-measurement, .item-measurement-unit, .item-weight')
+            .forEach(el => el.addEventListener('input', recalcAll));
+
+        sectionNode.querySelector('.items-list').appendChild(node);
+
+        // Recalc total for this item immediately
+        calcItem(node);
+        return node;
+    }
 
     // ── Per-item calculations ──────────────────────────────────────────────
     function calcItem(row) {
@@ -324,17 +604,16 @@ document.addEventListener('DOMContentLoaded', function () {
         const tot   = row.querySelector('.item-total');
         if (tot) tot.value = fmt(total);
 
-        // Volume from dimensions
-        const l = num(row.querySelector('.item-dim[name*="dim_length"]')?.value);
-        const w = num(row.querySelector('.item-dim[name*="dim_width"]')?.value);
-        const h = num(row.querySelector('.item-dim[name*="dim_height"]')?.value);
+        const l = num(row.querySelector('.item-dim-length')?.value);
+        const w = num(row.querySelector('.item-dim-width')?.value);
+        const h = num(row.querySelector('.item-dim-height')?.value);
         let vol = 0;
-        const measInput    = row.querySelector('.item-measurement');
-        const unitSelect   = row.querySelector('.item-measurement-unit');
+        const measInput  = row.querySelector('.item-measurement');
+        const unitSelect = row.querySelector('.item-measurement-unit');
 
         if (l > 0 && w > 0 && h > 0) {
             vol = l * w * h;
-            if (measInput) measInput.value = vol.toFixed(3);
+            if (measInput)  measInput.value  = vol.toFixed(3);
             if (unitSelect) unitSelect.value = 'm3';
         } else if (measInput && unitSelect?.value === 'm3') {
             vol = num(measInput.value);
@@ -344,7 +623,6 @@ document.addEventListener('DOMContentLoaded', function () {
         const volTotal    = vol * qty;
         const weightTotal = weight * qty;
 
-        // Show per-item logistics summary
         const logSum = row.querySelector('.item-logistics-summary');
         if (logSum) {
             if (volTotal > 0 || weightTotal > 0) {
@@ -355,68 +633,66 @@ document.addEventListener('DOMContentLoaded', function () {
                 logSum.classList.add('hidden');
             }
         }
-
         return { total, vol, weight, qty, unit: unitSelect?.value || '' };
     }
 
-    // ── Aggregate all items & update totals bar ────────────────────────────
-    let freightDebounce = null;
-    let currentFreight  = 0;
+    // ── Section subtotal display ───────────────────────────────────────────
+    function updateSectionSubtotal(sectionNode) {
+        let sub = 0;
+        sectionNode.querySelectorAll('.item-form[data-deleted="false"]').forEach(row => {
+            const qty   = num(row.querySelector('.item-quantity')?.value);
+            const price = num(row.querySelector('.item-unit-price')?.value);
+            sub += qty * price;
+        });
+        const el = sectionNode.querySelector('.section-subtotal');
+        if (el) el.textContent = fmt(sub);
+    }
 
+    // ── Aggregate all items across all sections ────────────────────────────
     function recalcAll() {
-        let grandTotal   = 0;
-        let totalWeight  = 0;
-        let totalVolume  = 0;
-        const itemsData  = [];
+        let grandTotal  = 0;
+        let totalWeight = 0;
+        let totalVolume = 0;
+        const itemsData = [];
 
-        formset.querySelectorAll('.item-form:not([style*="display: none"])').forEach(row => {
-            const d = calcItem(row);
-            grandTotal  += d.total;
-            totalWeight += d.weight * d.qty;
-            totalVolume += (d.unit === 'm3') ? d.vol * d.qty : 0;
-            if (d.vol > 0 || d.weight > 0) {
-                itemsData.push({
-                    quantity: d.qty,
-                    weight:   d.weight,
-                    volume:   d.vol,
-                    measurement_unit: d.unit,
-                });
-            }
+        document.querySelectorAll('.section-card').forEach(secNode => {
+            secNode.querySelectorAll('.item-form[data-deleted="false"]').forEach(row => {
+                const d = calcItem(row);
+                grandTotal  += d.total;
+                totalWeight += d.weight * d.qty;
+                totalVolume += (d.unit === 'm3') ? d.vol * d.qty : 0;
+                if (d.vol > 0 || d.weight > 0) {
+                    itemsData.push({
+                        quantity: d.qty,
+                        weight:   d.weight,
+                        volume:   d.vol,
+                        measurement_unit: d.unit,
+                    });
+                }
+            });
+            updateSectionSubtotal(secNode);
         });
 
-        // Logistics bar
         document.getElementById('total-weight-display').textContent = fmtN(totalWeight) + ' kg';
         document.getElementById('total-volume-display').textContent = fmtN(totalVolume) + ' m³';
-
-        // Items subtotal
         document.getElementById('items-subtotal').textContent  = fmt(grandTotal);
         document.getElementById('grand-items-line').textContent = fmt(grandTotal);
-
-        // Grand total (items + current freight)
         updateGrandTotal(grandTotal, currentFreight);
 
-        // Debounced freight preview
         clearTimeout(freightDebounce);
-        freightDebounce = setTimeout(() => {
-            fetchFreightPreview(itemsData, grandTotal);
-        }, 400);
+        freightDebounce = setTimeout(() => fetchFreightPreview(itemsData, grandTotal), 400);
     }
 
     function updateGrandTotal(itemsTotal, freight) {
-        const grandTotalEl       = document.getElementById('budget-total');
-        const grandFreightLine   = document.getElementById('grand-freight-line');
-        const grandFreightVal    = document.getElementById('grand-freight-value');
-        const grandUrgencyLabel  = document.getElementById('grand-urgency-label');
-
-        grandTotalEl.textContent = fmt(itemsTotal + freight);
-
+        document.getElementById('budget-total').textContent = fmt(itemsTotal + freight);
+        const freightLine = document.getElementById('grand-freight-line');
         if (freight > 0) {
-            grandFreightLine.classList.remove('hidden');
-            grandFreightVal.textContent = fmt(freight);
-            grandUrgencyLabel.textContent =
+            freightLine.classList.remove('hidden');
+            document.getElementById('grand-freight-value').textContent = fmt(freight);
+            document.getElementById('grand-urgency-label').textContent =
                 document.getElementById('freight-urgency')?.selectedOptions[0]?.text || '–';
         } else {
-            grandFreightLine.classList.add('hidden');
+            freightLine.classList.add('hidden');
         }
     }
 
@@ -424,19 +700,17 @@ document.addEventListener('DOMContentLoaded', function () {
     function fetchFreightPreview(itemsData, budgetTotal) {
         const urgencyId  = document.getElementById('freight-urgency')?.value  || '';
         const distanceKm = document.getElementById('freight-distance')?.value || '';
-
-        const loadingEl   = document.getElementById('freight-loading');
-        const noConfigEl  = document.getElementById('freight-no-config');
-
+        const loadingEl  = document.getElementById('freight-loading');
+        const noConfigEl = document.getElementById('freight-no-config');
         loadingEl?.classList.remove('hidden');
         noConfigEl?.classList.add('hidden');
 
         const body = new URLSearchParams({
             csrfmiddlewaretoken: csrfToken,
-            items_json:  JSON.stringify(itemsData),
+            items_json:   JSON.stringify(itemsData),
             budget_total: budgetTotal,
-            urgency_id:  urgencyId,
-            distance_km: distanceKm,
+            urgency_id:   urgencyId,
+            distance_km:  distanceKm,
         });
 
         fetch(freightURL, {method:'POST', body, headers:{'X-Requested-With':'XMLHttpRequest'}})
@@ -444,13 +718,12 @@ document.addEventListener('DOMContentLoaded', function () {
             .then(d => {
                 loadingEl?.classList.add('hidden');
                 renderFreightBreakdown(d, itemsData.length > 0 || budgetTotal > 0);
-
-                // Re-run items total to get latest
                 let itemsTotal = 0;
-                formset.querySelectorAll('.item-form:not([style*="display: none"])').forEach(row => {
-                    const qty   = num(row.querySelector('.item-quantity')?.value);
-                    const price = num(row.querySelector('.item-unit-price')?.value);
-                    itemsTotal += qty * price;
+                document.querySelectorAll('.section-card').forEach(secNode => {
+                    secNode.querySelectorAll('.item-form[data-deleted="false"]').forEach(row => {
+                        itemsTotal += num(row.querySelector('.item-quantity')?.value) *
+                                      num(row.querySelector('.item-unit-price')?.value);
+                    });
                 });
                 currentFreight = d.freight_total || 0;
                 updateGrandTotal(itemsTotal, currentFreight);
@@ -462,9 +735,9 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function renderFreightBreakdown(d, hasData) {
-        const breakdownEl  = document.getElementById('freight-breakdown');
-        const totalEl      = document.getElementById('freight-total-display');
-        const noConfigEl   = document.getElementById('freight-no-config');
+        const breakdownEl = document.getElementById('freight-breakdown');
+        const totalEl     = document.getElementById('freight-total-display');
+        const noConfigEl  = document.getElementById('freight-no-config');
 
         if (!hasData || d.freight_total === 0) {
             breakdownEl?.classList.add('hidden');
@@ -472,521 +745,74 @@ document.addEventListener('DOMContentLoaded', function () {
             noConfigEl?.classList.remove('hidden');
             return;
         }
-
         noConfigEl?.classList.add('hidden');
         breakdownEl?.classList.remove('hidden');
 
-        // fill in values
-        const set = (sel, val) => {
-            const el = document.querySelector(sel);
-            if (el) el.textContent = val;
-        };
-
-        set('.freight-wt-total',  fmtN(d.weight_total));
-        set('.freight-vol-total', fmtN(d.volume_total));
+        const set = (sel, val) => { const el = document.querySelector(sel); if (el) el.textContent = val; };
+        set('.freight-wt-total',    fmtN(d.weight_total));
+        set('.freight-vol-total',   fmtN(d.volume_total));
         set('.freight-weight-cost', fmt(d.weight_cost));
         set('.freight-volume-cost', fmt(d.volume_cost));
-        set('.freight-base',  fmt(d.base_freight));
-        set('.freight-fixed', fmt(d.fixed_fee));
-        set('.freight-pct',   fmt(d.percentage_cost));
-        set('.freight-dist',  fmt(d.distance_cost));
+        set('.freight-base',        fmt(d.base_freight));
+        set('.freight-fixed',       fmt(d.fixed_fee));
+        set('.freight-pct',         fmt(d.percentage_cost));
+        set('.freight-dist',        fmt(d.distance_cost));
         set('.freight-urgency-label', d.urgency_label);
-        set('.freight-mult', '×' + parseFloat(d.urgency_multiplier).toFixed(2));
-
+        set('.freight-mult',        '×' + parseFloat(d.urgency_multiplier).toFixed(2));
+        set('.freight-mode-label',  d.weight_cost >= d.volume_cost ? 'peso' : 'volume');
         totalEl.textContent = fmt(d.freight_total);
-
-        // Show which mode is being used
-        const modeLabels = {max:'maior valor', sum:'soma', weight:'só peso', volume:'só volume'};
-        // mode not in d, but we can infer from weight vs volume dominance
-        // just leave blank or show from settings — for now skip
-        set('.freight-mode-label', d.weight_cost >= d.volume_cost ? 'peso' : 'volume');
     }
 
-    // ── Event listeners ────────────────────────────────────────────────────
-    function bindRow(row) {
-        row.querySelectorAll('.item-quantity, .item-unit-price, .item-dim, .item-measurement, .item-measurement-unit, .item-weight')
-            .forEach(el => el.addEventListener('input', recalcAll));
-
-        row.querySelector('.remove-item')?.addEventListener('click', function () {
-            removeForm(row);
+    // ── Serialize to JSON before submit ───────────────────────────────────
+    document.getElementById('budget-form').addEventListener('submit', function () {
+        const sections = [];
+        document.querySelectorAll('.section-card').forEach(secNode => {
+            const items = [];
+            secNode.querySelectorAll('.item-form').forEach(itemNode => {
+                const deleted = itemNode.dataset.deleted === 'true';
+                items.push({
+                    id:               itemNode.dataset.itemId || null,
+                    delete:           deleted,
+                    name:             itemNode.querySelector('.item-name')?.value || '',
+                    description:      itemNode.querySelector('.item-description')?.value || '',
+                    quantity:         itemNode.querySelector('.item-quantity')?.value || '1',
+                    dim_length:       itemNode.querySelector('.item-dim-length')?.value || '',
+                    dim_width:        itemNode.querySelector('.item-dim-width')?.value || '',
+                    dim_height:       itemNode.querySelector('.item-dim-height')?.value || '',
+                    measurement:      itemNode.querySelector('.item-measurement')?.value || '',
+                    measurement_unit: itemNode.querySelector('.item-measurement-unit')?.value || '',
+                    weight:           itemNode.querySelector('.item-weight')?.value || '',
+                    unit_price:       itemNode.querySelector('.item-unit-price')?.value || '0',
+                });
+            });
+            sections.push({
+                id:    secNode.dataset.sectionId || null,
+                title: secNode.querySelector('.section-title-input')?.value || '',
+                items: items,
+            });
         });
-    }
+        sectionsDataInput.value = JSON.stringify(sections);
+    });
 
-    formset.querySelectorAll('.item-form').forEach(bindRow);
+    // ── Init ───────────────────────────────────────────────────────────────
+    addSectionBtn.addEventListener('click', () => {
+        const sec = addSection(null);
+        sec.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    });
 
     document.getElementById('freight-urgency')?.addEventListener('change', recalcAll);
     document.getElementById('freight-distance')?.addEventListener('input', recalcAll);
 
-    recalcAll(); // initial pass
-
-    // ── Add item ──────────────────────────────────────────────────────────
-    addBtn.addEventListener('click', function () {
-        const newForm = createEmptyForm();
-        if (!newForm) return;
-        formset.appendChild(newForm);
-        bindRow(newForm);
-        updateIndexes();
-        recalcAll();
-        newForm.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    });
-
-    // ── Remove item ────────────────────────────────────────────────────────
-    function removeForm(row) {
-        const visible = formset.querySelectorAll('.item-form:not([style*="display: none"])');
-        if (visible.length <= 1) { alert('O orçamento precisa ter pelo menos um item.'); return; }
-
-        const idInput = row.querySelector('input[name$="-id"]');
-        if (idInput?.value) {
-            const del = row.querySelector('input[name$="-DELETE"]');
-            if (del) del.checked = true;
-            row.querySelectorAll('input:not([name$="-DELETE"]):not([name$="-id"]), textarea, select')
-               .forEach(el => { el.disabled = true; el.removeAttribute('required'); });
-            row.style.display = 'none';
-        } else {
-            row.remove();
-        }
-        updateIndexes();
-        recalcAll();
+    // Load existing sections (edit mode)
+    if (INITIAL_SECTIONS && INITIAL_SECTIONS.length > 0) {
+        INITIAL_SECTIONS.forEach(s => addSection(s));
+    } else {
+        updateNoSectionsMsg();
+        noSectionsMsg.classList.remove('hidden');
     }
 
-    // ── Index management ──────────────────────────────────────────────────
-    function updateIndexes() {
-        let idx = 0;
-        formset.querySelectorAll('.item-form').forEach(row => {
-            if (row.style.display === 'none') return;
-            row.querySelectorAll('input, select, textarea').forEach(el => {
-                if (el.name) el.name = el.name.replace(/items-\d+-/, `items-${idx}-`);
-                if (el.id)   el.id   = el.id.replace(/id_items-\d+-/, `id_items-${idx}-`);
-            });
-            row.querySelectorAll('label').forEach(label => {
-                if (label.htmlFor) label.htmlFor = label.htmlFor.replace(/id_items-\d+-/, `id_items-${idx}-`);
-            });
-            idx++;
-        });
-        totalForms.value = formset.querySelectorAll('.item-form').length;
-    }
-
-    // ── Clone empty form ──────────────────────────────────────────────────
-    function createEmptyForm() {
-        if (!cleanTmpl) return null;
-        const f = cleanTmpl.cloneNode(true);
-
-        f.querySelectorAll('input:not([type="hidden"]):not([type="checkbox"]):not([readonly]), textarea').forEach(el => {
-            el.value = '';
-        });
-        f.querySelectorAll('select').forEach(el => el.selectedIndex = 0);
-
-        const qty = f.querySelector('.item-quantity');
-        if (qty) qty.value = '1';
-
-        const tot = f.querySelector('.item-total');
-        if (tot) tot.value = fmt(0);
-
-        const del = f.querySelector('input[name$="-DELETE"]');
-        if (del) del.checked = false;
-
-        const idInp = f.querySelector('input[name$="-id"]');
-        if (idInp) idInp.value = '';
-
-        f.querySelectorAll('p.text-red-600').forEach(e => e.remove());
-        f.querySelector('.item-logistics-summary')?.classList.add('hidden');
-        f.style.display = '';
-        return f;
-    }
-});
+    recalcAll();
+})();
 </script>
 {% endblock %}
-{% comment %}
-            {% include 'components/form_errors.html' %}
 
-            <div class="space-y-6">
-                <div>
-                    <label for="{{ form.proposal.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                        {{ form.proposal.label }}
-                    </label>
-                    {{ form.proposal }}
-                    {% if form.proposal.errors %}
-                    <p class="mt-1 text-sm text-red-600">{{ form.proposal.errors.0 }}</p>
-                    {% endif %}
-                </div>
-
-                <div>
-                    <label for="{{ form.name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                        {{ form.name.label }}
-                    </label>
-                    {{ form.name }}
-                    {% if form.name.errors %}
-                    <p class="mt-1 text-sm text-red-600">{{ form.name.errors.0 }}</p>
-                    {% endif %}
-                </div>
-
-                <div>
-                    <label for="{{ form.status.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                        {{ form.status.label }}
-                    </label>
-                    {{ form.status }}
-                    {% if form.status.errors %}
-                    <p class="mt-1 text-sm text-red-600">{{ form.status.errors.0 }}</p>
-                    {% endif %}
-                </div>
-
-                <!-- Budget Items -->
-                <div class="border-t pt-6">
-                    <div class="flex justify-between items-center mb-4">
-                        <div>
-                            <h3 class="text-lg font-medium text-gray-900">Itens do Orçamento</h3>
-                            <p class="text-sm text-gray-500 mt-1">Os valores totais são calculados automaticamente</p>
-                        </div>
-                        <button type="button" id="add-item" class="px-4 py-2 bg-black text-white text-sm rounded-lg hover:bg-gray-800 transition-all">
-                            + Adicionar Item
-                        </button>
-                    </div>
-                    
-                    {{ items_formset.management_form }}
-                    
-                    <div id="items-formset" class="space-y-4">
-                        {% for item_form in items_formset %}
-                        <div class="item-form bg-gray-50 border-2 border-gray-200 rounded-lg p-6">
-                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
-                                <!-- Nome do Item -->
-                                <div class="lg:col-span-3">
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                                        {{ item_form.name.label }} <span class="text-red-500">*</span>
-                                    </label>
-                                    {{ item_form.name }}
-                                    {% if item_form.name.errors %}
-                                    <p class="mt-1 text-sm text-red-600">{{ item_form.name.errors.0 }}</p>
-                                    {% endif %}
-                                </div>
-                                
-                                <!-- Quantidade -->
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                                        {{ item_form.quantity.label }} <span class="text-red-500">*</span>
-                                    </label>
-                                    {{ item_form.quantity }}
-                                    {% if item_form.quantity.errors %}
-                                    <p class="mt-1 text-sm text-red-600">{{ item_form.quantity.errors.0 }}</p>
-                                    {% endif %}
-                                </div>
-                                
-                                <!-- Metragem -->
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                                        {{ item_form.measurement.label }}
-                                    </label>
-                                    {{ item_form.measurement }}
-                                    {% if item_form.measurement.errors %}
-                                    <p class="mt-1 text-sm text-red-600">{{ item_form.measurement.errors.0 }}</p>
-                                    {% endif %}
-                                </div>
-                                
-                                <!-- Unidade de Medida -->
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                                        {{ item_form.measurement_unit.label }}
-                                    </label>
-                                    {{ item_form.measurement_unit }}
-                                    {% if item_form.measurement_unit.errors %}
-                                    <p class="mt-1 text-sm text-red-600">{{ item_form.measurement_unit.errors.0 }}</p>
-                                    {% endif %}
-                                </div>
-                                
-                                <!-- Peso -->
-                                <div class="lg:col-span-2">
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                                        {{ item_form.weight.label }}
-                                    </label>
-                                    {{ item_form.weight }}
-                                    {% if item_form.weight.errors %}
-                                    <p class="mt-1 text-sm text-red-600">{{ item_form.weight.errors.0 }}</p>
-                                    {% endif %}
-                                </div>
-                                
-                                <!-- Preço Unitário -->
-                                <div class="lg:col-span-2">
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                                        {{ item_form.unit_price.label }} <span class="text-red-500">*</span>
-                                    </label>
-                                    {{ item_form.unit_price }}
-                                    {% if item_form.unit_price.errors %}
-                                    <p class="mt-1 text-sm text-red-600">{{ item_form.unit_price.errors.0 }}</p>
-                                    {% endif %}
-                                </div>
-                                
-                                <!-- Valor Total (calculado) -->
-                                <div class="lg:col-span-2">
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                                        Valor Total (R$)
-                                    </label>
-                                    <input type="text" readonly
-                                        class="item-total w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-700 font-semibold"
-                                        value="0,00">
-                                </div>
-                                
-                                <!-- Descrição -->
-                                <div class="lg:col-span-6">
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                                        {{ item_form.description.label }}
-                                    </label>
-                                    {{ item_form.description }}
-                                    {% if item_form.description.errors %}
-                                    <p class="mt-1 text-sm text-red-600">{{ item_form.description.errors.0 }}</p>
-                                    {% endif %}
-                                </div>
-                            </div>
-                            
-                            <div class="mt-4 pt-4 border-t border-gray-200 flex items-center justify-between">
-                                <button type="button" class="remove-item px-4 py-2 bg-white border border-red-300 text-red-600 text-sm rounded-lg hover:bg-red-50 transition-all">
-                                    🗑️ Remover Item
-                                </button>
-                                <div class="hidden">
-                                    {{ item_form.DELETE }}
-                                    {{ item_form.id }}
-                                </div>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                    
-                    <!-- Total Geral -->
-                    <div class="mt-6 bg-black rounded-lg p-6 shadow-sm">
-                        <div class="flex justify-between items-center">
-                            <span class="text-lg font-medium text-gray-300">Valor Total do Orçamento</span>
-                            <span id="budget-total" class="text-3xl font-bold text-white">R$ 0,00</span>
-                        </div>
-                    </div>
-                    
-                    {% if items_formset.non_form_errors %}
-                    <div class="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-                        <p class="text-sm text-red-600">{{ items_formset.non_form_errors }}</p>
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-
-            <div class="mt-8 flex justify-end gap-3">
-                <a href="{% if object %}{% url 'budgets:detail' object.pk %}{% else %}{% url 'budgets:list' %}{% endif %}"
-                    class="px-6 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
-                    Cancelar
-                </a>
-                <button type="submit"
-                    class="px-6 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-all">
-                    {{ submit_text }}
-                </button>
-            </div>
-        </form>
-    </div>
-</div>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const formsetContainer = document.getElementById('items-formset');
-        const addButton = document.getElementById('add-item');
-        const totalFormsInput = document.getElementById('id_items-TOTAL_FORMS');
-        const budgetTotalElement = document.getElementById('budget-total');
-        
-        // Store a clean template on page load
-        const firstFormOriginal = formsetContainer.querySelector('.item-form');
-        const cleanTemplate = firstFormOriginal ? firstFormOriginal.cloneNode(true) : null;
-        
-        // Format currency for display
-        function formatCurrency(value) {
-            return new Intl.NumberFormat('pt-BR', {
-                style: 'currency',
-                currency: 'BRL'
-            }).format(value);
-        }
-        
-        // Calculate item total
-        function calculateItemTotal(itemForm) {
-            const quantityInput = itemForm.querySelector('.item-quantity');
-            const unitPriceInput = itemForm.querySelector('.item-unit-price');
-            const totalInput = itemForm.querySelector('.item-total');
-            
-            if (!quantityInput || !unitPriceInput || !totalInput) return 0;
-            
-            const quantity = parseFloat(quantityInput.value) || 0;
-            const unitPrice = parseFloat(unitPriceInput.value) || 0;
-            const total = quantity * unitPrice;
-            
-            totalInput.value = formatCurrency(total);
-            return total;
-        }
-        
-        // Calculate budget total
-        function calculateBudgetTotal() {
-            let grandTotal = 0;
-            
-            formsetContainer.querySelectorAll('.item-form:not([style*="display: none"])').forEach(itemForm => {
-                grandTotal += calculateItemTotal(itemForm);
-            });
-            
-            budgetTotalElement.textContent = formatCurrency(grandTotal);
-        }
-        
-        // Add event listeners to calculate on input change
-        function addCalculationListeners(itemForm) {
-            const quantityInput = itemForm.querySelector('.item-quantity');
-            const unitPriceInput = itemForm.querySelector('.item-unit-price');
-            
-            if (quantityInput) {
-                quantityInput.addEventListener('input', calculateBudgetTotal);
-            }
-            if (unitPriceInput) {
-                unitPriceInput.addEventListener('input', calculateBudgetTotal);
-            }
-        }
-        
-        // Add listeners to existing forms
-        formsetContainer.querySelectorAll('.item-form').forEach(itemForm => {
-            addCalculationListeners(itemForm);
-        });
-        
-        // Initial calculation
-        calculateBudgetTotal();
-        
-        function updateFormIndexes() {
-            const forms = formsetContainer.querySelectorAll('.item-form:not([style*="display: none"])');
-            let visibleIndex = 0;
-            
-            formsetContainer.querySelectorAll('.item-form').forEach((form) => {
-                if (form.style.display === 'none') {
-                    return;
-                }
-                
-                const inputs = form.querySelectorAll('input, select, textarea');
-                inputs.forEach(input => {
-                    if (input.name) {
-                        input.name = input.name.replace(/items-(\d+)-/, `items-${visibleIndex}-`);
-                    }
-                    if (input.id) {
-                        input.id = input.id.replace(/id_items-(\d+)-/, `id_items-${visibleIndex}-`);
-                    }
-                });
-                
-                const labels = form.querySelectorAll('label');
-                labels.forEach(label => {
-                    if (label.htmlFor) {
-                        label.htmlFor = label.htmlFor.replace(/id_items-(\d+)-/, `id_items-${visibleIndex}-`);
-                    }
-                });
-                
-                visibleIndex++;
-            });
-            
-            totalFormsInput.value = formsetContainer.querySelectorAll('.item-form').length;
-        }
-        
-        function createEmptyForm() {
-            if (!cleanTemplate) {
-                return null;
-            }
-            
-            const newForm = cleanTemplate.cloneNode(true);
-            
-            // Clear all input values except readonly
-            const inputs = newForm.querySelectorAll('input:not([type="hidden"]):not([type="checkbox"]):not([readonly]), textarea, select');
-            inputs.forEach(input => {
-                if (input.tagName === 'SELECT') {
-                    input.selectedIndex = 0;
-                } else {
-                    input.value = '';
-                }
-            });
-            
-            // Set default quantity
-            const quantityInput = newForm.querySelector('.item-quantity');
-            if (quantityInput) quantityInput.value = '1';
-            
-            // Clear total field
-            const totalInput = newForm.querySelector('.item-total');
-            if (totalInput) totalInput.value = formatCurrency(0);
-            
-            // Uncheck DELETE checkbox
-            const deleteCheckbox = newForm.querySelector('input[name$="-DELETE"]');
-            if (deleteCheckbox) {
-                deleteCheckbox.checked = false;
-            }
-            
-            // Clear hidden ID field
-            const idInput = newForm.querySelector('input[name$="-id"]');
-            if (idInput) {
-                idInput.value = '';
-            }
-            
-            // Clear error messages
-            const errors = newForm.querySelectorAll('p.text-red-600');
-            errors.forEach(error => error.remove());
-            
-            return newForm;
-        }
-        
-        addButton.addEventListener('click', function() {
-            const newForm = createEmptyForm();
-            if (newForm) {
-                newForm.style.display = '';
-                
-                formsetContainer.appendChild(newForm);
-                
-                // Add calculation listeners to new form
-                addCalculationListeners(newForm);
-                
-                // Add remove functionality
-                const removeBtn = newForm.querySelector('.remove-item');
-                if (removeBtn) {
-                    removeBtn.addEventListener('click', function(e) {
-                        e.preventDefault();
-                        removeForm(newForm);
-                    });
-                }
-                
-                updateFormIndexes();
-                calculateBudgetTotal();
-                
-                newForm.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            }
-        });
-        
-        function removeForm(formElement) {
-            const visibleForms = formsetContainer.querySelectorAll('.item-form:not([style*="display: none"])');
-            
-            if (visibleForms.length <= 1) {
-                alert('Deve haver pelo menos um item no orçamento.');
-                return;
-            }
-            
-            const idInput = formElement.querySelector('input[name$="-id"]');
-            if (idInput && idInput.value) {
-                const deleteInput = formElement.querySelector('input[name$="-DELETE"]');
-                if (deleteInput) {
-                    deleteInput.checked = true;
-                }
-                
-                const inputs = formElement.querySelectorAll('input:not([name$="-DELETE"]):not([name$="-id"]), textarea, select');
-                inputs.forEach(input => {
-                    input.disabled = true;
-                    input.removeAttribute('required');
-                });
-                
-                formElement.style.display = 'none';
-            } else {
-                formElement.remove();
-            }
-            
-            updateFormIndexes();
-            calculateBudgetTotal();
-        }
-        
-        // Add remove functionality to existing forms
-        document.querySelectorAll('.remove-item').forEach(button => {
-            button.addEventListener('click', function() {
-                const formElement = this.closest('.item-form');
-                removeForm(formElement);
-            });
-        });
-    });
-</script>
-{% endcomment %}

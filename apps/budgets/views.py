@@ -2,6 +2,9 @@
 Budget views for Event Management System.
 """
 
+import json
+from decimal import Decimal, InvalidOperation
+
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.messages.views import SuccessMessageMixin
 from django.urls import reverse_lazy
@@ -14,8 +17,185 @@ from django.utils import timezone
 from django.contrib import messages
 
 from apps.common.mixins import AuditMixin
-from .models import Budget, BudgetItem
+from .models import Budget, BudgetItem, BudgetSection, ItemDescription
 from .forms import BudgetForm, BudgetSearchForm, BudgetItemFormSet
+
+
+# ── Helper: save sections + items from JSON payload ─────────────────────────
+
+def _save_sections_from_json(budget, sections_data_json):
+    """
+    Parse the sections_data JSON string submitted via the budget form
+    and persist sections + items to the database.
+
+    JSON structure expected::
+
+        [
+          {
+            "id": 1,           // existing section pk, null for new
+            "title": "Estrutura",
+            "items": [
+              {
+                "id": 5,       // existing item pk, null for new
+                "delete": false,
+                "name": "Painel 3×3",
+                "description": "",
+                "quantity": 2,
+                "dim_length": "3",
+                "dim_width": "3",
+                "dim_height": "0.04",
+                "measurement": "",
+                "measurement_unit": "",
+                "weight": "12",
+                "unit_price": "500.00"
+              }
+            ]
+          }
+        ]
+    """
+    try:
+        sections_data = json.loads(sections_data_json or '[]')
+    except (json.JSONDecodeError, ValueError):
+        sections_data = []
+
+    def to_decimal(val, default=None):
+        if val is None or str(val).strip() == '':
+            return default
+        try:
+            return Decimal(str(val))
+        except (InvalidOperation, ValueError):
+            return default
+
+    kept_section_ids = set()
+
+    for order_idx, sec_data in enumerate(sections_data):
+        title = (sec_data.get('title') or '').strip()
+        if not title:
+            title = f'Seção {order_idx + 1}'
+
+        section_id = sec_data.get('id')
+        if section_id:
+            section = BudgetSection.objects.filter(pk=section_id, budget=budget).first()
+            if section:
+                section.title = title
+                section.order = order_idx
+                section.save(update_fields=['title', 'order'])
+            else:
+                section = BudgetSection.objects.create(budget=budget, title=title, order=order_idx)
+        else:
+            section = BudgetSection.objects.create(budget=budget, title=title, order=order_idx)
+
+        kept_section_ids.add(section.pk)
+
+        kept_item_ids = set()
+        for item_data in sec_data.get('items', []):
+            if item_data.get('delete'):
+                item_id = item_data.get('id')
+                if item_id:
+                    BudgetItem.objects.filter(pk=item_id, budget=budget).delete()
+                continue
+
+            item_name = (item_data.get('name') or '').strip()
+            if not item_name:
+                continue
+
+            unit_price = to_decimal(item_data.get('unit_price'), Decimal('0'))
+            dim_length = to_decimal(item_data.get('dim_length'))
+            dim_width = to_decimal(item_data.get('dim_width'))
+            dim_height = to_decimal(item_data.get('dim_height'))
+
+            item_fields = {
+                'budget': budget,
+                'section': section,
+                'name': item_name,
+                'description': item_data.get('description') or '',
+                'quantity': int(item_data.get('quantity') or 1),
+                'dim_length': dim_length,
+                'dim_width': dim_width,
+                'dim_height': dim_height,
+                'measurement': to_decimal(item_data.get('measurement')),
+                'measurement_unit': item_data.get('measurement_unit') or '',
+                'weight': to_decimal(item_data.get('weight')),
+                'unit_price': unit_price,
+                'is_approved': True,
+            }
+
+            item_id = item_data.get('id')
+            if item_id:
+                item = BudgetItem.objects.filter(pk=item_id, budget=budget).first()
+                if item:
+                    for k, v in item_fields.items():
+                        setattr(item, k, v)
+                    item.save()
+                else:
+                    item = BudgetItem(**item_fields)
+                    item.save()
+            else:
+                item = BudgetItem(**item_fields)
+                item.save()
+
+            kept_item_ids.add(item.pk)
+
+        # Delete items inside this section that were removed from the form
+        section.section_items.exclude(pk__in=kept_item_ids).delete()
+
+    # Delete sections that were removed on the form
+    budget.sections.exclude(pk__in=kept_section_ids).delete()
+
+
+def _sections_to_json(budget):
+    """
+    Serialize existing sections + items of a budget to JSON
+    so the edit form can pre-populate the sections UI.
+    """
+    data = []
+    for section in budget.sections.prefetch_related('section_items').all():
+        items = []
+        for item in section.section_items.all():
+            items.append({
+                'id': item.pk,
+                'name': item.name,
+                'description': item.description or '',
+                'quantity': item.quantity,
+                'dim_length': str(item.dim_length) if item.dim_length else '',
+                'dim_width': str(item.dim_width) if item.dim_width else '',
+                'dim_height': str(item.dim_height) if item.dim_height else '',
+                'measurement': str(item.measurement) if item.measurement else '',
+                'measurement_unit': item.measurement_unit or '',
+                'weight': str(item.weight) if item.weight else '',
+                'unit_price': str(item.unit_price),
+            })
+        data.append({
+            'id': section.pk,
+            'title': section.title,
+            'items': items,
+        })
+
+    # Budgets that have items but no sections (legacy) → synthesise one section
+    unsectioned = budget.items.filter(section__isnull=True)
+    if unsectioned.exists():
+        items = []
+        for item in unsectioned.all():
+            items.append({
+                'id': item.pk,
+                'name': item.name,
+                'description': item.description or '',
+                'quantity': item.quantity,
+                'dim_length': str(item.dim_length) if item.dim_length else '',
+                'dim_width': str(item.dim_width) if item.dim_width else '',
+                'dim_height': str(item.dim_height) if item.dim_height else '',
+                'measurement': str(item.measurement) if item.measurement else '',
+                'measurement_unit': item.measurement_unit or '',
+                'weight': str(item.weight) if item.weight else '',
+                'unit_price': str(item.unit_price),
+            })
+        data.insert(0, {
+            'id': None,
+            'title': 'Itens',
+            'items': items,
+        })
+
+    return json.dumps(data)
 
 class BudgetListView(LoginRequiredMixin, ListView):
     """List all budgets with search and pagination."""
@@ -76,7 +256,9 @@ class BudgetDetailView(LoginRequiredMixin, DetailView):
             'created_by',
             'updated_by'
         ).prefetch_related(
-            'items'
+            'sections',
+            'sections__section_items',
+            'items',
         )
     
     def get_context_data(self, **kwargs):
@@ -104,7 +286,7 @@ class BudgetCreateView(LoginRequiredMixin, AuditMixin, SuccessMessageMixin, Crea
         return reverse_lazy('budgets:detail', kwargs={'pk': self.object.pk})
     
     def get_context_data(self, **kwargs):
-        """Add breadcrumbs and formset to context."""
+        """Add breadcrumbs and sections context."""
         context = super().get_context_data(**kwargs)
         context['breadcrumbs'] = [
             {'name': 'Orçamentos', 'url': reverse_lazy('budgets:list')},
@@ -112,29 +294,28 @@ class BudgetCreateView(LoginRequiredMixin, AuditMixin, SuccessMessageMixin, Crea
         ]
         context['form_title'] = 'Novo Orçamento'
         context['submit_text'] = 'Criar Orçamento'
-        
+
         from apps.logistics.models import UrgencyMultiplier
         context['urgency_options'] = UrgencyMultiplier.objects.order_by('multiplier')
-        
-        if self.request.POST:
-            context['items_formset'] = BudgetItemFormSet(self.request.POST, instance=self.object)
-        else:
-            context['items_formset'] = BudgetItemFormSet(instance=self.object)
-        
+
+        # Pass existing sections JSON (empty for new budget)
+        context['sections_json'] = '[]'
+
+        # Pass item descriptions for the select dropdown
+        context['item_descriptions_json'] = json.dumps(
+            list(ItemDescription.objects.values('id', 'title', 'body'))
+        )
+
         return context
-    
+
     def form_valid(self, form):
-        """Save budget and items."""
-        context = self.get_context_data()
-        items_formset = context['items_formset']
-        
-        if items_formset.is_valid():
-            self.object = form.save()
-            items_formset.instance = self.object
-            items_formset.save()
-            return super().form_valid(form)
-        else:
-            return self.form_invalid(form)
+        """Save budget then process sections + items from JSON."""
+        # Let the standard chain handle audit fields, save, and success message.
+        # self.object is set by ModelFormMixin.form_valid after form.save().
+        response = super().form_valid(form)
+        sections_data_json = self.request.POST.get('sections_data', '')
+        _save_sections_from_json(self.object, sections_data_json)
+        return response
 
 
 class BudgetUpdateView(LoginRequiredMixin, AuditMixin, SuccessMessageMixin, UpdateView):
@@ -150,7 +331,7 @@ class BudgetUpdateView(LoginRequiredMixin, AuditMixin, SuccessMessageMixin, Upda
         return reverse_lazy('budgets:detail', kwargs={'pk': self.object.pk})
     
     def get_context_data(self, **kwargs):
-        """Add breadcrumbs and formset to context."""
+        """Add breadcrumbs and sections context for edit."""
         context = super().get_context_data(**kwargs)
         context['breadcrumbs'] = [
             {'name': 'Orçamentos', 'url': reverse_lazy('budgets:list')},
@@ -159,29 +340,26 @@ class BudgetUpdateView(LoginRequiredMixin, AuditMixin, SuccessMessageMixin, Upda
         ]
         context['form_title'] = f'Editar Orçamento: {self.object.name}'
         context['submit_text'] = 'Salvar Alterações'
-        
+
         from apps.logistics.models import UrgencyMultiplier
         context['urgency_options'] = UrgencyMultiplier.objects.order_by('multiplier')
-        
-        if self.request.POST:
-            context['items_formset'] = BudgetItemFormSet(self.request.POST, instance=self.object)
-        else:
-            context['items_formset'] = BudgetItemFormSet(instance=self.object)
-        
+
+        # Serialize existing sections + items as JSON for the JS UI
+        context['sections_json'] = _sections_to_json(self.object)
+
+        # Pass item descriptions for the select dropdown
+        context['item_descriptions_json'] = json.dumps(
+            list(ItemDescription.objects.values('id', 'title', 'body'))
+        )
+
         return context
-    
+
     def form_valid(self, form):
-        """Save budget and items."""
-        context = self.get_context_data()
-        items_formset = context['items_formset']
-        
-        if items_formset.is_valid():
-            self.object = form.save()
-            items_formset.instance = self.object
-            items_formset.save()
-            return super().form_valid(form)
-        else:
-            return self.form_invalid(form)
+        """Save budget then process sections + items from JSON."""
+        response = super().form_valid(form)
+        sections_data_json = self.request.POST.get('sections_data', '')
+        _save_sections_from_json(self.object, sections_data_json)
+        return response
 
 
 class BudgetDeleteView(LoginRequiredMixin, DeleteView):
@@ -222,17 +400,19 @@ class PublicBudgetApprovalView(View):
     def get(self, request, token):
         """Display budget for approval."""
         budget = get_object_or_404(Budget, approval_token=token)
-        
-        # Get all items with their approval status
-        items = budget.items.all()
-        
+
+        sections = budget.sections.prefetch_related('section_items').all()
+        # Fall back to unsectioned items if no sections defined
+        unsectioned_items = budget.items.filter(section__isnull=True)
+
         context = {
             'budget': budget,
-            'items': items,
+            'sections': sections,
+            'unsectioned_items': unsectioned_items,
             'is_editable': budget.is_editable,
             'show_pdf_button': True,
         }
-        
+
         return render(request, self.template_name, context)
     
     def post(self, request, token):
@@ -543,3 +723,29 @@ class BudgetFreightPreviewView(LoginRequiredMixin, View):
             'urgency_label': urgency_label,
             'freight_total': float(freight_total),
         })
+
+
+class ItemDescriptionListCreateView(LoginRequiredMixin, View):
+    """
+    GET  /budgets/item-descriptions/        → JSON list of all descriptions
+    POST /budgets/item-descriptions/        → create and return new description
+    """
+
+    def get(self, request):
+        descriptions = list(ItemDescription.objects.values('id', 'title', 'body'))
+        return JsonResponse(descriptions, safe=False)
+
+    def post(self, request):
+        try:
+            data = json.loads(request.body)
+        except (json.JSONDecodeError, ValueError):
+            data = request.POST.dict()
+
+        title = (data.get('title') or '').strip()
+        body  = (data.get('body')  or '').strip()
+
+        if not title:
+            return JsonResponse({'error': 'Título é obrigatório.'}, status=400)
+
+        desc = ItemDescription.objects.create(title=title, body=body)
+        return JsonResponse({'id': desc.id, 'title': desc.title, 'body': desc.body}, status=201)

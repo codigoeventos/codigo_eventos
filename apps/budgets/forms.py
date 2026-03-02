@@ -4,7 +4,7 @@ Budget forms for Event Management System.
 
 from django import forms
 from django.forms import inlineformset_factory
-from .models import Budget, BudgetItem
+from .models import Budget, BudgetItem, BudgetSection
 
 
 class BudgetForm(forms.ModelForm):
@@ -100,16 +100,32 @@ class BudgetItemForm(forms.ModelForm):
         }
 
 
-# Formset for budget items
+# Formset for budget items (kept for backward compatibility; sections use JSON)
 BudgetItemFormSet = inlineformset_factory(
     Budget,
     BudgetItem,
     form=BudgetItemForm,
-    extra=0,  # Number of empty forms to display
+    extra=0,
     can_delete=True,
-    min_num=1,  # Minimum number of items required
+    min_num=1,
     validate_min=True
 )
+
+
+class BudgetSectionForm(forms.ModelForm):
+    """Form for a single budget section (used for server-side validation)."""
+
+    class Meta:
+        model = BudgetSection
+        fields = ['title']
+        widgets = {
+            'title': forms.TextInput(attrs={
+                'class': 'section-title w-full px-3 py-2 border border-gray-300 rounded-lg '
+                         'focus:ring-2 focus:ring-black focus:border-transparent font-semibold',
+                'placeholder': 'Título da seção (ex: Estrutura, AV, Decoração...)',
+            })
+        }
+        labels = {'title': 'Título da Seção'}
 
 
 class BudgetSearchForm(forms.Form):
