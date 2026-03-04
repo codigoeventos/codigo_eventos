@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'apps.technical_visits',
     'apps.contractors',
     'apps.documents',
+    'apps.teams',
     'apps.dashboard',
     'apps.logistics',
 ]
