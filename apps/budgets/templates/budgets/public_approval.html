@@ -468,18 +468,19 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% if sections %}
-                        {% for section in sections %}
+                    {% if numbered_sections %}
+                        {% for sec_data in numbered_sections %}
                         <!-- Section header row -->
                         <tr>
                             {% if is_editable %}<td class="no-print"></td>{% endif %}
                             <td colspan="{% if is_editable %}6{% else %}7{% endif %}"
                                 style="background:#3f3f3f;color:#eeece1;font-weight:700;font-size:10px;
                                        text-transform:uppercase;letter-spacing:.05em;padding:6px 8px;">
-                                {{ section.title }}
+                                {{ sec_data.section.title }}
                             </td>
                         </tr>
-                        {% for item in section.section_items.all %}
+                        {% for item_data in sec_data.items %}
+                        {% with item=item_data.item %}
                         <tr class="item-row">
                             {% if is_editable %}
                             <td class="text-center no-print" style="padding:4px;">
@@ -513,11 +514,13 @@
                             </td>
                             {% endif %}
                         </tr>
+                        {% endwith %}
                         {% endfor %}
                         {% endfor %}
                     {% else %}
                         {# Fallback: no sections – flat list (legacy/unsectioned items) #}
-                        {% for item in unsectioned_items %}
+                        {% for item_data in numbered_unsectioned %}
+                        {% with item=item_data.item %}
                         <tr class="item-row">
                             {% if is_editable %}
                             <td class="text-center no-print" style="padding:4px;">
@@ -551,6 +554,7 @@
                             </td>
                             {% endif %}
                         </tr>
+                        {% endwith %}
                         {% empty %}
                         <tr><td colspan="7" style="text-align:center;padding:16px;color:#888;">Nenhum item cadastrado</td></tr>
                         {% endfor %}

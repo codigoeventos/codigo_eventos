@@ -401,14 +401,26 @@ class PublicBudgetApprovalView(View):
         """Display budget for approval."""
         budget = get_object_or_404(Budget, approval_token=token)
 
-        sections = budget.sections.prefetch_related('section_items').all()
+        sections_qs = budget.sections.prefetch_related('section_items').all()
+
+        # Build sections with per-section item lists; numbering restarts at 1
+        # for each section via {{ forloop.counter }} in the template.
+        numbered_sections = []
+        for section in sections_qs:
+            numbered_items = [{'item': item} for item in section.section_items.all()]
+            numbered_sections.append({'section': section, 'items': numbered_items})
+
         # Fall back to unsectioned items if no sections defined
-        unsectioned_items = budget.items.filter(section__isnull=True)
+        unsectioned_items_qs = budget.items.filter(section__isnull=True)
+        numbered_unsectioned = [{'item': item} for item in unsectioned_items_qs]
 
         context = {
             'budget': budget,
-            'sections': sections,
-            'unsectioned_items': unsectioned_items,
+            'numbered_sections': numbered_sections,
+            'numbered_unsectioned': numbered_unsectioned,
+            # Keep legacy names so other parts of the template still work
+            'sections': sections_qs,
+            'unsectioned_items': unsectioned_items_qs,
             'is_editable': budget.is_editable,
             'show_pdf_button': True,
         }
