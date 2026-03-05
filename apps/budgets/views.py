@@ -323,6 +323,9 @@ class BudgetCreateView(LoginRequiredMixin, AuditMixin, SuccessMessageMixin, Crea
         response = super().form_valid(form)
         sections_data_json = self.request.POST.get('sections_data', '')
         _save_sections_from_json(self.object, sections_data_json)
+        # Mirror items to Service Order (without financial values)
+        from apps.budgets.signals import sync_service_order_items
+        sync_service_order_items(self.object)
         return response
 
 
@@ -367,6 +370,9 @@ class BudgetUpdateView(LoginRequiredMixin, AuditMixin, SuccessMessageMixin, Upda
         response = super().form_valid(form)
         sections_data_json = self.request.POST.get('sections_data', '')
         _save_sections_from_json(self.object, sections_data_json)
+        # Re-sync items to Service Order after edit (without financial values)
+        from apps.budgets.signals import sync_service_order_items
+        sync_service_order_items(self.object)
         return response
 
 
@@ -443,6 +449,9 @@ class PublicBudgetApprovalView(View):
                 item.is_approved = str(item.id) in selected_items
                 item.save()
             
+            # Freight opt-in
+            budget.freight_included = request.POST.get('include_freight') == '1'
+
             # Update budget status
             budget.approval_status = 'approved'
             budget.approved_at = timezone.now()

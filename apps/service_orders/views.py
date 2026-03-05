@@ -6,8 +6,10 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.messages.views import SuccessMessageMixin
 from django.urls import reverse_lazy
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+from django.views import View
 from django.db.models import Q
 from django.http import HttpResponseRedirect, JsonResponse
+from django.shortcuts import get_object_or_404, render
 from django.db import transaction
 
 from apps.common.mixins import AuditMixin
@@ -210,3 +212,35 @@ class ServiceOrderDeleteView(LoginRequiredMixin, DeleteView):
         """Redirect GET requests to service order detail page."""
         service_order = self.get_object()
         return HttpResponseRedirect(reverse_lazy('service_orders:detail', kwargs={'pk': service_order.pk}))
+
+
+class PublicServiceOrderView(View):
+    """
+    Public view for sharing a Service Order without login.
+    Accessed via unique token — shows items without prices.
+    """
+    template_name = 'service_orders/public_service_order.html'
+
+    def get(self, request, token):
+        service_order = get_object_or_404(
+            ServiceOrder.objects.select_related(
+                'event', 'event__client', 'budget', 'budget__proposal'
+            ).prefetch_related('items'),
+            public_token=token
+        )
+
+        # Group items by section_name
+        sections = {}
+        unsectioned = []
+        for item in service_order.items.all():
+            if item.section_name:
+                sections.setdefault(item.section_name, []).append(item)
+            else:
+                unsectioned.append(item)
+
+        context = {
+            'service_order': service_order,
+            'sections': sections,
+            'unsectioned': unsectioned,
+        }
+        return render(request, self.template_name, context)

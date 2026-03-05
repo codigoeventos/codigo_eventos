@@ -1,0 +1,402 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ordem de Serviço #{{ service_order.pk }}</title>
+    <style>
+        /* ── Reset & Base ─────────────────────────── */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 11px;
+            color: #000;
+            background: #d4d4d4;
+            line-height: 1.4;
+            zoom: 1.5;
+            padding: 32px 16px;
+        }
+
+        /* ── Palette ──────────────────────────────── */
+        :root {
+            --os-dark:   #3f3f3f;
+            --os-cream:  #eeece1;
+            --os-white:  #ffffff;
+            --os-black:  #000000;
+            --os-border: #3f3f3f;
+        }
+
+        /* ── Document container ───────────────────── */
+        .os-doc {
+            max-width: 794px;
+            margin: 0 auto;
+            background: var(--os-white);
+            border: 1px solid #999;
+            box-shadow: 0 4px 24px rgba(0,0,0,.25);
+        }
+
+        /* ── Header strip ─────────────────────────── */
+        .os-header {
+            background: var(--os-white);
+            padding: 14px 16px 10px;
+            border-bottom: 2px solid var(--os-dark);
+        }
+        .os-header-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--os-black);
+        }
+        .os-header-right {
+            text-align: right;
+            font-size: 10px;
+            color: var(--os-black);
+        }
+        .os-header-right strong { font-weight: 700; }
+
+        /* ── Section headers ──────────────────────── */
+        .os-section-bar {
+            background: var(--os-dark);
+            color: var(--os-white);
+            font-size: 9px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            padding: 3px 16px;
+        }
+        .os-section-title {
+            background: var(--os-dark);
+            color: var(--os-cream);
+            font-size: 14px;
+            font-weight: 700;
+            text-transform: uppercase;
+            text-align: center;
+            padding: 6px 16px;
+        }
+
+        /* ── Info grid ────────────────────────────── */
+        .os-info-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .os-info-table td {
+            border: 1px solid var(--os-border);
+            padding: 3px 8px;
+            vertical-align: top;
+            font-size: 10px;
+        }
+        .os-info-label {
+            font-weight: 700;
+            font-size: 9px;
+            color: var(--os-black);
+        }
+        .os-info-value {
+            font-weight: 400;
+            font-size: 10px;
+            color: var(--os-black);
+            min-height: 14px;
+        }
+
+        /* ── Description line ─────────────────────── */
+        .os-description {
+            font-style: italic;
+            font-size: 10px;
+            text-align: center;
+            padding: 8px 16px;
+            color: var(--os-black);
+        }
+
+        /* ── Items table ──────────────────────────── */
+        .os-items-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .os-items-table thead th {
+            background: var(--os-white);
+            border: 1px solid var(--os-border);
+            font-size: 9px;
+            font-weight: 700;
+            text-transform: uppercase;
+            padding: 5px 8px;
+            color: var(--os-black);
+        }
+        .os-items-table tbody td {
+            border: 1px solid #c0c0c0;
+            padding: 5px 8px;
+            font-size: 10px;
+            color: var(--os-black);
+            vertical-align: top;
+        }
+        .os-items-table tbody tr:nth-child(even) td {
+            background: #f5f5f0;
+        }
+        .os-items-table tbody td.os-item-num {
+            background: var(--os-dark) !important;
+            color: var(--os-white) !important;
+            font-weight: 700;
+            text-align: center;
+            width: 40px;
+        }
+        .os-items-table tbody td.os-item-name { font-weight: 600; }
+        .os-items-table tbody td.os-item-desc { color: #444; font-size: 9px; }
+
+        /* ── Status badge ─────────────────────────── */
+        .os-badge {
+            display: inline-block;
+            font-size: 9px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 2px 8px;
+            border: 1px solid;
+        }
+        .os-badge-pending    { color: var(--os-dark); border-color: var(--os-dark); background: var(--os-white); }
+        .os-badge-progress   { color: #fff; border-color: #1565c0; background: #1565c0; }
+        .os-badge-completed  { color: #fff; border-color: #2e7d32; background: #2e7d32; }
+        .os-badge-cancelled  { color: #fff; border-color: #c62828; background: #c62828; }
+
+        /* ── Execution status badge (item) ────────── */
+        .exec-badge {
+            display: inline-block;
+            font-size: 7px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            padding: 1px 5px;
+            border: 1px solid;
+        }
+        .exec-pending    { color: var(--os-dark); border-color: #bbb; background: #f9f9f9; }
+        .exec-in_progress{ color: #1565c0; border-color: #1565c0; background: #e3f2fd; }
+        .exec-completed  { color: #2e7d32; border-color: #2e7d32; background: #e8f5e9; }
+
+        /* ── Footer ───────────────────────────────── */
+        .os-footer {
+            font-size: 8px;
+            font-weight: 700;
+            text-align: right;
+            padding: 4px 16px;
+            color: var(--os-black);
+            border-top: 1px solid var(--os-border);
+        }
+
+        /* ── Utility ──────────────────────────────── */
+        .text-right  { text-align: right; }
+        .text-center { text-align: center; }
+        .no-print    { }
+
+        /* ── Print ────────────────────────────────── */
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white !important; padding: 0; zoom: 1; }
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            .os-doc { box-shadow: none !important; border: none !important; margin: 0 !important; }
+        }
+
+        /* ── Responsive ───────────────────────────── */
+        @media (max-width: 640px) {
+            .os-header-flex { flex-direction: column !important; gap: 8px !important; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ══ DOCUMENT ═════════════════════════════════════════════════════════ -->
+    <div class="os-doc">
+
+        <!-- ── Header ─────────────────────────────────────────────────── -->
+        <div class="os-header">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;" class="os-header-flex">
+                <div>
+                    <div class="os-header-title">Ordem de Serviço</div>
+                    <div style="font-size:10px;margin-top:2px;"><strong>Data:</strong> {{ service_order.created_at|date:"d/m/Y" }}</div>
+                    <div style="font-size:10px;margin-top:2px;"><strong>OS nº</strong> {{ service_order.pk|stringformat:"05d" }}</div>
+                </div>
+                <div style="text-align:center;flex:1;padding:2rem 7rem 2rem 0;">
+                    <img src="{% static 'assets/logo.png' %}" alt="Código Eventos"
+                         style="height:100px;width:auto;object-fit:contain;display:block;margin:0 auto;">
+                </div>
+                <div class="os-header-right">
+                    <div style="margin-top:6px;">
+                        <span class="os-badge
+                            {% if service_order.status == 'completed' %}os-badge-completed
+                            {% elif service_order.status == 'cancelled' %}os-badge-cancelled
+                            {% elif service_order.status == 'in_progress' %}os-badge-progress
+                            {% else %}os-badge-pending{% endif %}">
+                            {{ service_order.get_status_display }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Client + Event info ────────────────────────────────────── -->
+        <table class="os-info-table">
+            <tr>
+                <td colspan="2" class="os-section-bar" style="padding:3px 16px;border:none;">DADOS CLIENTE</td>
+                <td colspan="2" class="os-section-bar" style="padding:3px 16px;border:none;">DADOS DO EVENTO</td>
+            </tr>
+            <tr>
+                <td style="width:13%"><span class="os-info-label">Cliente:</span></td>
+                <td style="width:37%">
+                    <span class="os-info-value">{{ service_order.event.client.name|default:"—" }}</span>
+                </td>
+                <td style="width:18%"><span class="os-info-label">Evento:</span></td>
+                <td style="width:32%"><span class="os-info-value">{{ service_order.event.name|default:"—" }}</span></td>
+            </tr>
+            <tr>
+                <td><span class="os-info-label">Contato:</span></td>
+                <td><span class="os-info-value">{{ service_order.event.client.contact_name|default:"—" }}</span></td>
+                <td><span class="os-info-label">Data do Evento:</span></td>
+                <td><span class="os-info-value">
+                    {% if service_order.event.event_date %}{{ service_order.event.event_date|date:"d/m/Y" }}{% else %}—{% endif %}
+                </span></td>
+            </tr>
+            <tr>
+                <td><span class="os-info-label">E-mail:</span></td>
+                <td><span class="os-info-value">{{ service_order.event.client.email|default:"—" }}</span></td>
+                <td><span class="os-info-label">Local:</span></td>
+                <td><span class="os-info-value">{{ service_order.event.location|default:"—" }}</span></td>
+            </tr>
+            <tr>
+                <td><span class="os-info-label">Telefone:</span></td>
+                <td><span class="os-info-value">{{ service_order.event.client.phone|default:"—" }}</span></td>
+                <td><span class="os-info-label">Orçamento:</span></td>
+                <td><span class="os-info-value">{{ service_order.budget.name|default:"—" }}</span></td>
+            </tr>
+        </table>
+
+        <!-- ── Description line ───────────────────────────────────────── -->
+        <div class="os-description">
+            Segue abaixo a relação de serviços e materiais a serem executados neste evento.
+        </div>
+
+        <!-- ── Section title ──────────────────────────────────────────── -->
+        <div class="os-section-title">OS #{{ service_order.pk|stringformat:"05d" }} — {{ service_order.event.name|default:"Ordem de Serviço" }}</div>
+
+        <!-- ── Items table ────────────────────────────────────────────── -->
+        <table class="os-items-table">
+            <thead>
+                <tr>
+                    <th style="width:40px;">Nº</th>
+                    <th style="text-align:left;">Item</th>
+                    <th style="text-align:left;">Descritivo</th>
+                    <th style="width:55px;text-align:center;">Qtd.</th>
+                    <th style="width:70px;text-align:center;">Medida</th>
+                    <th style="width:60px;text-align:center;">Peso (kg)</th>
+                    <th style="width:90px;text-align:center;">Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if sections %}
+                    {% for section_name, items in sections.items %}
+                    <!-- Section header row -->
+                    <tr>
+                        <td colspan="7"
+                            style="background:#3f3f3f;color:#eeece1;font-weight:700;font-size:10px;
+                                   text-transform:uppercase;letter-spacing:.05em;padding:6px 8px;">
+                            {{ section_name }}
+                        </td>
+                    </tr>
+                    {% for item in items %}
+                    <tr>
+                        <td class="os-item-num">{{ forloop.counter }}</td>
+                        <td class="os-item-name">
+                            {{ item.name }}
+                        </td>
+                        <td class="os-item-desc">{{ item.description|default:"—" }}</td>
+                        <td class="text-center" style="font-weight:600;">{{ item.quantity }}</td>
+                        <td class="text-center">
+                            {% if item.measurement %}
+                                {{ item.measurement }} {{ item.get_measurement_unit_display|default:"" }}
+                            {% else %}—{% endif %}
+                        </td>
+                        <td class="text-center">
+                            {% if item.weight %}{{ item.weight }}{% else %}—{% endif %}
+                        </td>
+                        <td class="text-center">
+                            <span class="exec-badge exec-{{ item.execution_status }}">
+                                {{ item.get_execution_status_display }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {% endfor %}
+                {% endif %}
+
+                {% if unsectioned %}
+                    {% if sections %}
+                    <tr>
+                        <td colspan="7"
+                            style="background:#3f3f3f;color:#eeece1;font-weight:700;font-size:10px;
+                                   text-transform:uppercase;letter-spacing:.05em;padding:6px 8px;">
+                            Outros
+                        </td>
+                    </tr>
+                    {% endif %}
+                    {% for item in unsectioned %}
+                    <tr>
+                        <td class="os-item-num">{{ forloop.counter }}</td>
+                        <td class="os-item-name">{{ item.name }}</td>
+                        <td class="os-item-desc">{{ item.description|default:"—" }}</td>
+                        <td class="text-center" style="font-weight:600;">{{ item.quantity }}</td>
+                        <td class="text-center">
+                            {% if item.measurement %}
+                                {{ item.measurement }} {{ item.get_measurement_unit_display|default:"" }}
+                            {% else %}—{% endif %}
+                        </td>
+                        <td class="text-center">
+                            {% if item.weight %}{{ item.weight }}{% else %}—{% endif %}
+                        </td>
+                        <td class="text-center">
+                            <span class="exec-badge exec-{{ item.execution_status }}">
+                                {{ item.get_execution_status_display }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% endif %}
+
+                {% if not sections and not unsectioned %}
+                <tr>
+                    <td colspan="7" style="text-align:center;padding:16px;color:#888;">
+                        Nenhum item cadastrado nesta OS.
+                    </td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+
+        <!-- ── Print button ───────────────────────────────────────────── -->
+        <div style="padding:10px 16px;text-align:right;border-top:1px solid #c0c0c0;" class="no-print">
+            <button type="button" onclick="window.print()"
+                style="font-family:Arial,Helvetica,sans-serif;font-size:9px;font-weight:700;
+                       text-transform:uppercase;letter-spacing:.05em;padding:7px 16px;
+                       border:2px solid #3f3f3f;background:#fff;color:#3f3f3f;cursor:pointer;">
+                Imprimir / PDF
+            </button>
+        </div>
+
+        <!-- ── Status footer ──────────────────────────────────────────── -->
+        <div style="background:var(--os-cream);padding:8px 16px;text-align:center;font-size:9px;
+                    font-weight:700;text-transform:uppercase;letter-spacing:0.05em;
+                    color:var(--os-dark);border-top:1px solid var(--os-dark);">
+            OS {{ service_order.get_status_display|upper }}
+            {% if service_order.updated_at %}
+            · Atualizado em {{ service_order.updated_at|date:"d/m/Y \à\s H:i" }}
+            {% endif %}
+        </div>
+
+        <!-- ── Observações fixas ──────────────────────────────────────── -->
+        <div style="padding:12px 16px;border-top:1px solid #c0c0c0;font-size:9px;color:#333;line-height:1.6;">
+            <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#3f3f3f;margin-bottom:6px;">Observações</div>
+            <p><strong>1)</strong> Este documento é de uso interno e destina-se à execução dos serviços descritos acima.</p>
+            <p style="margin-top:4px;"><strong>2)</strong> Qualquer alteração deve ser comunicada à equipe responsável.</p>
+        </div>
+
+        <div class="os-footer">
+            Código Eventos · Documento confidencial
+        </div>
+    </div>
+
+</body>
+</html>

@@ -13,4 +13,5 @@ urlpatterns = [
     path('<int:pk>/', views.ServiceOrderDetailView.as_view(), name='detail'),
     path('<int:pk>/edit/', views.ServiceOrderUpdateView.as_view(), name='edit'),
     path('<int:pk>/delete/', views.ServiceOrderDeleteView.as_view(), name='delete'),
+    path('public/<uuid:token>/', views.PublicServiceOrderView.as_view(), name='public'),
 ]

@@ -486,7 +486,7 @@
                             </td>
                         </tr>
                         {% for item in section.section_items.all %}
-                        <tr class="item-row" data-unit-total="{{ item.total_price }}">
+                        <tr class="item-row" data-unit-total="{{ item.total_price }}" data-approved="{% if item.is_approved %}1{% else %}0{% endif %}">
                             {% if is_editable %}
                             <td class="text-center no-print" style="padding:4px;">
                                 <input type="checkbox" name="items" value="{{ item.id }}"
@@ -525,7 +525,7 @@
                     {% else %}
                         {# Fallback: no sections – flat list (legacy/unsectioned items) #}
                         {% for item in unsectioned_items %}
-                        <tr class="item-row" data-unit-total="{{ item.total_price }}">
+                        <tr class="item-row" data-unit-total="{{ item.total_price }}" data-approved="{% if item.is_approved %}1{% else %}0{% endif %}">
                             {% if is_editable %}
                             <td class="text-center no-print" style="padding:4px;">
                                 <input type="checkbox" name="items" value="{{ item.id }}"
@@ -576,6 +576,30 @@
                         {% if not is_editable %}<td></td>{% endif %}
                     </tr>
                     {% endif %}
+
+                    {% if budget.freight_cost %}
+                    <tr class="os-total-row" style="font-size:10px;font-weight:400;" id="freight-row" {% if not is_editable and not budget.freight_included %}style="opacity:.35;"{% endif %}>
+                        {% if is_editable %}
+                        <td class="text-center no-print" style="padding:4px;">
+                            <input type="checkbox" id="freight-checkbox" name="include_freight" value="1" class="os-check"
+                                {% if budget.freight_included %}checked{% endif %}>
+                        </td>
+                        {% else %}
+                        <td></td>
+                        {% endif %}
+                        <td></td>
+                        <td colspan="4" style="text-align:right;font-weight:600;">
+                            Frete
+                            {% if budget.freight_urgency %}<span style="font-size:8px;font-weight:400;"> &mdash; {{ budget.freight_urgency.label }}</span>{% endif %}
+                            {% if budget.freight_distance_km %}<span style="font-size:8px;font-weight:400;"> ({{ budget.freight_distance_km }} km)</span>{% endif %}
+                            {% if is_editable %}<span style="font-size:8px;font-weight:400;color:#aaa;"> (opcional)</span>{% endif %}
+                        </td>
+                        <td></td>
+                        <td class="text-right" id="freight-value">R$ {{ budget.freight_cost|floatformat:2 }}</td>
+                        {% if not is_editable %}<td></td>{% endif %}
+                    </tr>
+                    {% endif %}
+
                     <tr class="os-total-row">
                         {% if is_editable %}<td class="no-print"></td>{% endif %}
                         <td></td>
@@ -684,12 +708,24 @@
         }
         populateEncargos();
 
-        /* ── Total update ───────────────────────────────────────────────── */
+        /* ── Total update (editable mode) ────────────────────── */
+        const freightCost = {{ budget.freight_cost|default:0 }};
+
         function updateTotal() {
             let total = 0;
             document.querySelectorAll('.item-checkbox:checked').forEach(cb => {
                 total += (parseFloat(cb.dataset.price) || 0) * 1.17;
             });
+            const freightCb = document.getElementById('freight-checkbox');
+            const freightRow = document.getElementById('freight-row');
+            if (freightCb) {
+                if (freightCb.checked) {
+                    total += freightCost;
+                    if (freightRow) freightRow.style.opacity = '1';
+                } else {
+                    if (freightRow) freightRow.style.opacity = '0.35';
+                }
+            }
             const fmtVal = fmt(total);
             const el = document.getElementById('total-value');
             const bar = document.getElementById('total-bar');
@@ -701,7 +737,9 @@
         if (!document.querySelectorAll('.item-checkbox').length) {
             let sum = 0;
             document.querySelectorAll('.item-row').forEach(row => {
-                sum += (parseFloat(row.dataset.unitTotal) || 0) * 1.17;
+                if (row.dataset.approved === '1') {
+                    sum += (parseFloat(row.dataset.unitTotal) || 0) * 1.17;                } else {
+                    row.style.opacity = '0.35';                }
             });
             const el = document.getElementById('total-value');
             if (el) el.textContent = fmt(sum);
@@ -716,6 +754,8 @@
         document.querySelectorAll('.item-checkbox').forEach(cb => {
             cb.addEventListener('change', updateTotal);
         });
+
+        document.getElementById('freight-checkbox')?.addEventListener('change', updateTotal);
 
         if (document.querySelectorAll('.item-checkbox').length) updateTotal();
 

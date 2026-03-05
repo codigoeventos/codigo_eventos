@@ -84,7 +84,8 @@ class Project(BaseModel):
         ordering = ['-created_at']
 
     def __str__(self):
-        return f"{self.title} - {self.event.name}"
+        event_name = self.event.name if self.event else 'Sem evento'
+        return f"{self.title} - {event_name}"
 
     @property
     def total_value(self):

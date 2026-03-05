@@ -108,6 +108,13 @@ class Budget(BaseModel):
         help_text='Usado no cálculo por distância (opcional)'
     )
 
+    freight_included = models.BooleanField(
+        'Frete Incluído',
+        null=True,
+        default=None,
+        help_text='Cliente optou por incluir o frete no total aprovado'
+    )
+
     class Meta:
         verbose_name = 'Orçamento'
         verbose_name_plural = 'Orçamentos'
@@ -129,9 +136,11 @@ class Budget(BaseModel):
     
     @property
     def approved_value(self):
-        """Calculate total value from approved items only."""
-        total = self.items.filter(is_approved=True).aggregate(total=Sum('total_price'))['total']
-        return total or 0
+        """Calculate total value from approved items only (+ freight se incluído)."""
+        total = self.items.filter(is_approved=True).aggregate(total=Sum('total_price'))['total'] or 0
+        if self.freight_included and self.freight_cost:
+            total += self.freight_cost
+        return total
     
     @property
     def is_editable(self):
