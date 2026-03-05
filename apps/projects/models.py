@@ -35,9 +35,11 @@ class Project(BaseModel):
 
     event = models.ForeignKey(
         'events.Event',
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
         related_name='projects',
-        verbose_name='Evento'
+        verbose_name='Evento',
+        blank=True,
+        null=True,
     )
 
     contractor = models.ForeignKey(

@@ -44,7 +44,9 @@ class ProjectListView(LoginRequiredMixin, ListView):
         
         # Filter by event
         event = self.request.GET.get('event', '').strip()
-        if event:
+        if event == '__none__':
+            queryset = queryset.filter(event__isnull=True)
+        elif event:
             queryset = queryset.filter(event_id=event)
         
         return queryset.order_by('-created_at')

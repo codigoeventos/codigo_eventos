@@ -46,6 +46,10 @@ class ProjectForm(forms.ModelForm):
         self.fields['contractor'].queryset = Contractor.objects.all().order_by('name')
         self.fields['contractor'].empty_label = '— Nenhuma empreiteira —'
         self.fields['contractor'].required = False
+        from apps.events.models import Event
+        self.fields['event'].queryset = Event.objects.all().order_by('-event_date')
+        self.fields['event'].empty_label = '— Nenhum evento —'
+        self.fields['event'].required = False
 
 
 class ProjectFileForm(forms.ModelForm):
@@ -93,10 +97,9 @@ class ProjectSearchForm(forms.Form):
         })
     )
 
-    event = forms.ModelChoiceField(
-        queryset=None,
+    event = forms.ChoiceField(
         required=False,
-        empty_label='Todos os eventos',
+        choices=[],
         widget=forms.Select(attrs={
             'class': 'px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent'
         })
@@ -105,4 +108,6 @@ class ProjectSearchForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         from apps.events.models import Event
-        self.fields['event'].queryset = Event.objects.all().order_by('-event_date')
+        event_choices = [('', 'Todos os eventos'), ('__none__', 'Sem evento vinculado')]
+        event_choices += [(str(e.pk), e.name) for e in Event.objects.all().order_by('-event_date')]
+        self.fields['event'].choices = event_choices

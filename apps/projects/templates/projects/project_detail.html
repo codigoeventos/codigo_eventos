@@ -22,7 +22,7 @@
                         class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
                         Editar
                     </a>
-                    <button onclick="openProjectDeleteModal({{ project.pk }}, '{{ project.title|escapejs }}', '{{ project.event.name|escapejs }}', {{ project.budgets.count }})"
+                    <button onclick="openProjectDeleteModal({{ project.pk }}, '{{ project.title|escapejs }}', '{{ project.event.name|default:''|escapejs }}', {{ project.budgets.count }})"
                         class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all">
                         Excluir
                     </button>
@@ -33,18 +33,26 @@
                 <div>
                     <dt class="text-sm font-medium text-gray-500">Evento</dt>
                     <dd class="mt-1 text-sm text-gray-900">
+                        {% if project.event %}
                         <a href="{% url 'events:detail' project.event.pk %}" class="text-blue-600 hover:underline">
                             {{ project.event.name }}
                         </a>
+                        {% else %}
+                        <span class="text-gray-400">—</span>
+                        {% endif %}
                     </dd>
                 </div>
 
                 <div>
                     <dt class="text-sm font-medium text-gray-500">Cliente</dt>
                     <dd class="mt-1 text-sm text-gray-900">
+                        {% if project.event and project.event.client %}
                         <a href="{% url 'clients:detail' project.event.client.pk %}" class="text-blue-600 hover:underline">
                             {{ project.event.client.name }}
                         </a>
+                        {% else %}
+                        <span class="text-gray-400">—</span>
+                        {% endif %}
                     </dd>
                 </div>
 
