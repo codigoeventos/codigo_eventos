@@ -401,14 +401,15 @@ class PublicBudgetApprovalView(View):
         """Display budget for approval."""
         budget = get_object_or_404(Budget, approval_token=token)
 
-        sections = budget.sections.prefetch_related('section_items').all()
+        sections_qs = budget.sections.prefetch_related('section_items').all()
+
         # Fall back to unsectioned items if no sections defined
-        unsectioned_items = budget.items.filter(section__isnull=True)
+        unsectioned_items_qs = budget.items.filter(section__isnull=True)
 
         context = {
             'budget': budget,
-            'sections': sections,
-            'unsectioned_items': unsectioned_items,
+            'sections': sections_qs,
+            'unsectioned_items': unsectioned_items_qs,
             'is_editable': budget.is_editable,
             'show_pdf_button': True,
         }
