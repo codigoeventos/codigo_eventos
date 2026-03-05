@@ -12,7 +12,7 @@ class BudgetForm(forms.ModelForm):
     
     class Meta:
         model = Budget
-        fields = ['proposal', 'name', 'status']
+        fields = ['proposal', 'name', 'status', 'include_fiscal_charges']
         widgets = {
             'proposal': forms.Select(attrs={
                 'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent'
@@ -24,11 +24,15 @@ class BudgetForm(forms.ModelForm):
             'status': forms.Select(attrs={
                 'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent'
             }),
+            'include_fiscal_charges': forms.CheckboxInput(attrs={
+                'class': 'h-4 w-4 rounded border-gray-300 text-gray-900 focus:ring-black'
+            }),
         }
         labels = {
             'proposal': 'Proposta',
             'name': 'Nome',
             'status': 'Status',
+            'include_fiscal_charges': 'Incluir Encargos Fiscais (17%)',
         }
 
 

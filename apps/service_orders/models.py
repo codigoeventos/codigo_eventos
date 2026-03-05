@@ -31,9 +31,11 @@ class ServiceOrder(BaseModel):
     
     event = models.ForeignKey(
         'events.Event',
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
         related_name='service_orders',
-        verbose_name='Evento'
+        verbose_name='Evento',
+        null=True,
+        blank=True,
     )
     
     status = models.CharField(
@@ -57,7 +59,8 @@ class ServiceOrder(BaseModel):
         ordering = ['-created_at']
     
     def __str__(self):
-        return f"OS {self.pk} - {self.event.name}"
+        event_name = self.event.name if self.event else 'Sem evento'
+        return f"OS {self.pk} - {event_name}"
 
     def get_public_url(self):
         """Generate public share URL for this service order."""

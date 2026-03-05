@@ -16,6 +16,7 @@ def sync_service_order_items(budget):
 
     Existing ServiceOrderItems are matched by ``budget_item`` FK; items that no
     longer exist in the budget are deleted, and new items are created.
+    Also updates the OS event if the project now has an event assigned.
     """
     from apps.service_orders.models import ServiceOrderItem
 
@@ -24,6 +25,12 @@ def sync_service_order_items(budget):
     except Exception:
         # ServiceOrder doesn't exist yet – nothing to sync
         return
+
+    # Atualiza event na OS se o projeto ganhou evento após a criação do orçamento
+    event = getattr(budget.proposal, 'event', None)
+    if event is not None and service_order.event_id != event.pk:
+        service_order.event = event
+        service_order.save(update_fields=['event'])
 
     # Build a map of existing SO items keyed by their origin budget_item pk
     existing_by_budget_item = {
@@ -79,20 +86,15 @@ def create_service_order_on_budget_creation(sender, instance, created, **kwargs)
     This implements the business rule:
     New Budget -> Immediately create ServiceOrder
     """
-    # Import here to avoid circular imports
     from apps.service_orders.models import ServiceOrder
     
-    # Create service order immediately when budget is created
     if created:
         event = getattr(instance.proposal, 'event', None)
-        if event is None:
-            return  # Projeto sem evento associado – não cria OS
 
-        # Check if service order doesn't already exist
         if not hasattr(instance, 'service_order'):
             ServiceOrder.objects.create(
                 budget=instance,
-                event=event,
+                event=event,  # pode ser None se o projeto ainda não tem evento
                 status='pending',
                 created_by=instance.created_by,
             )

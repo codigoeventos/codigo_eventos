@@ -3,6 +3,7 @@ Budget models for event cost estimation.
 """
 
 import uuid
+from decimal import Decimal
 from django.db import models
 from django.db.models import Sum
 from django.utils import timezone
@@ -115,6 +116,12 @@ class Budget(BaseModel):
         help_text='Cliente optou por incluir o frete no total aprovado'
     )
 
+    include_fiscal_charges = models.BooleanField(
+        'Incluir Encargos Fiscais',
+        default=False,
+        help_text='Aplica 17% de encargos fiscais sobre os itens do orçamento'
+    )
+
     class Meta:
         verbose_name = 'Orçamento'
         verbose_name_plural = 'Orçamentos'
@@ -136,8 +143,10 @@ class Budget(BaseModel):
     
     @property
     def approved_value(self):
-        """Calculate total value from approved items only (+ freight se incluído)."""
+        """Calculate total value from approved items only (+ encargos + freight se incluídos)."""
         total = self.items.filter(is_approved=True).aggregate(total=Sum('total_price'))['total'] or 0
+        if self.include_fiscal_charges:
+            total = total * Decimal('1.17')
         if self.freight_included and self.freight_cost:
             total += self.freight_cost
         return total

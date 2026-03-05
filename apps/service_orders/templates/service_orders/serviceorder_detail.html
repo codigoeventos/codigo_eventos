@@ -47,18 +47,26 @@
                 <div>
                     <dt class="text-sm font-medium text-gray-500">Evento</dt>
                     <dd class="mt-1 text-sm text-gray-900">
+                        {% if service_order.event %}
                         <a href="{% url 'events:detail' service_order.event.pk %}" class="text-blue-600 hover:underline">
                             {{ service_order.event.name }}
                         </a>
+                        {% else %}
+                        <span class="text-gray-400">Sem evento vinculado</span>
+                        {% endif %}
                     </dd>
                 </div>
 
                 <div>
                     <dt class="text-sm font-medium text-gray-500">Cliente</dt>
                     <dd class="mt-1 text-sm text-gray-900">
+                        {% if service_order.event and service_order.event.client %}
                         <a href="{% url 'clients:detail' service_order.event.client.pk %}" class="text-blue-600 hover:underline">
                             {{ service_order.event.client.name }}
                         </a>
+                        {% else %}
+                        <span class="text-gray-400">—</span>
+                        {% endif %}
                     </dd>
                 </div>
 
@@ -86,12 +94,16 @@
 
                 <div>
                     <dt class="text-sm font-medium text-gray-500">Data do Evento</dt>
-                    <dd class="mt-1 text-sm text-gray-900">{{ service_order.event.event_date|date:"d/m/Y" }}</dd>
+                    <dd class="mt-1 text-sm text-gray-900">
+                        {% if service_order.event %}{{ service_order.event.event_date|date:"d/m/Y" }}{% else %}<span class="text-gray-400">—</span>{% endif %}
+                    </dd>
                 </div>
 
                 <div>
                     <dt class="text-sm font-medium text-gray-500">Local</dt>
-                    <dd class="mt-1 text-sm text-gray-900">{{ service_order.event.location }}</dd>
+                    <dd class="mt-1 text-sm text-gray-900">
+                        {% if service_order.event %}{{ service_order.event.location }}{% else %}<span class="text-gray-400">—</span>{% endif %}
+                    </dd>
                 </div>
             </dl>
         </div>

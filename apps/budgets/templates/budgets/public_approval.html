@@ -465,9 +465,13 @@
                         <th style="text-align:left;">Item</th>
                         <th style="text-align:left;">Descritivo</th>
                         <th style="width:50px;">Qtd.</th>
+                        {% if budget.include_fiscal_charges %}
                         <th style="width:90px;text-align:right;">Valor Unit.</th>
                         <th style="width:90px;text-align:right;">Encargos Fiscais</th>
                         <th style="width:100px;text-align:right;">Total</th>
+                        {% else %}
+                        <th style="text-align:right;">Valor Unit.</th>
+                        {% endif %}
                         {% if not is_editable %}
                         <th style="width:80px;text-align:center;">Status</th>
                         {% endif %}
@@ -479,7 +483,7 @@
                         <!-- Section header row -->
                         <tr>
                             {% if is_editable %}<td class="no-print"></td>{% endif %}
-                            <td colspan="{% if is_editable %}7{% else %}8{% endif %}"
+                            <td colspan="{% if is_editable %}{% if budget.include_fiscal_charges %}7{% else %}5{% endif %}{% else %}{% if budget.include_fiscal_charges %}8{% else %}6{% endif %}{% endif %}"
                                 style="background:#3f3f3f;color:#eeece1;font-weight:700;font-size:10px;
                                        text-transform:uppercase;letter-spacing:.05em;padding:6px 8px;">
                                 {{ section.title }}
@@ -508,14 +512,16 @@
                             <td class="os-item-desc">{{ item.description|default:"—" }}</td>
                             <td class="text-center" style="font-weight:600;">{{ item.quantity }}</td>
                             <td class="text-right">R$ {{ item.unit_price|floatformat:2 }}</td>
+                            {% if budget.include_fiscal_charges %}
                             <td class="text-right os-item-encargos">—</td>
                             <td class="text-right os-item-total" style="font-weight:700;">—</td>
+                            {% endif %}
                             {% if not is_editable %}
                             <td class="text-center">
                                 {% if item.is_approved %}
-                                <span class="os-badge os-badge-approved" style="font-size:8px;">✓</span>
+                                <span class="os-badge os-badge-approved" style="font-size:8px;">&#10003;</span>
                                 {% else %}
-                                <span class="os-badge os-badge-rejected" style="font-size:8px;">✗</span>
+                                <span class="os-badge os-badge-rejected" style="font-size:8px;">&#10007;</span>
                                 {% endif %}
                             </td>
                             {% endif %}
@@ -547,20 +553,22 @@
                             <td class="os-item-desc">{{ item.description|default:"—" }}</td>
                             <td class="text-center" style="font-weight:600;">{{ item.quantity }}</td>
                             <td class="text-right">R$ {{ item.unit_price|floatformat:2 }}</td>
+                            {% if budget.include_fiscal_charges %}
                             <td class="text-right os-item-encargos">—</td>
                             <td class="text-right os-item-total" style="font-weight:700;">—</td>
+                            {% endif %}
                             {% if not is_editable %}
                             <td class="text-center">
                                 {% if item.is_approved %}
-                                <span class="os-badge os-badge-approved" style="font-size:8px;">✓</span>
+                                <span class="os-badge os-badge-approved" style="font-size:8px;">&#10003;</span>
                                 {% else %}
-                                <span class="os-badge os-badge-rejected" style="font-size:8px;">✗</span>
+                                <span class="os-badge os-badge-rejected" style="font-size:8px;">&#10007;</span>
                                 {% endif %}
                             </td>
                             {% endif %}
                         </tr>
                         {% empty %}
-                        <tr><td colspan="8" style="text-align:center;padding:16px;color:#888;">Nenhum item cadastrado</td></tr>
+                        <tr><td colspan="{% if budget.include_fiscal_charges %}8{% else %}6{% endif %}" style="text-align:center;padding:16px;color:#888;">Nenhum item cadastrado</td></tr>
                         {% endfor %}
                     {% endif %}
                 </tbody>
@@ -568,12 +576,11 @@
                 <tfoot>
                     {% if not is_editable and budget.total_value != budget.approved_value %}
                     <tr class="os-total-row" style="opacity:.6;">
-                        {% if is_editable %}<td class="no-print"></td>{% endif %}
                         <td></td>
-                        <td colspan="4" style="text-align:right;text-decoration:line-through;">TOTAL ORIGINAL</td>
-                        <td></td>
+                        <td colspan="{% if budget.include_fiscal_charges %}4{% else %}3{% endif %}" style="text-align:right;text-decoration:line-through;">TOTAL ORIGINAL</td>
+                        {% if budget.include_fiscal_charges %}<td></td>{% endif %}
                         <td class="text-right" style="text-decoration:line-through;">R$ {{ budget.total_value|floatformat:2 }}</td>
-                        {% if not is_editable %}<td></td>{% endif %}
+                        <td></td>
                     </tr>
                     {% endif %}
 
@@ -584,17 +591,15 @@
                             <input type="checkbox" id="freight-checkbox" name="include_freight" value="1" class="os-check"
                                 {% if budget.freight_included %}checked{% endif %}>
                         </td>
-                        {% else %}
-                        <td></td>
                         {% endif %}
                         <td></td>
-                        <td colspan="4" style="text-align:right;font-weight:600;">
+                        <td colspan="{% if budget.include_fiscal_charges %}4{% else %}3{% endif %}" style="text-align:right;font-weight:600;">
                             Frete
                             {% if budget.freight_urgency %}<span style="font-size:8px;font-weight:400;"> &mdash; {{ budget.freight_urgency.label }}</span>{% endif %}
                             {% if budget.freight_distance_km %}<span style="font-size:8px;font-weight:400;"> ({{ budget.freight_distance_km }} km)</span>{% endif %}
                             {% if is_editable %}<span style="font-size:8px;font-weight:400;color:#aaa;"> (opcional)</span>{% endif %}
                         </td>
-                        <td></td>
+                        {% if budget.include_fiscal_charges %}<td></td>{% endif %}
                         <td class="text-right" id="freight-value">R$ {{ budget.freight_cost|floatformat:2 }}</td>
                         {% if not is_editable %}<td></td>{% endif %}
                     </tr>
@@ -603,10 +608,10 @@
                     <tr class="os-total-row">
                         {% if is_editable %}<td class="no-print"></td>{% endif %}
                         <td></td>
-                        <td colspan="4" style="text-align:right;">
+                        <td colspan="{% if budget.include_fiscal_charges %}4{% else %}3{% endif %}" style="text-align:right;">
                             {% if is_editable %}TOTAL SELECIONADO{% else %}TOTAL APROVADO{% endif %}
                         </td>
-                        <td></td>
+                        {% if budget.include_fiscal_charges %}<td></td>{% endif %}
                         <td class="text-right" style="font-size:14px;" id="total-value">
                             {% if is_editable %}R$ {{ budget.total_value|floatformat:2 }}{% else %}R$ {{ budget.approved_value|floatformat:2 }}{% endif %}
                         </td>
@@ -695,6 +700,8 @@
         const fmt = v => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
 
         /* ── Encargos fiscais (17%) ──────────────────────────────────────── */
+        {% if budget.include_fiscal_charges %}
+        const FISCAL_MULT = 1.17;
         function populateEncargos() {
             document.querySelectorAll('.item-row').forEach(row => {
                 const unitTotal = parseFloat(row.dataset.unitTotal) || 0;
@@ -707,6 +714,9 @@
             });
         }
         populateEncargos();
+        {% else %}
+        const FISCAL_MULT = 1.0;
+        {% endif %}
 
         /* ── Total update (editable mode) ────────────────────── */
         const freightCost = {{ budget.freight_cost|default:0 }};
@@ -714,7 +724,7 @@
         function updateTotal() {
             let total = 0;
             document.querySelectorAll('.item-checkbox:checked').forEach(cb => {
-                total += (parseFloat(cb.dataset.price) || 0) * 1.17;
+                total += (parseFloat(cb.dataset.price) || 0) * FISCAL_MULT;
             });
             const freightCb = document.getElementById('freight-checkbox');
             const freightRow = document.getElementById('freight-row');
@@ -738,9 +748,17 @@
             let sum = 0;
             document.querySelectorAll('.item-row').forEach(row => {
                 if (row.dataset.approved === '1') {
-                    sum += (parseFloat(row.dataset.unitTotal) || 0) * 1.17;                } else {
-                    row.style.opacity = '0.35';                }
+                    sum += (parseFloat(row.dataset.unitTotal) || 0) * FISCAL_MULT;
+                } else {
+                    row.style.opacity = '0.35';
+                }
             });
+            {% if budget.freight_included %}
+            sum += freightCost;
+            {% else %}
+            const freightRowRO = document.getElementById('freight-row');
+            if (freightRowRO) freightRowRO.style.opacity = '0.35';
+            {% endif %}
             const el = document.getElementById('total-value');
             if (el) el.textContent = fmt(sum);
         }
