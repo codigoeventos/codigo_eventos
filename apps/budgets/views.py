@@ -284,6 +284,14 @@ class BudgetCreateView(LoginRequiredMixin, AuditMixin, SuccessMessageMixin, Crea
     def get_success_url(self):
         """Redirect to budget detail after creation."""
         return reverse_lazy('budgets:detail', kwargs={'pk': self.object.pk})
+
+    def get_initial(self):
+        """Pre-fill project if passed as query param."""
+        initial = super().get_initial()
+        project_pk = self.request.GET.get('project')
+        if project_pk:
+            initial['proposal'] = project_pk
+        return initial
     
     def get_context_data(self, **kwargs):
         """Add breadcrumbs and sections context."""
