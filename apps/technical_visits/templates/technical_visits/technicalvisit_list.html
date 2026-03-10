@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
-{% block title %}Visitas Técnicas - Sistema de Gestão de Eventos{% endblock %}
-{% block page_title %}Visitas Técnicas{% endblock %}
+{% block title %}Levantamentos de Informações - Sistema de Gestão de Eventos{% endblock %}
+{% block page_title %}Levantamentos de Informações{% endblock %}
 
 {% block content %}
 <!-- Breadcrumbs -->
@@ -29,7 +29,7 @@
         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
         </svg>
-        Nova Visita Técnica
+        Novo Levantamento de Informações
     </a>
 </div>
 
@@ -129,15 +129,15 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
         </svg>
-        <h3 class="mt-2 text-sm font-medium text-gray-900">Nenhuma visita técnica encontrada</h3>
-        <p class="mt-1 text-sm text-gray-500">Comece criando uma nova visita técnica.</p>
+        <h3 class="mt-2 text-sm font-medium text-gray-900">Nenhum levantamento de informações encontrado</h3>
+        <p class="mt-1 text-sm text-gray-500">Comece criando um novo levantamento de informações.</p>
         <div class="mt-6">
             <a href="{% url 'technical_visits:create' %}"
                 class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-black hover:bg-gray-800">
                 <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                 </svg>
-                Nova Visita Técnica
+                Novo Levantamento de Informações
             </a>
         </div>
     </div>
@@ -156,16 +156,16 @@ function openTechnicalVisitDeleteModal(visitId, eventName, visitDate, attachment
     
     const itemDetails = `
         <div class="space-y-2">
-            <p class="text-sm font-medium text-gray-900">Visita - ${eventName}</p>
+            <p class="text-sm font-medium text-gray-900">Levantamento - ${eventName}</p>
             <p class="text-sm text-gray-500">Data: ${visitDate}</p>
         </div>
     `;
     
     const warning = attachmentsCount > 0 
-        ? `Esta visita possui ${attachmentsCount} anexo${attachmentsCount > 1 ? 's' : ''} associado${attachmentsCount > 1 ? 's' : ''}.`
+        ? `Este levantamento possui ${attachmentsCount} anexo${attachmentsCount > 1 ? 's' : ''} associado${attachmentsCount > 1 ? 's' : ''}.`
         : null;
     
-    openDeleteModal(deleteUrl, `a visita técnica "${eventName}"`, itemDetails, warning, redirectUrl);
+    openDeleteModal(deleteUrl, `o levantamento de informações "${eventName}"`, itemDetails, warning, redirectUrl);
 }
 </script>
 {% endblock %}

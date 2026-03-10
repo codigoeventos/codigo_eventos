@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
-{% block title %}Visita - {{ technical_visit.event.name }} - Visitas Técnicas{% endblock %}
-{% block page_title %}Detalhes da Visita Técnica{% endblock %}
+{% block title %}Levantamento - {{ technical_visit.event.name }} - Levantamentos de Informações{% endblock %}
+{% block page_title %}Detalhes do Levantamento de Informações{% endblock %}
 
 {% block content %}
 {% include 'components/breadcrumbs.html' %}
@@ -12,7 +12,7 @@
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <div class="flex justify-between items-start mb-6">
                 <div>
-                    <h2 class="text-2xl font-bold text-gray-900">Visita Técnica</h2>
+                    <h2 class="text-2xl font-bold text-gray-900">Levantamento de Informações</h2>
                     <p class="text-sm text-gray-500 mt-1">{{ technical_visit.event.name }}</p>
                 </div>
 
@@ -178,16 +178,16 @@ function openTechnicalVisitDeleteModal(visitId, eventName, visitDate, attachment
     
     const itemDetails = `
         <div class="space-y-2">
-            <p class="text-sm font-medium text-gray-900">Visita - ${eventName}</p>
+            <p class="text-sm font-medium text-gray-900">Levantamento - ${eventName}</p>
             <p class="text-sm text-gray-500">Data: ${visitDate}</p>
         </div>
     `;
     
     const warning = attachmentsCount > 0 
-        ? `Esta visita possui ${attachmentsCount} anexo${attachmentsCount > 1 ? 's' : ''} associado${attachmentsCount > 1 ? 's' : ''}.`
+        ? `Este levantamento possui ${attachmentsCount} anexo${attachmentsCount > 1 ? 's' : ''} associado${attachmentsCount > 1 ? 's' : ''}.`
         : null;
     
-    openDeleteModal(deleteUrl, `a visita técnica "${eventName}"`, itemDetails, warning, redirectUrl);
+    openDeleteModal(deleteUrl, `o levantamento de informações "${eventName}"`, itemDetails, warning, redirectUrl);
 }
 </script>
 {% endblock %}

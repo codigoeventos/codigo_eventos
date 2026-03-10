@@ -47,7 +47,16 @@ class ServiceOrderListView(LoginRequiredMixin, ListView):
         event = self.request.GET.get('event', '').strip()
         if event:
             queryset = queryset.filter(event_id=event)
-        
+
+        # Filter by creation date range
+        date_from = self.request.GET.get('date_from', '').strip()
+        if date_from:
+            queryset = queryset.filter(created_at__date__gte=date_from)
+
+        date_to = self.request.GET.get('date_to', '').strip()
+        if date_to:
+            queryset = queryset.filter(created_at__date__lte=date_to)
+
         return queryset.order_by('-created_at')
     
     def get_context_data(self, **kwargs):

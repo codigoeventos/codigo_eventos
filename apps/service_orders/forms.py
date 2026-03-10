@@ -103,6 +103,24 @@ class ServiceOrderSearchForm(forms.Form):
         })
     )
     
+    date_from = forms.DateField(
+        required=False,
+        widget=forms.DateInput(attrs={
+            'type': 'date',
+            'class': 'px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent',
+        }),
+        label='De'
+    )
+
+    date_to = forms.DateField(
+        required=False,
+        widget=forms.DateInput(attrs={
+            'type': 'date',
+            'class': 'px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent',
+        }),
+        label='Até'
+    )
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         from apps.events.models import Event
