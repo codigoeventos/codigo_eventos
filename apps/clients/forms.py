@@ -80,6 +80,6 @@ class ClientSearchForm(forms.Form):
         required=False,
         choices=[('', 'Todos')] + Client.DOCUMENT_TYPE_CHOICES,
         widget=forms.Select(attrs={
-            'class': 'px-4 py-2 rounded-lg border border-gray-300 focus:border-black focus:ring-2 focus:ring-black/10 transition-all'
+            'class': 'w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent'
         })
     )

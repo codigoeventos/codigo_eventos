@@ -152,7 +152,7 @@
         <!-- Technical Visits -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-semibold text-gray-900">Visitas Técnicas</h3>
+                <h3 class="text-lg font-semibold text-gray-900">Levantamentos de Informações</h3>
                 <a href="{% url 'technical_visits:create' %}"
                     class="text-sm text-black hover:underline font-medium flex items-center gap-1">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -185,7 +185,7 @@
                 {% endfor %}
             </div>
             {% else %}
-            <p class="text-sm text-gray-500 text-center py-4">Nenhuma visita</p>
+            <p class="text-sm text-gray-500 text-center py-4">Nenhum levantamento</p>
             {% endif %}
         </div>
 
