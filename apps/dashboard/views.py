@@ -4,37 +4,45 @@ Dashboard views for the Event Management System.
 
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import TemplateView
+from django.views import View
+from django.http import JsonResponse
+from django.db.models import Sum
 from django.utils import timezone
 from datetime import timedelta
-
-from apps.common.mixins import GroupRequiredMixin
 
 
 class DashboardView(LoginRequiredMixin, TemplateView):
     """
-    Main dashboard view. Financial group users are redirected to the
-    financial dashboard; all other users see the standard dashboard.
+    Single dashboard view. Superusers see the operations dashboard;
+    financial users see the financial dashboard. Template is chosen at
+    render time via get_template_names().
     """
 
     template_name = 'dashboard/home.html'
 
-    def dispatch(self, request, *args, **kwargs):
-        if request.user.is_authenticated and request.user.is_financial:
-            from django.shortcuts import redirect
-            return redirect('dashboard:financial')
-        return super().dispatch(request, *args, **kwargs)
+    def get_template_names(self):
+        user = self.request.user
+        if not user.is_superuser and user.is_financial:
+            return ['dashboard/financial.html']
+        return ['dashboard/home.html']
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        user = self.request.user
+        if not user.is_superuser and user.is_financial:
+            return self._financial_context(context)
+        return self._main_context(context)
 
-        # Import models here to avoid circular imports
+    # ------------------------------------------------------------------
+    # Main dashboard context
+    # ------------------------------------------------------------------
+    def _main_context(self, context):
         from apps.events.models import Event
         from apps.projects.models import Project
         from apps.budgets.models import Budget
         from apps.service_orders.models import ServiceOrder
         from apps.technical_visits.models import TechnicalVisit
 
-        # Upcoming events (next 30 days)
         today = timezone.now().date()
         next_month = today + timedelta(days=30)
         context['upcoming_events'] = Event.objects.filter(
@@ -42,52 +50,55 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             event_date__lte=next_month
         )[:5]
 
-        # Pending projects
-        context['pending_proposals'] = Project.objects.filter(
-            status='sent'
+        context['pending_projects'] = Project.objects.filter(
+            status='in_development'
         ).count()
 
-        # Approved budgets
         context['approved_budgets'] = Budget.objects.filter(
             status='approved'
         ).count()
 
-        # Active service orders
         context['active_service_orders'] = ServiceOrder.objects.filter(
             status='in_progress'
         ).count()
 
-        # Scheduled technical visits
         context['scheduled_visits'] = TechnicalVisit.objects.filter(
             status='scheduled',
             visit_date__gte=timezone.now()
         ).count()
 
-        # Recent events count
         context['total_events'] = Event.objects.count()
+
+        now = timezone.now()
+        current_month = now.month
+        current_year = now.year
+        context['budget_filter_year'] = current_year
+        context['budget_filter_years'] = list(range(current_year - 4, current_year + 1))
+        context['budget_approved_total'] = self._budget_total('approved', current_month, current_year)
+        context['budget_sent_total'] = self._budget_total('sent', current_month, current_year)
+        context['budget_rejected_total'] = self._budget_total('rejected', current_month, current_year)
 
         return context
 
+    def _budget_total(self, status, month, year):
+        """Calculate total monetary value of budgets with the given status for a month/year."""
+        from apps.budgets.models import Budget
+        result = Budget.objects.filter(
+            status=status,
+            created_at__year=year,
+            created_at__month=month,
+        ).aggregate(total=Sum('items__total_price'))['total']
+        return float(result or 0)
 
-class FinancialDashboardView(GroupRequiredMixin, TemplateView):
-    """
-    Financial dashboard showing project values, contractor spend and profit.
-    Accessible only to users in the 'Financeiro' group (and superusers).
-    Supports filtering by month and year based on project creation date.
-    """
-
-    template_name = 'dashboard/financial.html'
-    required_groups = ['Financeiro']
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-
+    # ------------------------------------------------------------------
+    # Financial dashboard context
+    # ------------------------------------------------------------------
+    def _financial_context(self, context):
         from apps.projects.models import Project
         from decimal import Decimal
 
         today = timezone.now().date()
 
-        # Read filter params
         try:
             month = int(self.request.GET.get('month', ''))
         except (ValueError, TypeError):
@@ -106,7 +117,6 @@ class FinancialDashboardView(GroupRequiredMixin, TemplateView):
         if year:
             projects = projects.filter(created_at__year=year)
 
-        # Build rows with calculated fields
         rows = []
         total_project_value = Decimal('0')
         total_contractor_spend = Decimal('0')
@@ -130,8 +140,6 @@ class FinancialDashboardView(GroupRequiredMixin, TemplateView):
         context['total_project_value'] = total_project_value
         context['total_contractor_spend'] = total_contractor_spend
         context['total_profit'] = total_profit
-
-        # Year choices for filter dropdown (all years that have projects)
         context['year_choices'] = Project.objects.dates('created_at', 'year')
         context['month_choices'] = [
             (1, 'Janeiro'), (2, 'Fevereiro'), (3, 'Março'),
@@ -144,4 +152,41 @@ class FinancialDashboardView(GroupRequiredMixin, TemplateView):
         context['current_year'] = today.year
 
         return context
+
+
+class ProjectTotalsView(LoginRequiredMixin, View):
+    """
+    AJAX endpoint returning summed budget values by status for a given month/year.
+    """
+
+    def get(self, request):
+        now = timezone.now()
+        try:
+            month = int(request.GET.get('month', now.month))
+            year = int(request.GET.get('year', now.year))
+            if not (1 <= month <= 12):
+                month = now.month
+            if not (2000 <= year <= 2100):
+                year = now.year
+        except (ValueError, TypeError):
+            month = now.month
+            year = now.year
+
+        from apps.budgets.models import Budget
+
+        def get_total(status):
+            result = Budget.objects.filter(
+                status=status,
+                created_at__year=year,
+                created_at__month=month,
+            ).aggregate(total=Sum('items__total_price'))['total']
+            return float(result or 0)
+
+        return JsonResponse({
+            'approved': get_total('approved'),
+            'sent': get_total('sent'),
+            'rejected': get_total('rejected'),
+            'month': month,
+            'year': year,
+        })
 

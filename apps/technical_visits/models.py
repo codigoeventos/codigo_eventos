@@ -59,8 +59,8 @@ class TechnicalVisit(BaseModel):
     )
     
     class Meta:
-        verbose_name = 'Visita Técnica'
-        verbose_name_plural = 'Visitas Técnicas'
+        verbose_name = 'Levantamento de Informações'
+        verbose_name_plural = 'Levantamentos de Informações'
         ordering = ['-visit_date']
     
     def __str__(self):

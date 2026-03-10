@@ -5,11 +5,11 @@
 
 {% block content %}
 <!-- Filter Bar -->
-<form method="get" class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6 flex flex-wrap items-end gap-4">
+<form method="get" class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 mb-6 flex flex-wrap items-end gap-4">
     <div>
-        <label for="id_month" class="block text-sm font-medium text-gray-700 mb-1">Mês</label>
+        <label for="id_month" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Mês</label>
         <select id="id_month" name="month"
-            class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-sm">
+            class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
             <option value="">Todos os meses</option>
             {% for num, name in month_choices %}
             <option value="{{ num }}" {% if selected_month == num %}selected{% endif %}>{{ name }}</option>
@@ -18,9 +18,9 @@
     </div>
 
     <div>
-        <label for="id_year" class="block text-sm font-medium text-gray-700 mb-1">Ano</label>
+        <label for="id_year" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Ano</label>
         <select id="id_year" name="year"
-            class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-sm">
+            class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
             <option value="">Todos os anos</option>
             {% for date in year_choices %}
             <option value="{{ date.year }}" {% if selected_year == date.year %}selected{% endif %}>{{ date.year }}</option>
@@ -33,8 +33,8 @@
             class="px-5 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors text-sm font-medium">
             Filtrar
         </button>
-        <a href="{% url 'dashboard:financial' %}"
-            class="px-5 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium">
+        <a href="{% url 'dashboard:home' %}"
+            class="px-5 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors text-sm font-medium">
             Limpar
         </a>
     </div>
@@ -42,16 +42,16 @@
 
 <!-- Summary Cards -->
 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <p class="text-sm font-medium text-gray-600 mb-1">Valor Total dos Projetos</p>
-        <p class="text-2xl font-bold text-black">R$ {{ total_project_value|floatformat:2 }}</p>
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <p class="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Valor Total dos Projetos</p>
+        <p class="text-2xl font-bold text-black dark:text-white">R$ {{ total_project_value|floatformat:2 }}</p>
     </div>
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <p class="text-sm font-medium text-gray-600 mb-1">Total Gasto c/ Empreiteiras</p>
-        <p class="text-2xl font-bold text-black">R$ {{ total_contractor_spend|floatformat:2 }}</p>
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <p class="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Total Gasto c/ Empreiteiras</p>
+        <p class="text-2xl font-bold text-black dark:text-white">R$ {{ total_contractor_spend|floatformat:2 }}</p>
     </div>
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <p class="text-sm font-medium text-gray-600 mb-1">Lucro Total</p>
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <p class="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Lucro Total</p>
         <p class="text-2xl font-bold {% if total_profit >= 0 %}text-green-700{% else %}text-red-700{% endif %}">
             R$ {{ total_profit|floatformat:2 }}
         </p>
@@ -59,12 +59,12 @@
 </div>
 
 <!-- Projects Table -->
-<div class="bg-white rounded-lg shadow-sm border border-gray-200">
-    <div class="px-6 py-4 border-b border-gray-200">
-        <h3 class="text-base font-semibold text-gray-900">
+<div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+    <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+        <h3 class="text-base font-semibold text-gray-900 dark:text-white">
             Projetos
             {% if selected_month or selected_year %}
-            <span class="text-sm font-normal text-gray-500">
+            <span class="text-sm font-normal text-gray-500 dark:text-gray-400">
                 — filtrado por
                 {% if selected_month %}
                 {% for num, name in month_choices %}{% if num == selected_month %}{{ name }}{% endif %}{% endfor %}
@@ -78,52 +78,52 @@
     {% if rows %}
     <div class="overflow-x-auto">
         <table class="w-full text-sm">
-            <thead class="bg-gray-50 border-b border-gray-200">
+            <thead class="bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
                 <tr>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Projeto</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Evento</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Empreiteira</th>
-                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Valor Total</th>
-                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Gasto Empreiteira</th>
-                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Lucro</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Criado em</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Projeto</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Evento</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Empreiteira</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Valor Total</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Gasto Empreiteira</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Lucro</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Criado em</th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-gray-200">
+            <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
                 {% for row in rows %}
-                <tr class="hover:bg-gray-50 transition-colors">
+                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
                     <td class="px-6 py-4">
                         <a href="{% url 'projects:detail' row.project.pk %}"
-                            class="font-medium text-gray-900 hover:text-black hover:underline">
+                            class="font-medium text-gray-900 dark:text-white hover:text-black dark:hover:text-gray-200 hover:underline">
                             {{ row.project.title }}
                         </a>
                     </td>
-                    <td class="px-6 py-4 text-gray-600">
+                    <td class="px-6 py-4 text-gray-600 dark:text-gray-400">
                         {% if row.project.event %}
                         {{ row.project.event.name }}
                         {% else %}
-                        <span class="text-gray-400">—</span>
+                        <span class="text-gray-400 dark:text-gray-500">—</span>
                         {% endif %}
                     </td>
-                    <td class="px-6 py-4 text-gray-600">
+                    <td class="px-6 py-4 text-gray-600 dark:text-gray-400">
                         {% if row.project.contractor %}
                         {{ row.project.contractor.name }}
                         {% else %}
-                        <span class="text-gray-400">—</span>
+                        <span class="text-gray-400 dark:text-gray-500">—</span>
                         {% endif %}
                     </td>
-                    <td class="px-6 py-4 text-right text-gray-900">R$ {{ row.total_value|floatformat:2 }}</td>
-                    <td class="px-6 py-4 text-right text-gray-900">R$ {{ row.contractor_spend|floatformat:2 }}</td>
+                    <td class="px-6 py-4 text-right text-gray-900 dark:text-gray-100">R$ {{ row.total_value|floatformat:2 }}</td>
+                    <td class="px-6 py-4 text-right text-gray-900 dark:text-gray-100">R$ {{ row.contractor_spend|floatformat:2 }}</td>
                     <td class="px-6 py-4 text-right font-semibold {% if row.profit >= 0 %}text-green-700{% else %}text-red-700{% endif %}">
                         R$ {{ row.profit|floatformat:2 }}
                     </td>
-                    <td class="px-6 py-4 text-gray-500">{{ row.project.created_at|date:"d/m/Y" }}</td>
+                    <td class="px-6 py-4 text-gray-500 dark:text-gray-400">{{ row.project.created_at|date:"d/m/Y" }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
             <!-- Totals row -->
-            <tfoot class="bg-gray-50 border-t-2 border-gray-300">
-                <tr class="font-semibold text-gray-900">
+            <tfoot class="bg-gray-50 dark:bg-gray-700 border-t-2 border-gray-300 dark:border-gray-600">
+                <tr class="font-semibold text-gray-900 dark:text-white">
                     <td class="px-6 py-4" colspan="3">Total ({{ rows|length }} projeto{{ rows|length|pluralize:"s" }})</td>
                     <td class="px-6 py-4 text-right">R$ {{ total_project_value|floatformat:2 }}</td>
                     <td class="px-6 py-4 text-right">R$ {{ total_contractor_spend|floatformat:2 }}</td>
@@ -136,7 +136,7 @@
         </table>
     </div>
     {% else %}
-    <div class="px-6 py-12 text-center text-gray-500">
+    <div class="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
         Nenhum projeto encontrado para o período selecionado.
     </div>
     {% endif %}

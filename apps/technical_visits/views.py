@@ -53,7 +53,7 @@ class TechnicalVisitListView(LoginRequiredMixin, ListView):
         context = super().get_context_data(**kwargs)
         context['search_form'] = TechnicalVisitSearchForm(self.request.GET)
         context['breadcrumbs'] = [
-            {'name': 'Visitas Técnicas', 'url': None}
+            {'name': 'Levantamentos de Informações', 'url': None}
         ]
         return context
 
@@ -81,8 +81,8 @@ class TechnicalVisitDetailView(LoginRequiredMixin, DetailView):
         """Add breadcrumbs and related data to context."""
         context = super().get_context_data(**kwargs)
         context['breadcrumbs'] = [
-            {'name': 'Visitas Técnicas', 'url': reverse_lazy('technical_visits:list')},
-            {'name': f'Visita - {self.object.event.name}', 'url': None}
+            {'name': 'Levantamentos de Informações', 'url': reverse_lazy('technical_visits:list')},
+            {'name': f'Levantamento - {self.object.event.name}', 'url': None}
         ]
         return context
 
@@ -93,7 +93,7 @@ class TechnicalVisitCreateView(LoginRequiredMixin, AuditMixin, SuccessMessageMix
     model = TechnicalVisit
     form_class = TechnicalVisitForm
     template_name = 'technical_visits/technicalvisit_form.html'
-    success_message = "Visita Técnica criada com sucesso!"
+    success_message = "Levantamento de Informações criado com sucesso!"
     
     def get_success_url(self):
         """Redirect to technical visit detail after creation."""
@@ -103,11 +103,11 @@ class TechnicalVisitCreateView(LoginRequiredMixin, AuditMixin, SuccessMessageMix
         """Add breadcrumbs to context."""
         context = super().get_context_data(**kwargs)
         context['breadcrumbs'] = [
-            {'name': 'Visitas Técnicas', 'url': reverse_lazy('technical_visits:list')},
-            {'name': 'Nova Visita Técnica', 'url': None}
+            {'name': 'Levantamentos de Informações', 'url': reverse_lazy('technical_visits:list')},
+            {'name': 'Novo Levantamento de Informações', 'url': None}
         ]
-        context['form_title'] = 'Nova Visita Técnica'
-        context['submit_text'] = 'Criar Visita Técnica'
+        context['form_title'] = 'Novo Levantamento de Informações'
+        context['submit_text'] = 'Criar Levantamento de Informações'
         return context
 
 
@@ -117,7 +117,7 @@ class TechnicalVisitUpdateView(LoginRequiredMixin, AuditMixin, SuccessMessageMix
     model = TechnicalVisit
     form_class = TechnicalVisitForm
     template_name = 'technical_visits/technicalvisit_form.html'
-    success_message = "Visita Técnica atualizada com sucesso!"
+    success_message = "Levantamento de Informações atualizado com sucesso!"
     
     def get_success_url(self):
         """Redirect to technical visit detail after update."""
@@ -127,11 +127,11 @@ class TechnicalVisitUpdateView(LoginRequiredMixin, AuditMixin, SuccessMessageMix
         """Add breadcrumbs to context."""
         context = super().get_context_data(**kwargs)
         context['breadcrumbs'] = [
-            {'name': 'Visitas Técnicas', 'url': reverse_lazy('technical_visits:list')},
-            {'name': f'Visita - {self.object.event.name}', 'url': reverse_lazy('technical_visits:detail', kwargs={'pk': self.object.pk})},
+            {'name': 'Levantamentos de Informações', 'url': reverse_lazy('technical_visits:list')},
+            {'name': f'Levantamento - {self.object.event.name}', 'url': reverse_lazy('technical_visits:detail', kwargs={'pk': self.object.pk})},
             {'name': 'Editar', 'url': None}
         ]
-        context['form_title'] = f'Editar Visita Técnica: {self.object.event.name}'
+        context['form_title'] = f'Editar Levantamento de Informações: {self.object.event.name}'
         context['submit_text'] = 'Salvar Alterações'
         return context
 
@@ -141,7 +141,7 @@ class TechnicalVisitDeleteView(LoginRequiredMixin, DeleteView):
     
     model = TechnicalVisit
     success_url = reverse_lazy('technical_visits:list')
-    success_message = "Visita Técnica excluída com sucesso!"
+    success_message = "Levantamento de Informações excluído com sucesso!"
     
     def post(self, request, *args, **kwargs):
         """Handle POST delete request - AJAX only."""

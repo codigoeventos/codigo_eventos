@@ -29,7 +29,7 @@ class TechnicalVisitForm(forms.ModelForm):
             'notes': forms.Textarea(attrs={
                 'rows': 4,
                 'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent',
-                'placeholder': 'Observações da visita técnica'
+                'placeholder': 'Observações do levantamento de informações'
             }),
             'status': forms.Select(attrs={
                 'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent'
@@ -50,8 +50,8 @@ class TechnicalVisitSearchForm(forms.Form):
     search = forms.CharField(
         required=False,
         widget=forms.TextInput(attrs={
-            'class': 'px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent',
-            'placeholder': 'Buscar visitas técnicas...'
+            'class': 'w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent',
+            'placeholder': 'Buscar levantamentos de informações...'
         })
     )
     
@@ -59,7 +59,7 @@ class TechnicalVisitSearchForm(forms.Form):
         required=False,
         choices=[('', 'Todos os status')] + TechnicalVisit.STATUS_CHOICES,
         widget=forms.Select(attrs={
-            'class': 'px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent'
+            'class': 'w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent'
         })
     )
     
@@ -68,7 +68,7 @@ class TechnicalVisitSearchForm(forms.Form):
         required=False,
         empty_label='Todos os eventos',
         widget=forms.Select(attrs={
-            'class': 'px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent'
+            'class': 'w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent'
         })
     )
     

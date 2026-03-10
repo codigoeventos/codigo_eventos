@@ -14,23 +14,19 @@ class Command(BaseCommand):
         # Define groups and their permissions
         groups_config = {
             'Administrador': {
-                'description': 'Acesso total ao sistema',
-                'permissions': 'all'  # Will grant all permissions
+                'description': 'Acesso total exceto gestão de usuários',
+                'apps': ['clients', 'events', 'projects', 'budgets', 'service_orders', 'technical_visits', 'contractors', 'logistics', 'documents'],
+                'permissions': ['view', 'add', 'change', 'delete']
             },
             'Comercial': {
-                'description': 'Acesso a propostas, orçamentos, clientes e visualização de eventos',
-                'apps': ['clients', 'events', 'projects', 'budgets'],
+                'description': 'Acesso a orçamentos, OS, eventos, projetos e clientes',
+                'apps': ['clients', 'events', 'projects', 'budgets', 'service_orders'],
                 'permissions': ['view', 'add', 'change']
             },
-            'Operacional': {
-                'description': 'Acesso a ordens de serviço, equipes e documentos',
-                'apps': ['service_orders', 'contractors', 'documents', 'events'],
-                'permissions': ['view', 'add', 'change']
-            },
-            'Técnico': {
-                'description': 'Acesso a visitas técnicas e visualização de eventos',
-                'apps': ['technical_visits', 'events'],
-                'permissions': ['view', 'add', 'change']
+            'Financeiro': {
+                'description': 'Acesso de visualização a tudo, dashboard financeiro',
+                'apps': ['clients', 'events', 'projects', 'budgets', 'service_orders', 'technical_visits', 'contractors', 'logistics', 'documents'],
+                'permissions': ['view']
             },
         }
 

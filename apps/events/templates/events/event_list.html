@@ -8,32 +8,94 @@
 {% include 'components/breadcrumbs.html' %}
 
 <!-- Header Actions -->
-<div class="flex justify-between items-center mb-6">
-    <div class="flex-1 max-w-lg">
-        <form method="get" class="flex gap-2">
-            {{ search_form.search }}
-            {{ search_form.client }}
-            <button type="submit"
-                class="px-6 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-all duration-200">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<div class="flex items-center gap-2 mb-6">
+    <form method="get" id="events-search-form" class="flex items-center gap-2 flex-1 min-w-0">
+        <!-- Hidden inputs for filter values -->
+        <input type="hidden" name="client" id="hidden-client" value="{{ request.GET.client }}">
+
+        <!-- Search bar -->
+        <div class="relative flex-1 min-w-0">{{ search_form.search }}</div>
+
+        <!-- Submit button -->
+        <button type="submit"
+            class="flex-shrink-0 px-4 py-2 bg-black dark:bg-gray-700 text-white rounded-lg hover:bg-gray-800 dark:hover:bg-gray-600 transition-all duration-200 flex items-center">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+        </button>
+
+        <!-- Filters dropdown -->
+        <div class="relative flex-shrink-0">
+            <button type="button" id="filter-toggle-events"
+                class="px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200 flex items-center gap-2 text-sm">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z" />
                 </svg>
+                Filtros
+                {% if request.GET.client %}
+                <span class="w-2 h-2 bg-black dark:bg-gray-300 rounded-full"></span>
+                {% endif %}
             </button>
-        </form>
-    </div>
+            <!-- Filter panel -->
+            <div id="filter-panel-events"
+                class="hidden absolute right-0 top-full mt-2 w-72 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg z-50 p-4">
+                <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Filtros</p>
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Cliente</label>
+                        {{ search_form.client }}
+                    </div>
+                </div>
+                <div class="flex gap-2 mt-4 pt-3 border-t border-gray-100 dark:border-gray-700">
+                    <a href="{% url 'events:list' %}"
+                        class="flex-1 text-center px-3 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-all">
+                        Limpar filtros
+                    </a>
+                    <button type="button" id="apply-filters-events"
+                        class="flex-1 px-3 py-2 text-sm bg-black dark:bg-gray-700 text-white rounded-lg hover:bg-gray-800 dark:hover:bg-gray-600 transition-all">
+                        Aplicar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </form>
 
     <a href="{% url 'events:create' %}"
-        class="px-6 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-all duration-200 flex items-center">
-        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        class="flex-shrink-0 px-4 py-2 bg-black dark:bg-gray-700 text-white rounded-lg hover:bg-gray-800 dark:hover:bg-gray-600 transition-all duration-200 flex items-center gap-2 text-sm">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
         </svg>
         Novo Evento
     </a>
 </div>
 
+<script>
+(function () {
+    const params = new URLSearchParams(window.location.search);
+    const clientSel = document.querySelector('#filter-panel-events select[name="client"]');
+    if (clientSel && params.get('client')) clientSel.value = params.get('client');
+
+    document.getElementById('filter-toggle-events').addEventListener('click', function (e) {
+        e.stopPropagation();
+        document.getElementById('filter-panel-events').classList.toggle('hidden');
+    });
+    document.addEventListener('click', function (e) {
+        const panel = document.getElementById('filter-panel-events');
+        const toggle = document.getElementById('filter-toggle-events');
+        if (!panel.contains(e.target) && !toggle.contains(e.target)) panel.classList.add('hidden');
+    });
+    document.getElementById('apply-filters-events').addEventListener('click', function () {
+        const clientSel = document.querySelector('#filter-panel-events select[name="client"]');
+        document.getElementById('hidden-client').value = clientSel ? clientSel.value : '';
+        document.getElementById('events-search-form').submit();
+    });
+})();
+</script>
+
 <!-- Events Table -->
-<div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+<div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden overflow-x-auto">
     {% if events %}
     <table class="min-w-full divide-y divide-gray-200">
         <thead class="bg-gray-50">

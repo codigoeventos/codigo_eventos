@@ -125,4 +125,14 @@ class User(AbstractBaseUser, PermissionsMixin):
     @property
     def is_financial(self):
         """Check if the user belongs to the Financeiro group."""
-        return self.is_superuser or self.groups.filter(name='Financeiro').exists()
+        return self.groups.filter(name='Financeiro').exists()
+
+    @property
+    def is_commercial(self):
+        """Check if the user belongs to the Comercial group."""
+        return self.groups.filter(name='Comercial').exists()
+
+    @property
+    def is_admin(self):
+        """Check if the user belongs to the Administrador group or is a superuser."""
+        return self.is_superuser or self.groups.filter(name='Administrador').exists()

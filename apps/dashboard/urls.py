@@ -9,5 +9,5 @@ app_name = 'dashboard'
 
 urlpatterns = [
     path('', views.DashboardView.as_view(), name='home'),
-    path('financeiro/', views.FinancialDashboardView.as_view(), name='financial'),
+    path('project-totals/', views.ProjectTotalsView.as_view(), name='project_totals'),
 ]

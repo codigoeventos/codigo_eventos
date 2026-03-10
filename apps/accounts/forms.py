@@ -17,7 +17,7 @@ class LoginForm(AuthenticationForm):
     username = forms.EmailField(
         label='E-mail',
         widget=forms.EmailInput(attrs={
-            'class': 'w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-black focus:ring-2 focus:ring-black/10 transition-all',
+            'class': 'w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-black dark:focus:border-white focus:ring-2 focus:ring-black/10 dark:focus:ring-white/10 transition-all',
             'placeholder': 'seu@email.com'
         })
     )
@@ -25,7 +25,7 @@ class LoginForm(AuthenticationForm):
     password = forms.CharField(
         label='Senha',
         widget=forms.PasswordInput(attrs={
-            'class': 'w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-black focus:ring-2 focus:ring-black/10 transition-all',
+            'class': 'w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-black dark:focus:border-white focus:ring-2 focus:ring-black/10 dark:focus:ring-white/10 transition-all',
             'placeholder': '••••••••'
         })
     )
@@ -40,11 +40,14 @@ class LoginForm(AuthenticationForm):
 class UserCreationForm(forms.ModelForm):
     """Form for creating new users with default password."""
     
-    groups = forms.ModelMultipleChoiceField(
+    groups = forms.ModelChoiceField(
         queryset=None,
         required=False,
-        widget=forms.CheckboxSelectMultiple,
-        label='Grupos'
+        empty_label='Sem grupo',
+        widget=forms.Select(attrs={
+            'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent'
+        }),
+        label='Grupo'
     )
     
     class Meta:
@@ -83,25 +86,29 @@ class UserCreationForm(forms.ModelForm):
     
     def save(self, commit=True):
         user = super().save(commit=False)
-        # Set default password to "123"
         user.set_password('123')
-        # Force password change on first login
         user.must_change_password = True
         if commit:
             user.save()
-            # Save many-to-many relationships
-            self.save_m2m()
+            group = self.cleaned_data.get('groups')
+            if group:
+                user.groups.set([group])
+            else:
+                user.groups.clear()
         return user
 
 
 class UserUpdateForm(forms.ModelForm):
     """Form for updating existing users."""
     
-    groups = forms.ModelMultipleChoiceField(
+    groups = forms.ModelChoiceField(
         queryset=None,
         required=False,
-        widget=forms.CheckboxSelectMultiple,
-        label='Grupos'
+        empty_label='Sem grupo',
+        widget=forms.Select(attrs={
+            'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent'
+        }),
+        label='Grupo'
     )
     
     new_password = forms.CharField(
@@ -155,7 +162,7 @@ class UserUpdateForm(forms.ModelForm):
         from django.contrib.auth.models import Group
         self.fields['groups'].queryset = Group.objects.all()
         if self.instance and self.instance.pk:
-            self.fields['groups'].initial = self.instance.groups.all()
+            self.fields['groups'].initial = self.instance.groups.first()
     
     def clean(self):
         cleaned_data = super().clean()
@@ -186,7 +193,11 @@ class UserUpdateForm(forms.ModelForm):
         
         if commit:
             user.save()
-            self.save_m2m()
+            group = self.cleaned_data.get('groups')
+            if group:
+                user.groups.set([group])
+            else:
+                user.groups.clear()
         return user
 
 

@@ -91,7 +91,7 @@ class ProjectSearchForm(forms.Form):
     search = forms.CharField(
         required=False,
         widget=forms.TextInput(attrs={
-            'class': 'px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent',
+            'class': 'w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent',
             'placeholder': 'Buscar projetos...'
         })
     )
@@ -100,7 +100,7 @@ class ProjectSearchForm(forms.Form):
         required=False,
         choices=[('', 'Todos os status')] + Project.STATUS_CHOICES,
         widget=forms.Select(attrs={
-            'class': 'px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent'
+            'class': 'w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent'
         })
     )
 
@@ -108,7 +108,7 @@ class ProjectSearchForm(forms.Form):
         required=False,
         choices=[],
         widget=forms.Select(attrs={
-            'class': 'px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent'
+            'class': 'w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent'
         })
     )
 

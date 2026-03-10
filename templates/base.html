@@ -18,6 +18,7 @@
     <!-- Custom Tailwind Config -->
     <script>
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
                     fontFamily: {
@@ -27,6 +28,50 @@
             }
         }
     </script>
+
+    <!-- Dark mode: apply preference before page renders to avoid flash -->
+    <script>
+        if (localStorage.getItem('darkMode') === 'enabled') {
+            document.documentElement.classList.add('dark');
+        }
+    </script>
+
+    <!-- Dark mode global CSS overrides -->
+    <style>
+        html.dark body { background-color: #111827; color: #f9fafb; }
+        html.dark .bg-white { background-color: #1f2937 !important; }
+        html.dark .bg-gray-50 { background-color: #111827 !important; }
+        html.dark .bg-gray-100 { background-color: #0f172a !important; }
+        html.dark .text-gray-900 { color: #f9fafb !important; }
+        html.dark .text-gray-800 { color: #f3f4f6 !important; }
+        html.dark .text-gray-700 { color: #e5e7eb !important; }
+        html.dark .text-gray-600 { color: #d1d5db !important; }
+        html.dark .text-gray-500 { color: #9ca3af !important; }
+        html.dark .text-gray-400 { color: #6b7280 !important; }
+        html.dark .border-gray-200 { border-color: #374151 !important; }
+        html.dark .border-gray-300 { border-color: #4b5563 !important; }
+        html.dark .divide-gray-200 > :not([hidden]) ~ :not([hidden]) { border-color: #374151; }
+        html.dark .hover\:bg-gray-50:hover { background-color: #374151 !important; }
+        html.dark .hover\:bg-gray-100:hover { background-color: #374151 !important; }
+        html.dark input:not([type="submit"]):not([type="button"]):not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+        html.dark select,
+        html.dark textarea {
+            background-color: #374151 !important;
+            border-color: #4b5563 !important;
+            color: #f9fafb !important;
+        }
+        html.dark aside nav a:not([class*="bg-black"]) { color: #d1d5db !important; }
+        html.dark aside nav a:not([class*="bg-black"]):hover { background-color: #374151 !important; color: #ffffff !important; }
+        html.dark .bg-green-100 { background-color: #064e3b !important; }
+        html.dark .text-green-800 { color: #6ee7b7 !important; }
+        html.dark .bg-red-100 { background-color: #7f1d1d !important; }
+        html.dark .text-red-800 { color: #fca5a5 !important; }
+        html.dark .bg-blue-100 { background-color: #374151 !important; }
+        html.dark .text-blue-100 { color: #f3f4f6 !important; }
+        html.dark .text-blue-800 { color: #e5e7eb !important; }
+        html.dark .bg-yellow-100 { background-color: #713f12 !important; }
+        html.dark .text-yellow-800 { color: #fde68a !important; }
+    </style>
 
 
     <!-- Custom JS -->
@@ -39,12 +84,16 @@
     {% if user.is_authenticated %}
     <!-- Layout with Sidebar -->
     <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar overlay (mobile only) -->
+        <div id="sidebar-overlay" class="fixed inset-0 bg-black/50 z-40 hidden md:hidden" onclick="closeSidebar()"></div>
+
         <!-- Sidebar -->
-        <aside class="w-64 bg-white border-r border-gray-200 flex-shrink-0">
+        <aside id="main-sidebar" class="fixed md:relative inset-y-0 left-0 w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex-shrink-0 z-50 -translate-x-full md:translate-x-0 transition-transform duration-300">
             <div class="flex flex-col h-full">
                 <!-- Logo -->
                 <div class="p-6 border-b border-gray-200 flex items-center justify-center">
-                    <img src="{% static 'assets/logo.png' %}" alt="Gestão de Eventos" class="h-16 w-auto">
+                    <img src="{% static 'assets/logo_black.png' %}" alt="Gestão de Eventos" class="h-16 w-auto dark:hidden">
+                    <img src="{% static 'assets/logo_white.png' %}" alt="Gestão de Eventos" class="h-16 w-auto hidden dark:block">
                 </div>
 
                 <!-- Navigation -->
@@ -57,17 +106,6 @@
                         </svg>
                         Dashboard
                     </a>
-
-                    {% if user.is_financial %}
-                    <a href="{% url 'dashboard:financial' %}"
-                        class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 {% if request.resolver_match.url_name == 'financial' %}bg-black text-white{% else %}text-gray-700 hover:bg-gray-100 hover:text-black{% endif %}">
-                        <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        Dashboard Financeiro
-                    </a>
-                    {% endif %}
 
                     <a href="{% url 'events:list' %}"
                         class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 {% if request.resolver_match.namespace == 'events' %}bg-black text-white{% else %}text-gray-700 hover:bg-gray-100 hover:text-black{% endif %}">
@@ -114,6 +152,7 @@
                         Ordens de Serviço
                     </a>
 
+                    {% if user.is_superuser or user.is_admin or user.is_financial %}
                     <a href="{% url 'technical_visits:list' %}"
                         class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 {% if request.resolver_match.namespace == 'technical_visits' %}bg-black text-white{% else %}text-gray-700 hover:bg-gray-100 hover:text-black{% endif %}">
                         <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -122,7 +161,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                         </svg>
-                        Visitas Técnicas
+                        Levantamentos de Informações
                     </a>
 
                     <a href="{% url 'contractors:list' %}"
@@ -134,7 +173,6 @@
                         Empreiteiras
                     </a>
 
-                    {% if user.is_staff %}
                     <a href="{% url 'logistics:config' %}"
                         class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 {% if request.resolver_match.namespace == 'logistics' %}bg-black text-white{% else %}text-gray-700 hover:bg-gray-100 hover:text-black{% endif %}">
                         <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -143,6 +181,9 @@
                         </svg>
                         Logística e Frete
                     </a>
+                    {% endif %}
+
+                    {% if user.is_superuser %}
                     <a href="{% url 'accounts:user-list' %}"
                         class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 {% if request.resolver_match.namespace == 'accounts' %}bg-black text-white{% else %}text-gray-700 hover:bg-gray-100 hover:text-black{% endif %}">
                         <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -154,8 +195,8 @@
                     {% endif %}
                 </nav>
 
-                <!-- User Info -->
-                <div class="p-4 border-t border-gray-200">
+        <!-- User Info -->
+                <div class="p-4 border-t border-gray-200 dark:border-gray-700">
                     <div class="flex items-center">
                         <div class="flex-shrink-0">
                             <div
@@ -167,7 +208,22 @@
                             <p class="text-sm font-medium text-gray-900 truncate">{{ user.get_full_name|default:user.email }}</p>
                             <p class="text-xs text-gray-500 truncate">{{ user.email }}</p>
                         </div>
-                        <div class="flex-shrink-0">
+                        <div class="flex-shrink-0 flex items-center gap-1">
+                            <!-- Dark mode toggle -->
+                            <button onclick="toggleDarkMode()" id="darkModeToggle"
+                                class="text-gray-400 hover:text-gray-600 p-1"
+                                title="Alternar modo escuro/claro">
+                                <!-- Moon icon: visible in light mode -->
+                                <svg id="darkModeIconMoon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                                </svg>
+                                <!-- Sun icon: visible in dark mode -->
+                                <svg id="darkModeIconSun" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                                </svg>
+                            </button>
                             <a href="{% url 'accounts:logout' %}" class="text-gray-400 hover:text-gray-600 p-1"
                                 title="Sair">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -182,19 +238,24 @@
         </aside>
 
         <!-- Main Content -->
-        <main class="flex-1 overflow-y-auto bg-gray-50">
+        <main class="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900">
             <!-- Header -->
-            <header class="bg-white border-b border-gray-200 px-8 py-5 sticky top-0 z-10">
-                <h2 class="text-2xl font-bold text-gray-900">{% block page_title %}{% endblock %}</h2>
+            <header class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 md:px-8 py-4 md:py-5 sticky top-0 z-10 flex items-center gap-3">
+                <button id="sidebar-toggle" class="md:hidden flex-shrink-0 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" onclick="toggleSidebar()" aria-label="Menu">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                </button>
+                <h2 class="text-xl md:text-2xl font-bold text-gray-900 dark:text-white flex-1 min-w-0 truncate">{% block page_title %}{% endblock %}</h2>
             </header>
 
             <!-- Content -->
-            <div class="p-8">
+            <div class="p-4 md:p-8">
                 {% if messages %}
                 <div class="mb-6 space-y-2">
                     {% for message in messages %}
                     <div
-                        class="px-4 py-3 rounded-lg {% if message.tags == 'error' %}bg-red-50 text-red-800 border border-red-200{% elif message.tags == 'success' %}bg-green-50 text-green-800 border border-green-200{% else %}bg-blue-50 text-blue-800 border border-blue-200{% endif %}">
+                        class="px-4 py-3 rounded-lg {% if message.tags == 'error' %}bg-red-50 dark:bg-red-900/30 text-red-800 dark:text-red-300 border border-red-200 dark:border-red-700{% elif message.tags == 'success' %}bg-green-50 dark:bg-green-900/30 text-green-800 dark:text-green-300 border border-green-200 dark:border-green-700{% else %}bg-blue-50 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-700{% endif %}">
                         {{ message }}
                     </div>
                     {% endfor %}
@@ -214,6 +275,52 @@
     {% include 'components/loading_overlay.html' %}
 
     {% block extra_js %}{% endblock %}
+
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('main-sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            const isOpen = !sidebar.classList.contains('-translate-x-full');
+            if (isOpen) {
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
+            } else {
+                sidebar.classList.remove('-translate-x-full');
+                overlay.classList.remove('hidden');
+            }
+        }
+
+        function closeSidebar() {
+            const sidebar = document.getElementById('main-sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            sidebar.classList.add('-translate-x-full');
+            overlay.classList.add('hidden');
+        }
+
+        // Close sidebar on resize to desktop
+        window.addEventListener('resize', function () {
+            if (window.innerWidth >= 768) closeSidebar();
+        });
+
+        function toggleDarkMode() {
+            const html = document.documentElement;
+            const isDark = html.classList.toggle('dark');
+            localStorage.setItem('darkMode', isDark ? 'enabled' : 'disabled');
+            syncDarkModeIcons();
+        }
+
+        function syncDarkModeIcons() {
+            const isDark = document.documentElement.classList.contains('dark');
+            const moon = document.getElementById('darkModeIconMoon');
+            const sun = document.getElementById('darkModeIconSun');
+            if (moon && sun) {
+                moon.classList.toggle('hidden', isDark);
+                sun.classList.toggle('hidden', !isDark);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', syncDarkModeIcons);
+    </script>
 </body>
 
 </html>

@@ -379,8 +379,8 @@
             <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;" class="os-header-flex">
                 <div>
                     <div class="os-header-title">Ordem de Serviços</div>
-                    <div><strong>Data Proposta:</strong> {{ budget.created_at|date:"d/m/Y" }}</div>
-                    <div style="margin-top:2px;"><strong>Proposta nº</strong> {{ budget.id|stringformat:"05d" }}</div>
+                    <div><strong>Data Orçamento:</strong> {{ budget.created_at|date:"d/m/Y" }}</div>
+                    <div style="margin-top:2px;"><strong>Orçamento nº</strong> {{ budget.id|stringformat:"05d" }}</div>
                 </div>
                 <div style="text-align:center;flex:1; padding: 2rem 7rem 2rem 0;">
                     <img src="{% static 'assets/logo.png' %}" alt="Código Eventos"
