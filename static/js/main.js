@@ -57,15 +57,26 @@ function fetchProposalTotals() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Populate month select dynamically
+    const monthFilter = document.getElementById('proposal-month-filter');
+    if (monthFilter) {
+        const months = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho',
+                        'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+        const currentMonth = new Date().getMonth() + 1; // 1-12
+        months.forEach((name, i) => {
+            const opt = new Option(name, i + 1, false, i + 1 === currentMonth);
+            monthFilter.appendChild(opt);
+        });
+        monthFilter.addEventListener('change', fetchProposalTotals);
+    }
+
     // Format initial values rendered by Django with BRL notation
     document.querySelectorAll('.proposal-value[data-raw]').forEach(el => {
         const raw = parseFloat(el.dataset.raw);
         if (!isNaN(raw)) setProposalValue(el, raw);
     });
 
-    // Wire up filter dropdowns
-    const monthFilter = document.getElementById('proposal-month-filter');
+    // Wire up year filter dropdown
     const yearFilter = document.getElementById('proposal-year-filter');
-    if (monthFilter) monthFilter.addEventListener('change', fetchProposalTotals);
     if (yearFilter) yearFilter.addEventListener('change', fetchProposalTotals);
 });

@@ -64,7 +64,6 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         now = timezone.now()
         current_month = now.month
         current_year = now.year
-        context['proposal_filter_month'] = current_month
         context['proposal_filter_year'] = current_year
         context['proposal_filter_years'] = list(range(current_year - 4, current_year + 1))
         context['proposal_approved_total'] = self._proposal_total('approved', current_month, current_year)

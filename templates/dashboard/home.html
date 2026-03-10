@@ -157,22 +157,10 @@
      id="proposal-totals-card"
      data-url="{% url 'dashboard:proposal_totals' %}">
     <div class="px-6 py-4 border-b border-gray-200 flex flex-wrap items-center justify-between gap-4">
-        <h3 class="text-lg font-semibold text-gray-900">Resumo de Propostas</h3>
+        <h3 class="text-lg font-semibold text-gray-900">Resumo de Projetos</h3>
         <div class="flex items-center gap-3">
             <select id="proposal-month-filter"
                     class="text-sm border border-gray-300 rounded-lg px-3 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent">
-                <option value="1"  {% if proposal_filter_month == 1  %}selected{% endif %}>Janeiro</option>
-                <option value="2"  {% if proposal_filter_month == 2  %}selected{% endif %}>Fevereiro</option>
-                <option value="3"  {% if proposal_filter_month == 3  %}selected{% endif %}>Março</option>
-                <option value="4"  {% if proposal_filter_month == 4  %}selected{% endif %}>Abril</option>
-                <option value="5"  {% if proposal_filter_month == 5  %}selected{% endif %}>Maio</option>
-                <option value="6"  {% if proposal_filter_month == 6  %}selected{% endif %}>Junho</option>
-                <option value="7"  {% if proposal_filter_month == 7  %}selected{% endif %}>Julho</option>
-                <option value="8"  {% if proposal_filter_month == 8  %}selected{% endif %}>Agosto</option>
-                <option value="9"  {% if proposal_filter_month == 9  %}selected{% endif %}>Setembro</option>
-                <option value="10" {% if proposal_filter_month == 10 %}selected{% endif %}>Outubro</option>
-                <option value="11" {% if proposal_filter_month == 11 %}selected{% endif %}>Novembro</option>
-                <option value="12" {% if proposal_filter_month == 12 %}selected{% endif %}>Dezembro</option>
             </select>
             <select id="proposal-year-filter"
                     class="text-sm border border-gray-300 rounded-lg px-3 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent">
