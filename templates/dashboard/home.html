@@ -27,7 +27,7 @@
         <div class="flex items-center justify-between">
             <div>
                 <p class="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Projetos Pendentes</p>
-                <p class="text-3xl font-bold text-black dark:text-white">{{ pending_proposals }}</p>
+                <p class="text-3xl font-bold text-black dark:text-white">{{ pending_projects }}</p>
             </div>
             <div class="p-3 bg-yellow-500 rounded-lg">
                 <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -152,20 +152,20 @@
     </div>
 </div>
 
-<!-- Proposal Totals Card -->
+<!-- Budget Totals Card -->
 <div class="mt-6 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700"
-     id="proposal-totals-card"
-     data-url="{% url 'dashboard:proposal_totals' %}">
+     id="budget-totals-card"
+     data-url="{% url 'dashboard:project_totals' %}">
     <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex flex-wrap items-center justify-between gap-4">
         <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Resumo de Projetos</h3>
         <div class="flex items-center gap-3">
-            <select id="proposal-month-filter"
+            <select id="budget-month-filter"
                     class="text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-gray-700 dark:text-gray-200 dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-gray-400 focus:border-transparent">
             </select>
-            <select id="proposal-year-filter"
+            <select id="budget-year-filter"
                     class="text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-gray-700 dark:text-gray-200 dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-gray-400 focus:border-transparent">
-                {% for year in proposal_filter_years %}
-                <option value="{{ year }}" {% if year == proposal_filter_year %}selected{% endif %}>{{ year }}</option>
+                {% for year in budget_filter_years %}
+                <option value="{{ year }}" {% if year == budget_filter_year %}selected{% endif %}>{{ year }}</option>
                 {% endfor %}
             </select>
         </div>
@@ -183,10 +183,10 @@
                         </svg>
                     </div>
                 </div>
-                <p class="text-2xl font-bold text-green-800 dark:text-green-300 proposal-value"
-                   id="proposal-approved-total"
-                   data-raw="{{ proposal_approved_total }}">
-                    R$ {{ proposal_approved_total|floatformat:2 }}
+                <p class="text-2xl font-bold text-green-800 dark:text-green-300 budget-value"
+                   id="budget-approved-total"
+                   data-raw="{{ budget_approved_total }}">
+                    R$ {{ budget_approved_total|floatformat:2 }}
                 </p>
             </div>
 
@@ -201,10 +201,10 @@
                         </svg>
                     </div>
                 </div>
-                <p class="text-2xl font-bold text-yellow-800 dark:text-yellow-300 proposal-value"
-                   id="proposal-sent-total"
-                   data-raw="{{ proposal_sent_total }}">
-                    R$ {{ proposal_sent_total|floatformat:2 }}
+                <p class="text-2xl font-bold text-yellow-800 dark:text-yellow-300 budget-value"
+                   id="budget-sent-total"
+                   data-raw="{{ budget_sent_total }}">
+                    R$ {{ budget_sent_total|floatformat:2 }}
                 </p>
             </div>
 
@@ -219,10 +219,10 @@
                         </svg>
                     </div>
                 </div>
-                <p class="text-2xl font-bold text-red-800 dark:text-red-300 proposal-value"
-                   id="proposal-rejected-total"
-                   data-raw="{{ proposal_rejected_total }}">
-                    R$ {{ proposal_rejected_total|floatformat:2 }}
+                <p class="text-2xl font-bold text-red-800 dark:text-red-300 budget-value"
+                   id="budget-rejected-total"
+                   data-raw="{{ budget_rejected_total }}">
+                    R$ {{ budget_rejected_total|floatformat:2 }}
                 </p>
             </div>
         </div>

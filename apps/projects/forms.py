@@ -15,7 +15,7 @@ class ProjectForm(forms.ModelForm):
 
     class Meta:
         model = Project
-        fields = ['event', 'title', 'description', 'status', 'contractor', 'original_document']
+        fields = ['event', 'title', 'description', 'status', 'contractor', 'contractor_spend', 'original_document']
         widgets = {
             'event': forms.Select(attrs={'class': CSS_INPUT}),
             'title': forms.TextInput(attrs={
@@ -29,6 +29,12 @@ class ProjectForm(forms.ModelForm):
             }),
             'status': forms.Select(attrs={'class': CSS_INPUT}),
             'contractor': forms.Select(attrs={'class': CSS_INPUT}),
+            'contractor_spend': forms.NumberInput(attrs={
+                'class': CSS_INPUT,
+                'placeholder': '0,00',
+                'step': '0.01',
+                'min': '0',
+            }),
             'original_document': forms.FileInput(attrs={'class': CSS_FILE}),
         }
         labels = {
@@ -37,6 +43,7 @@ class ProjectForm(forms.ModelForm):
             'description': 'Descrição',
             'status': 'Status',
             'contractor': 'Empreiteira Responsável',
+            'contractor_spend': 'Valor Gasto com Empreiteira (R$)',
             'original_document': 'Documento Original',
         }
 

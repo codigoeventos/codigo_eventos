@@ -29,7 +29,7 @@ class BudgetForm(forms.ModelForm):
             }),
         }
         labels = {
-            'proposal': 'Proposta',
+            'proposal': 'Projeto',
             'name': 'Nome',
             'status': 'Status',
             'include_fiscal_charges': 'Incluir Encargos Fiscais (17%)',
@@ -154,7 +154,7 @@ class BudgetSearchForm(forms.Form):
     proposal = forms.ModelChoiceField(
         queryset=None,
         required=False,
-        empty_label='Todas as propostas',
+        empty_label='Todos os projetos',
         widget=forms.Select(attrs={
             'class': 'w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent'
         })
