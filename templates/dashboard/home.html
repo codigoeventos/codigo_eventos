@@ -151,4 +151,93 @@
         </div>
     </div>
 </div>
+
+<!-- Proposal Totals Card -->
+<div class="mt-6 bg-white rounded-lg shadow-sm border border-gray-200"
+     id="proposal-totals-card"
+     data-url="{% url 'dashboard:proposal_totals' %}">
+    <div class="px-6 py-4 border-b border-gray-200 flex flex-wrap items-center justify-between gap-4">
+        <h3 class="text-lg font-semibold text-gray-900">Resumo de Propostas</h3>
+        <div class="flex items-center gap-3">
+            <select id="proposal-month-filter"
+                    class="text-sm border border-gray-300 rounded-lg px-3 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent">
+                <option value="1"  {% if proposal_filter_month == 1  %}selected{% endif %}>Janeiro</option>
+                <option value="2"  {% if proposal_filter_month == 2  %}selected{% endif %}>Fevereiro</option>
+                <option value="3"  {% if proposal_filter_month == 3  %}selected{% endif %}>Março</option>
+                <option value="4"  {% if proposal_filter_month == 4  %}selected{% endif %}>Abril</option>
+                <option value="5"  {% if proposal_filter_month == 5  %}selected{% endif %}>Maio</option>
+                <option value="6"  {% if proposal_filter_month == 6  %}selected{% endif %}>Junho</option>
+                <option value="7"  {% if proposal_filter_month == 7  %}selected{% endif %}>Julho</option>
+                <option value="8"  {% if proposal_filter_month == 8  %}selected{% endif %}>Agosto</option>
+                <option value="9"  {% if proposal_filter_month == 9  %}selected{% endif %}>Setembro</option>
+                <option value="10" {% if proposal_filter_month == 10 %}selected{% endif %}>Outubro</option>
+                <option value="11" {% if proposal_filter_month == 11 %}selected{% endif %}>Novembro</option>
+                <option value="12" {% if proposal_filter_month == 12 %}selected{% endif %}>Dezembro</option>
+            </select>
+            <select id="proposal-year-filter"
+                    class="text-sm border border-gray-300 rounded-lg px-3 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent">
+                {% for year in proposal_filter_years %}
+                <option value="{{ year }}" {% if year == proposal_filter_year %}selected{% endif %}>{{ year }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+    <div class="p-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Fechadas (Approved) -->
+            <div class="p-5 bg-green-50 rounded-lg border border-green-200">
+                <div class="flex items-center justify-between mb-3">
+                    <p class="text-sm font-medium text-green-700">Fechadas</p>
+                    <div class="p-2 bg-green-500 rounded-lg">
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                </div>
+                <p class="text-2xl font-bold text-green-800 proposal-value"
+                   id="proposal-approved-total"
+                   data-raw="{{ proposal_approved_total }}">
+                    R$ {{ proposal_approved_total|floatformat:2 }}
+                </p>
+            </div>
+
+            <!-- Pendentes de Aprovação (Sent) -->
+            <div class="p-5 bg-yellow-50 rounded-lg border border-yellow-200">
+                <div class="flex items-center justify-between mb-3">
+                    <p class="text-sm font-medium text-yellow-700">Pendentes de Aprovação</p>
+                    <div class="p-2 bg-yellow-500 rounded-lg">
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                </div>
+                <p class="text-2xl font-bold text-yellow-800 proposal-value"
+                   id="proposal-sent-total"
+                   data-raw="{{ proposal_sent_total }}">
+                    R$ {{ proposal_sent_total|floatformat:2 }}
+                </p>
+            </div>
+
+            <!-- Rejeitadas (Rejected) -->
+            <div class="p-5 bg-red-50 rounded-lg border border-red-200">
+                <div class="flex items-center justify-between mb-3">
+                    <p class="text-sm font-medium text-red-700">Rejeitadas</p>
+                    <div class="p-2 bg-red-500 rounded-lg">
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                </div>
+                <p class="text-2xl font-bold text-red-800 proposal-value"
+                   id="proposal-rejected-total"
+                   data-raw="{{ proposal_rejected_total }}">
+                    R$ {{ proposal_rejected_total|floatformat:2 }}
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
