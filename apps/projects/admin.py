@@ -23,6 +23,9 @@ class ProjectAdmin(SimpleHistoryAdmin):
         ('Status', {
             'fields': ('status',)
         }),
+        ('Empreiteira', {
+            'fields': ('contractor', 'contractor_spend')
+        }),
         ('Documento', {
             'fields': ('original_document',)
         }),

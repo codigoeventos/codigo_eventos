@@ -69,6 +69,15 @@ class Project(BaseModel):
         default='in_development'
     )
 
+    contractor_spend = models.DecimalField(
+        'Valor Gasto com Empreiteira',
+        max_digits=12,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text='Valor total gasto com a empreiteira neste projeto'
+    )
+
     original_document = models.FileField(
         'Documento Original',
         upload_to=project_upload_path,
@@ -93,6 +102,12 @@ class Project(BaseModel):
         return self.budgets.aggregate(
             total=Sum('items__total_price')
         )['total'] or 0
+
+    @property
+    def profit(self):
+        """Calculate profit as total value minus contractor spend."""
+        spend = self.contractor_spend or 0
+        return self.total_value - spend
 
 
 class ProjectFile(models.Model):

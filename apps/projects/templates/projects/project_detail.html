@@ -74,6 +74,20 @@
                     <dd class="mt-1 text-sm text-gray-900">R$ {{ project.total_value|floatformat:2 }}</dd>
                 </div>
 
+                {% if project.contractor_spend is not None %}
+                <div>
+                    <dt class="text-sm font-medium text-gray-500">Valor Gasto c/ Empreiteira</dt>
+                    <dd class="mt-1 text-sm text-gray-900">R$ {{ project.contractor_spend|floatformat:2 }}</dd>
+                </div>
+
+                <div>
+                    <dt class="text-sm font-medium text-gray-500">Lucro</dt>
+                    <dd class="mt-1 text-sm font-semibold {% if project.profit >= 0 %}text-green-700{% else %}text-red-700{% endif %}">
+                        R$ {{ project.profit|floatformat:2 }}
+                    </dd>
+                </div>
+                {% endif %}
+
                 {% if project.contractor %}
                 <div class="md:col-span-2">
                     <dt class="text-sm font-medium text-gray-500">Empreiteira Responsável</dt>

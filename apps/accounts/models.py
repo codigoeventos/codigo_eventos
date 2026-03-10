@@ -121,3 +121,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     def get_short_name(self):
         """Return the user's first name."""
         return self.first_name
+
+    @property
+    def is_financial(self):
+        """Check if the user belongs to the Financeiro group."""
+        return self.is_superuser or self.groups.filter(name='Financeiro').exists()
