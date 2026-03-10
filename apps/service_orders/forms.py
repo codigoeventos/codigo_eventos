@@ -81,8 +81,8 @@ class ServiceOrderSearchForm(forms.Form):
     search = forms.CharField(
         required=False,
         widget=forms.TextInput(attrs={
-            'class': 'px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent',
-            'placeholder': 'Buscar ordens de serviço...'
+            'class': 'w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent',
+            'placeholder': 'Buscar OS...'
         })
     )
     
@@ -90,7 +90,7 @@ class ServiceOrderSearchForm(forms.Form):
         required=False,
         choices=[('', 'Todos os status')] + ServiceOrder.STATUS_CHOICES,
         widget=forms.Select(attrs={
-            'class': 'px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent'
+            'class': 'w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent'
         })
     )
     
@@ -99,7 +99,7 @@ class ServiceOrderSearchForm(forms.Form):
         required=False,
         empty_label='Todos os eventos',
         widget=forms.Select(attrs={
-            'class': 'px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent'
+            'class': 'w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent'
         })
     )
     
@@ -107,7 +107,7 @@ class ServiceOrderSearchForm(forms.Form):
         required=False,
         widget=forms.DateInput(attrs={
             'type': 'date',
-            'class': 'px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent',
+            'class': 'w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent',
         }),
         label='De'
     )
@@ -116,7 +116,7 @@ class ServiceOrderSearchForm(forms.Form):
         required=False,
         widget=forms.DateInput(attrs={
             'type': 'date',
-            'class': 'px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent',
+            'class': 'w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent',
         }),
         label='Até'
     )

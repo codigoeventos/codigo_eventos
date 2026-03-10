@@ -8,41 +8,133 @@
 {% include 'components/breadcrumbs.html' %}
 
 <!-- Header Actions -->
-<div class="mb-6">
-    <div class="flex justify-between items-start gap-4">
-        <form method="get" class="flex flex-wrap gap-2 items-center flex-1">
-            {{ search_form.search }}
-            {{ search_form.status }}
-            {{ search_form.event }}
-            <div class="flex items-center gap-1">
-                <span class="text-xs text-gray-500 whitespace-nowrap">De:</span>
-                {{ search_form.date_from }}
-            </div>
-            <div class="flex items-center gap-1">
-                <span class="text-xs text-gray-500 whitespace-nowrap">Até:</span>
-                {{ search_form.date_to }}
-            </div>
-            <button type="submit"
-                class="px-6 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-all duration-200">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-            </button>
-        </form>
+<div class="flex items-center gap-2 mb-6">
+    <form method="get" id="os-search-form" class="flex items-center gap-2 flex-1 min-w-0">
+        <!-- Campos de filtro ocultos para serem submetidos junto -->
+        <input type="hidden" name="status" id="hidden-status" value="{{ request.GET.status }}">
+        <input type="hidden" name="event" id="hidden-event" value="{{ request.GET.event }}">
+        <input type="hidden" name="date_from" id="hidden-date-from" value="{{ request.GET.date_from }}">
+        <input type="hidden" name="date_to" id="hidden-date-to" value="{{ request.GET.date_to }}">
 
-        <a href="{% url 'service_orders:create' %}"
-            class="px-6 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-all duration-200 flex items-center whitespace-nowrap">
-            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        <!-- Barra de pesquisa -->
+        <div class="relative flex-1 min-w-0">
+            {{ search_form.search }}
+        </div>
+
+        <!-- Botão pesquisar -->
+        <button type="submit"
+            class="flex-shrink-0 px-4 py-2 bg-black dark:bg-gray-700 text-white rounded-lg hover:bg-gray-800 dark:hover:bg-gray-600 transition-all duration-200">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
-            Nova Ordem de Serviço
-        </a>
-    </div>
+        </button>
+
+        <!-- Botão filtros -->
+        <div class="relative flex-shrink-0">
+            <button type="button" id="filter-toggle"
+                class="flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-all duration-200">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z" />
+                </svg>
+                Filtros
+                {% if request.GET.status or request.GET.event or request.GET.date_from or request.GET.date_to %}
+                <span class="inline-flex items-center justify-center w-4 h-4 text-xs font-bold text-white bg-black dark:bg-gray-500 rounded-full">
+                    {{ request.GET.status|yesno:'1,0'|add:request.GET.event|yesno:'1,0' }}
+                </span>
+                {% endif %}
+            </button>
+
+            <!-- Painel de filtros -->
+            <div id="filter-panel"
+                class="hidden absolute right-0 top-full mt-2 w-80 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50 p-4">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Status</label>
+                        {{ search_form.status }}
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Evento</label>
+                        {{ search_form.event }}
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">De</label>
+                            {{ search_form.date_from }}
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Até</label>
+                            {{ search_form.date_to }}
+                        </div>
+                    </div>
+                    <div class="flex justify-between pt-2 border-t border-gray-200 dark:border-gray-700">
+                        <a href="{% url 'service_orders:list' %}" class="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200">
+                            Limpar filtros
+                        </a>
+                        <button type="button" id="apply-filters"
+                            class="px-4 py-1.5 bg-black dark:bg-gray-600 text-white text-sm rounded-lg hover:bg-gray-800 dark:hover:bg-gray-500">
+                            Aplicar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <a href="{% url 'service_orders:create' %}"
+        class="flex-shrink-0 px-4 py-2 bg-black dark:bg-gray-700 text-white rounded-lg hover:bg-gray-800 dark:hover:bg-gray-600 transition-all duration-200 flex items-center whitespace-nowrap text-sm">
+        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg>
+        Nova OS
+    </a>
 </div>
 
+<script>
+(function () {
+    const toggle = document.getElementById('filter-toggle');
+    const panel = document.getElementById('filter-panel');
+    const applyBtn = document.getElementById('apply-filters');
+    const form = document.getElementById('os-search-form');
+
+    // Preenche os selects do painel com os valores atuais da URL
+    const params = new URLSearchParams(window.location.search);
+    const statusSelect = panel.querySelector('select[name="status"]');
+    const eventSelect = panel.querySelector('select[name="event"]');
+    const dateFrom = panel.querySelector('input[name="date_from"]');
+    const dateTo = panel.querySelector('input[name="date_to"]');
+    if (statusSelect) statusSelect.value = params.get('status') || '';
+    if (eventSelect) eventSelect.value = params.get('event') || '';
+    if (dateFrom) dateFrom.value = params.get('date_from') || '';
+    if (dateTo) dateTo.value = params.get('date_to') || '';
+
+    // Toggle do painel
+    toggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        panel.classList.toggle('hidden');
+    });
+
+    // Fechar ao clicar fora
+    document.addEventListener('click', (e) => {
+        if (!panel.contains(e.target) && e.target !== toggle) {
+            panel.classList.add('hidden');
+        }
+    });
+
+    // Aplicar: copia valores para os hidden inputs e submete
+    applyBtn.addEventListener('click', () => {
+        document.getElementById('hidden-status').value = statusSelect ? statusSelect.value : '';
+        document.getElementById('hidden-event').value = eventSelect ? eventSelect.value : '';
+        document.getElementById('hidden-date-from').value = dateFrom ? dateFrom.value : '';
+        document.getElementById('hidden-date-to').value = dateTo ? dateTo.value : '';
+        form.submit();
+    });
+})();
+</script>
+
 <!-- Service Orders Table -->
-<div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+<div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden overflow-x-auto">
     {% if service_orders %}
     <table class="min-w-full divide-y divide-gray-200">
         <thead class="bg-gray-50">

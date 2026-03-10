@@ -138,7 +138,7 @@ class BudgetSearchForm(forms.Form):
     search = forms.CharField(
         required=False,
         widget=forms.TextInput(attrs={
-            'class': 'px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent',
+            'class': 'w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent',
             'placeholder': 'Buscar orçamentos...'
         })
     )
@@ -147,7 +147,7 @@ class BudgetSearchForm(forms.Form):
         required=False,
         choices=[('', 'Todos os status')] + Budget.STATUS_CHOICES,
         widget=forms.Select(attrs={
-            'class': 'px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent'
+            'class': 'w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent'
         })
     )
     
@@ -156,7 +156,7 @@ class BudgetSearchForm(forms.Form):
         required=False,
         empty_label='Todas as propostas',
         widget=forms.Select(attrs={
-            'class': 'px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent'
+            'class': 'w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent'
         })
     )
     

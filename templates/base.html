@@ -66,8 +66,9 @@
         html.dark .text-green-800 { color: #6ee7b7 !important; }
         html.dark .bg-red-100 { background-color: #7f1d1d !important; }
         html.dark .text-red-800 { color: #fca5a5 !important; }
-        html.dark .bg-blue-100 { background-color: #1e3a5f !important; }
-        html.dark .text-blue-800 { color: #93c5fd !important; }
+        html.dark .bg-blue-100 { background-color: #374151 !important; }
+        html.dark .text-blue-100 { color: #f3f4f6 !important; }
+        html.dark .text-blue-800 { color: #e5e7eb !important; }
         html.dark .bg-yellow-100 { background-color: #713f12 !important; }
         html.dark .text-yellow-800 { color: #fde68a !important; }
     </style>
@@ -83,12 +84,16 @@
     {% if user.is_authenticated %}
     <!-- Layout with Sidebar -->
     <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar overlay (mobile only) -->
+        <div id="sidebar-overlay" class="fixed inset-0 bg-black/50 z-40 hidden md:hidden" onclick="closeSidebar()"></div>
+
         <!-- Sidebar -->
-        <aside class="w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex-shrink-0">
+        <aside id="main-sidebar" class="fixed md:relative inset-y-0 left-0 w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex-shrink-0 z-50 -translate-x-full md:translate-x-0 transition-transform duration-300">
             <div class="flex flex-col h-full">
                 <!-- Logo -->
                 <div class="p-6 border-b border-gray-200 flex items-center justify-center">
-                    <img src="{% static 'assets/logo.png' %}" alt="Gestão de Eventos" class="h-16 w-auto">
+                    <img src="{% static 'assets/logo_black.png' %}" alt="Gestão de Eventos" class="h-16 w-auto dark:hidden">
+                    <img src="{% static 'assets/logo_white.png' %}" alt="Gestão de Eventos" class="h-16 w-auto hidden dark:block">
                 </div>
 
                 <!-- Navigation -->
@@ -232,12 +237,17 @@
         <!-- Main Content -->
         <main class="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900">
             <!-- Header -->
-            <header class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-8 py-5 sticky top-0 z-10">
-                <h2 class="text-2xl font-bold text-gray-900 dark:text-white">{% block page_title %}{% endblock %}</h2>
+            <header class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 md:px-8 py-4 md:py-5 sticky top-0 z-10 flex items-center gap-3">
+                <button id="sidebar-toggle" class="md:hidden flex-shrink-0 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" onclick="toggleSidebar()" aria-label="Menu">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                </button>
+                <h2 class="text-xl md:text-2xl font-bold text-gray-900 dark:text-white flex-1 min-w-0 truncate">{% block page_title %}{% endblock %}</h2>
             </header>
 
             <!-- Content -->
-            <div class="p-8">
+            <div class="p-4 md:p-8">
                 {% if messages %}
                 <div class="mb-6 space-y-2">
                     {% for message in messages %}
@@ -264,6 +274,31 @@
     {% block extra_js %}{% endblock %}
 
     <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('main-sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            const isOpen = !sidebar.classList.contains('-translate-x-full');
+            if (isOpen) {
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
+            } else {
+                sidebar.classList.remove('-translate-x-full');
+                overlay.classList.remove('hidden');
+            }
+        }
+
+        function closeSidebar() {
+            const sidebar = document.getElementById('main-sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            sidebar.classList.add('-translate-x-full');
+            overlay.classList.add('hidden');
+        }
+
+        // Close sidebar on resize to desktop
+        window.addEventListener('resize', function () {
+            if (window.innerWidth >= 768) closeSidebar();
+        });
+
         function toggleDarkMode() {
             const html = document.documentElement;
             const isDark = html.classList.toggle('dark');
