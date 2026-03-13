@@ -53,7 +53,7 @@
         </thead>
         <tbody class="bg-white divide-y divide-gray-200">
             {% for member in team_members %}
-            <tr class="hover:bg-gray-50 transition-colors">
+            <tr class="hover:bg-gray-50 transition-colors cursor-pointer" onclick="window.location='{% url 'teams:detail' member.pk %}'">
                 <td class="px-6 py-4">
                     <div class="text-sm font-medium text-gray-900">{{ member.name }}</div>
                 </td>
@@ -63,7 +63,7 @@
                 <td class="px-6 py-4">
                     <div class="text-sm text-gray-500">{{ member.phone }}</div>
                 </td>
-                <td class="px-6 py-4 text-right text-sm font-medium space-x-2">
+                <td class="px-6 py-4 text-right text-sm font-medium space-x-2" onclick="event.stopPropagation()">
                     <a href="{% url 'teams:detail' member.pk %}" class="text-blue-600 hover:text-blue-900"
                         title="Visualizar">
                         <svg class="w-5 h-5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">

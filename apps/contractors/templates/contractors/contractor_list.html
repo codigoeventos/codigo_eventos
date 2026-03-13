@@ -35,7 +35,7 @@
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
                 {% for contractor in contractors %}
-                <tr class="hover:bg-gray-50">
+                <tr class="hover:bg-gray-50 cursor-pointer" onclick="window.location='{% url 'contractors:detail' contractor.pk %}'">
                     <td class="px-6 py-4">
                         <div class="text-sm font-medium text-gray-900">{{ contractor.name }}</div>
                         {% if contractor.phone %}
@@ -54,7 +54,7 @@
                     <td class="px-6 py-4 whitespace-nowrap">
                         <div class="text-sm text-gray-500">{{ contractor.created_at|date:"d/m/Y" }}</div>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium" onclick="event.stopPropagation()">
                         <div class="flex justify-end gap-3">
                             <a href="{% url 'contractors:detail' contractor.pk %}"
                                 class="text-blue-600 hover:text-blue-900" title="Ver detalhes">

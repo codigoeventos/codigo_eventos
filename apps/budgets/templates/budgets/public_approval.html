@@ -383,7 +383,7 @@
                     <div style="margin-top:2px;"><strong>Orçamento nº</strong> {{ budget.id|stringformat:"05d" }}</div>
                 </div>
                 <div style="text-align:center;flex:1; padding: 2rem 7rem 2rem 0;">
-                    <img src="{% static 'assets/logo.png' %}" alt="Código Eventos"
+                    <img src="{% static 'assets/logo_black.png' %}" alt="Código Eventos"
                          style="height:100px;width:auto;object-fit:contain;display:block;margin:0 auto;">
                 </div>
                 <div class="os-header-right">
@@ -605,18 +605,33 @@
                     </tr>
                     {% endif %}
 
+                    {% if budget.include_fiscal_charges %}
                     <tr class="os-total-row">
                         {% if is_editable %}<td class="no-print"></td>{% endif %}
                         <td></td>
-                        <td colspan="{% if budget.include_fiscal_charges %}4{% else %}3{% endif %}" style="text-align:right;">
+                        <td colspan="3" style="text-align:right;">
                             {% if is_editable %}TOTAL SELECIONADO{% else %}TOTAL APROVADO{% endif %}
                         </td>
-                        {% if budget.include_fiscal_charges %}<td></td>{% endif %}
+                        <td class="text-right" id="subtotal-value" style="opacity:.8;font-size:11px;">R$ 0,00</td>
+                        <td class="text-right" id="fiscal-charges-value" style="opacity:.8;font-size:11px;">R$ 0,00</td>
                         <td class="text-right" style="font-size:14px;" id="total-value">
                             {% if is_editable %}R$ {{ budget.total_value|floatformat:2 }}{% else %}R$ {{ budget.approved_value|floatformat:2 }}{% endif %}
                         </td>
                         {% if not is_editable %}<td></td>{% endif %}
                     </tr>
+                    {% else %}
+                    <tr class="os-total-row">
+                        {% if is_editable %}<td class="no-print"></td>{% endif %}
+                        <td></td>
+                        <td colspan="3" style="text-align:right;">
+                            {% if is_editable %}TOTAL SELECIONADO{% else %}TOTAL APROVADO{% endif %}
+                        </td>
+                        <td class="text-right" style="font-size:14px;" id="total-value">
+                            {% if is_editable %}R$ {{ budget.total_value|floatformat:2 }}{% else %}R$ {{ budget.approved_value|floatformat:2 }}{% endif %}
+                        </td>
+                        {% if not is_editable %}<td></td>{% endif %}
+                    </tr>
+                    {% endif %}
                 </tfoot>
             </table>
 
@@ -722,12 +737,13 @@
         const freightCost = {{ budget.freight_cost|default:0 }};
 
         function updateTotal() {
-            let total = 0;
+            let subtotal = 0;
             document.querySelectorAll('.item-checkbox:checked').forEach(cb => {
-                total += (parseFloat(cb.dataset.price) || 0) * FISCAL_MULT;
+                subtotal += (parseFloat(cb.dataset.price) || 0);
             });
             const freightCb = document.getElementById('freight-checkbox');
             const freightRow = document.getElementById('freight-row');
+            let total = subtotal * FISCAL_MULT;
             if (freightCb) {
                 if (freightCb.checked) {
                     total += freightCost;
@@ -736,23 +752,27 @@
                     if (freightRow) freightRow.style.opacity = '0.35';
                 }
             }
-            const fmtVal = fmt(total);
             const el = document.getElementById('total-value');
             const bar = document.getElementById('total-bar');
-            if (el) el.textContent = fmtVal;
-            if (bar) bar.textContent = fmtVal;
+            const subtotalEl = document.getElementById('subtotal-value');
+            const fiscalEl = document.getElementById('fiscal-charges-value');
+            if (el) el.textContent = fmt(total);
+            if (bar) bar.textContent = fmt(total);
+            if (subtotalEl) subtotalEl.textContent = fmt(subtotal);
+            if (fiscalEl) fiscalEl.textContent = fmt(subtotal * 0.17);
         }
 
         /* ── Grand total for non-editable (no checkboxes) ───────────────── */
         if (!document.querySelectorAll('.item-checkbox').length) {
-            let sum = 0;
+            let subtotalRO = 0;
             document.querySelectorAll('.item-row').forEach(row => {
                 if (row.dataset.approved === '1') {
-                    sum += (parseFloat(row.dataset.unitTotal) || 0) * FISCAL_MULT;
+                    subtotalRO += (parseFloat(row.dataset.unitTotal) || 0);
                 } else {
                     row.style.opacity = '0.35';
                 }
             });
+            let sum = subtotalRO * FISCAL_MULT;
             {% if budget.freight_included %}
             sum += freightCost;
             {% else %}
@@ -761,6 +781,10 @@
             {% endif %}
             const el = document.getElementById('total-value');
             if (el) el.textContent = fmt(sum);
+            const subtotalEl = document.getElementById('subtotal-value');
+            const fiscalEl = document.getElementById('fiscal-charges-value');
+            if (subtotalEl) subtotalEl.textContent = fmt(subtotalRO);
+            if (fiscalEl) fiscalEl.textContent = fmt(subtotalRO * 0.17);
         }
 
         /* ── Select all ─────────────────────────────────────────────────── */

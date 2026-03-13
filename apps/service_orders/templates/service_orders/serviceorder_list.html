@@ -161,7 +161,7 @@
         </thead>
         <tbody class="bg-white divide-y divide-gray-200">
             {% for service_order in service_orders %}
-            <tr class="hover:bg-gray-50 transition-colors">
+            <tr class="hover:bg-gray-50 transition-colors cursor-pointer" onclick="window.location='{% url 'service_orders:detail' service_order.pk %}'">
                 <td class="px-6 py-4">
                     <div class="text-sm font-medium text-gray-900">OS #{{ service_order.pk }}</div>
                 </td>
@@ -184,7 +184,7 @@
                         {{ service_order.get_status_display }}
                     </span>
                 </td>
-                <td class="px-6 py-4 text-right text-sm font-medium space-x-2">
+                <td class="px-6 py-4 text-right text-sm font-medium space-x-2" onclick="event.stopPropagation()">
                     <a href="{% url 'service_orders:detail' service_order.pk %}" class="text-blue-600 hover:text-blue-900"
                         title="Visualizar">
                         <svg class="w-5 h-5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">

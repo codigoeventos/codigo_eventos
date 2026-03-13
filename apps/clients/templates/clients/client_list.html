@@ -121,7 +121,7 @@
         </thead>
         <tbody class="bg-white divide-y divide-gray-200">
             {% for client in clients %}
-            <tr class="hover:bg-gray-50 transition-colors">
+            <tr class="hover:bg-gray-50 transition-colors cursor-pointer" onclick="window.location='{% url 'clients:detail' client.pk %}'">
                 <td class="px-6 py-4">
                     <div class="flex items-center">
                         <div class="h-10 w-10 flex-shrink-0">
@@ -145,7 +145,7 @@
                 <td class="px-6 py-4 text-sm text-gray-500">
                     {{ client.events.count }} evento{{ client.events.count|pluralize }}
                 </td>
-                <td class="px-6 py-4 text-right text-sm font-medium space-x-2">
+                <td class="px-6 py-4 text-right text-sm font-medium space-x-2" onclick="event.stopPropagation()">
                     <a href="{% url 'clients:detail' client.pk %}" class="text-blue-600 hover:text-blue-900"
                         title="Visualizar">
                         <svg class="w-5 h-5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
