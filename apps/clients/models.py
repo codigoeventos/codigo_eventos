@@ -29,13 +29,17 @@ class Client(BaseModel):
     document_type = models.CharField(
         'Tipo de Documento',
         max_length=4,
-        choices=DOCUMENT_TYPE_CHOICES
+        choices=DOCUMENT_TYPE_CHOICES,
+        blank=True,
+        null=True
     )
     
     document_number = models.CharField(
         'Número do Documento',
         max_length=18,
-        help_text='CPF ou CNPJ'
+        help_text='CPF ou CNPJ',
+        blank=True,
+        null=True
     )
     
     email = models.EmailField(
@@ -60,6 +64,9 @@ class Client(BaseModel):
     def clean(self):
         """Validate document number based on document type."""
         super().clean()
+        
+        if not self.document_type or not self.document_number:
+            return
         
         if self.document_type == 'cpf':
             if not validate_cpf(self.document_number):

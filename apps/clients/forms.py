@@ -43,15 +43,15 @@ class ClientForm(forms.ModelForm):
         document_number = self.cleaned_data.get('document_number')
         
         if not document_number:
-            raise forms.ValidationError('Documento é obrigatório.')
+            return document_number
         
         # Remove formatting
         document_number = ''.join(filter(str.isdigit, document_number))
         
-        if document_type == 'CPF':
+        if document_type == 'cpf':
             if not validate_cpf(document_number):
                 raise forms.ValidationError('CPF inválido.')
-        elif document_type == 'CNPJ':
+        elif document_type == 'cnpj':
             if not validate_cnpj(document_number):
                 raise forms.ValidationError('CNPJ inválido.')
         
@@ -59,6 +59,9 @@ class ClientForm(forms.ModelForm):
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        # Make document fields optional
+        self.fields['document_type'].required = False
+        self.fields['document_number'].required = False
         # Mark required fields
         for field_name, field in self.fields.items():
             if field.required:

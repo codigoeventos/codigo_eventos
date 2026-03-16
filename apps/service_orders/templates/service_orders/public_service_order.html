@@ -10,12 +10,12 @@
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         body {
             font-family: Arial, Helvetica, sans-serif;
-            font-size: 11px;
+            font-size: 15px;
             color: #000;
             background: #d4d4d4;
             line-height: 1.4;
-            zoom: 1.5;
             padding: 32px 16px;
+            min-height: 100vh;
         }
 
         /* ── Palette ──────────────────────────────── */
@@ -27,7 +27,7 @@
             --os-border: #3f3f3f;
         }
 
-        /* ── Document container ───────────────────── */
+        /* ── Document container (A4 = 794px) ──────── */
         .os-doc {
             max-width: 794px;
             margin: 0 auto;
@@ -39,17 +39,17 @@
         /* ── Header strip ─────────────────────────── */
         .os-header {
             background: var(--os-white);
-            padding: 14px 16px 10px;
+            padding: 18px 22px 14px;
             border-bottom: 2px solid var(--os-dark);
         }
         .os-header-title {
-            font-size: 16px;
+            font-size: 22px;
             font-weight: 700;
             color: var(--os-black);
         }
         .os-header-right {
             text-align: right;
-            font-size: 10px;
+            font-size: 13px;
             color: var(--os-black);
         }
         .os-header-right strong { font-weight: 700; }
@@ -58,20 +58,20 @@
         .os-section-bar {
             background: var(--os-dark);
             color: var(--os-white);
-            font-size: 9px;
+            font-size: 12px;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.1em;
-            padding: 3px 16px;
+            padding: 5px 16px;
         }
         .os-section-title {
             background: var(--os-dark);
             color: var(--os-cream);
-            font-size: 14px;
+            font-size: 18px;
             font-weight: 700;
             text-transform: uppercase;
             text-align: center;
-            padding: 6px 16px;
+            padding: 8px 16px;
         }
 
         /* ── Info grid ────────────────────────────── */
@@ -81,49 +81,55 @@
         }
         .os-info-table td {
             border: 1px solid var(--os-border);
-            padding: 3px 8px;
+            padding: 5px 10px;
             vertical-align: top;
-            font-size: 10px;
+            font-size: 13px;
         }
         .os-info-label {
             font-weight: 700;
-            font-size: 9px;
+            font-size: 12px;
             color: var(--os-black);
         }
         .os-info-value {
             font-weight: 400;
-            font-size: 10px;
+            font-size: 13px;
             color: var(--os-black);
-            min-height: 14px;
+            min-height: 18px;
         }
 
         /* ── Description line ─────────────────────── */
         .os-description {
             font-style: italic;
-            font-size: 10px;
+            font-size: 13px;
             text-align: center;
-            padding: 8px 16px;
+            padding: 10px 16px;
             color: var(--os-black);
         }
 
         /* ── Items table ──────────────────────────── */
+        .os-items-table-wrap {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
         .os-items-table {
             width: 100%;
+            min-width: 520px;
             border-collapse: collapse;
         }
         .os-items-table thead th {
             background: var(--os-white);
             border: 1px solid var(--os-border);
-            font-size: 9px;
+            font-size: 12px;
             font-weight: 700;
             text-transform: uppercase;
-            padding: 5px 8px;
+            padding: 7px 10px;
             color: var(--os-black);
         }
         .os-items-table tbody td {
             border: 1px solid #c0c0c0;
-            padding: 5px 8px;
-            font-size: 10px;
+            padding: 7px 10px;
+            font-size: 13px;
             color: var(--os-black);
             vertical-align: top;
         }
@@ -138,16 +144,16 @@
             width: 40px;
         }
         .os-items-table tbody td.os-item-name { font-weight: 600; }
-        .os-items-table tbody td.os-item-desc { color: #444; font-size: 9px; }
+        .os-items-table tbody td.os-item-desc { color: #444; font-size: 12px; }
 
         /* ── Status badge ─────────────────────────── */
         .os-badge {
             display: inline-block;
-            font-size: 9px;
+            font-size: 12px;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.05em;
-            padding: 2px 8px;
+            padding: 3px 10px;
             border: 1px solid;
         }
         .os-badge-pending    { color: var(--os-dark); border-color: var(--os-dark); background: var(--os-white); }
@@ -158,43 +164,179 @@
         /* ── Execution status badge (item) ────────── */
         .exec-badge {
             display: inline-block;
-            font-size: 7px;
+            font-size: 10px;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.04em;
-            padding: 1px 5px;
+            padding: 2px 6px;
             border: 1px solid;
         }
         .exec-pending    { color: var(--os-dark); border-color: #bbb; background: #f9f9f9; }
         .exec-in_progress{ color: #1565c0; border-color: #1565c0; background: #e3f2fd; }
         .exec-completed  { color: #2e7d32; border-color: #2e7d32; background: #e8f5e9; }
 
-        /* ── Footer ───────────────────────────────── */
-        .os-footer {
-            font-size: 8px;
-            font-weight: 700;
-            text-align: right;
-            padding: 4px 16px;
-            color: var(--os-black);
-            border-top: 1px solid var(--os-border);
+        /* ── Print bar (outside doc) ────────────────── */
+        .os-print-bar {
+            max-width: 794px;
+            margin: 0 auto;
+            padding: 12px 4px;
+            display: flex;
+            justify-content: flex-end;
         }
+        .os-btn {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 10px 20px;
+            border: 2px solid var(--os-dark);
+            cursor: pointer;
+            transition: all 0.15s;
+            background: var(--os-white);
+            color: var(--os-dark);
+        }
+        .os-btn:hover { background: var(--os-dark); color: var(--os-white); }
 
-        /* ── Utility ──────────────────────────────── */
+        /* ── Utility ─────────────────────────────── */
         .text-right  { text-align: right; }
         .text-center { text-align: center; }
         .no-print    { }
 
-        /* ── Print ────────────────────────────────── */
-        @media print {
-            .no-print { display: none !important; }
-            body { background: white !important; padding: 0; zoom: 1; }
-            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-            .os-doc { box-shadow: none !important; border: none !important; margin: 0 !important; }
+        /* ── Footer ─────────────────────────────── */
+        .os-footer {
+            font-size: 11px;
+            font-weight: 700;
+            text-align: right;
+            padding: 6px 16px;
+            color: var(--os-black);
+            border-top: 1px solid var(--os-border);
         }
 
-        /* ── Responsive ───────────────────────────── */
+        /* ── Print ───────────────────────────────── */
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white !important; padding: 0; }
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            .os-doc { box-shadow: none !important; border: none !important; margin: 0 !important; max-width: 100%; }
+            .os-items-table { min-width: unset; }
+        }
+
+        /* ── Mobile ─────────────────────────────── */
         @media (max-width: 640px) {
-            .os-header-flex { flex-direction: column !important; gap: 8px !important; }
+            body { background: #f0f0f0; padding: 0; font-size: 14px; }
+            .os-doc { border: none; box-shadow: none; }
+
+            /* Header */
+            .os-header { padding: 16px 12px 12px; }
+            .os-header-flex {
+                flex-direction: column !important;
+                align-items: center !important;
+                gap: 10px !important;
+            }
+            .os-header-logo { margin-left: 0 !important; }
+            .os-header-logo img { height: 48px !important; margin: 0 auto !important; }
+            .os-header-title { font-size: 18px; text-align: center; }
+            .os-header-flex > div[style*="text-align:right"] {
+                text-align: center !important;
+                width: 100%;
+            }
+
+            /* Action bar */
+            .os-print-bar { padding: 10px 12px; justify-content: stretch; }
+            .os-print-bar .os-btn { width: 100%; text-align: center; padding: 12px; }
+
+            /* Info table → mantém 2 colunas, só ajusta tamanho */
+            .os-info-table td {
+                padding: 5px 8px;
+                font-size: 12px;
+            }
+            .os-info-label { font-size: 11px; }
+            .os-info-value { font-size: 12px; }
+            .os-section-bar { padding: 6px 12px; font-size: 11px; }
+            .os-section-title { font-size: 14px; padding: 8px 12px; }
+            .os-description { font-size: 12px; padding: 8px 12px; }
+
+            /* Items table → cards no mobile */
+            .os-items-table-wrap { border-top: 1px solid #c0c0c0; overflow-x: unset; }
+            .os-items-table { min-width: unset !important; width: 100%; }
+            .os-items-table, .os-items-table thead, .os-items-table tbody,
+            .os-items-table th, .os-items-table td, .os-items-table tr { display: block; }
+            .os-items-table thead tr { display: none; }
+            .os-items-table tbody tr {
+                border: 1px solid #ddd;
+                border-radius: 6px;
+                margin: 8px;
+                overflow: hidden;
+                background: #fff;
+                box-shadow: 0 1px 4px rgba(0,0,0,.07);
+            }
+            .os-items-table tbody tr:nth-child(even) td { background: transparent; }
+
+            /* Card header: número do item */
+            .os-items-table tbody td.os-item-num {
+                background: var(--os-dark) !important;
+                color: var(--os-white) !important;
+                font-size: 13px;
+                font-weight: 700;
+                padding: 7px 12px;
+                border: none;
+            }
+            .os-items-table tbody td.os-item-num::before { display: none; }
+
+            /* Fields: label pequeno acima, valor abaixo */
+            .os-items-table tbody td {
+                display: flex;
+                flex-direction: column;
+                gap: 2px;
+                padding: 8px 12px;
+                font-size: 13px;
+                border: none;
+                border-bottom: 1px solid #f0f0f0;
+                min-height: unset;
+            }
+            .os-items-table tbody td:last-child { border-bottom: none; }
+            .os-items-table tbody td::before {
+                content: attr(data-label);
+                font-weight: 700;
+                font-size: 10px;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                color: #999;
+            }
+            /* Campos de 2 colunas (qtd/medida/peso/status): grid lado a lado */
+            .os-items-table tbody tr:not(.os-section-row) {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+            }
+            .os-items-table tbody tr:not(.os-section-row) td.os-item-num {
+                grid-column: 1 / -1;
+            }
+            .os-items-table tbody tr:not(.os-section-row) td.os-item-name {
+                grid-column: 1 / -1;
+            }
+            .os-items-table tbody tr:not(.os-section-row) td.os-item-desc {
+                grid-column: 1 / -1;
+                font-size: 12px;
+            }
+
+            /* Section header rows: faixa escura */
+            .os-items-table tbody tr.os-section-row {
+                display: block;
+                border-radius: 0;
+                box-shadow: none;
+                margin: 8px 0 0;
+            }
+            .os-items-table tbody tr.os-section-row td {
+                background: var(--os-dark) !important;
+                color: var(--os-cream) !important;
+                flex-direction: row;
+                padding: 7px 12px;
+                border: none;
+            }
+            .os-items-table tbody tr.os-section-row td::before { display: none; }
+
+            .os-footer { font-size: 10px; }
         }
     </style>
 </head>
@@ -205,18 +347,18 @@
 
         <!-- ── Header ─────────────────────────────────────────────────── -->
         <div class="os-header">
-            <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;" class="os-header-flex">
-                <div>
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:20px;" class="os-header-flex">
+                <!-- Logo – left, prominent -->
+                <div class="os-header-logo" style="flex-shrink:0; margin-left:1rem;">
+                    <img src="{% static 'assets/logo_black.png' %}" alt="Código Eventos"
+                         style="height:80px;width:auto;object-fit:contain;display:block;">
+                </div>
+                <!-- Title + meta – right -->
+                <div style="text-align:right;">
                     <div class="os-header-title">Ordem de Serviço</div>
-                    <div style="font-size:10px;margin-top:2px;"><strong>Data:</strong> {{ service_order.created_at|date:"d/m/Y" }}</div>
-                    <div style="font-size:10px;margin-top:2px;"><strong>OS nº</strong> {{ service_order.pk|stringformat:"05d" }}</div>
-                </div>
-                <div style="text-align:center;flex:1;padding:2rem 7rem 2rem 0;">
-                    <img src="{% static 'assets/logo.png' %}" alt="Código Eventos"
-                         style="height:100px;width:auto;object-fit:contain;display:block;margin:0 auto;">
-                </div>
-                <div class="os-header-right">
-                    <div style="margin-top:6px;">
+                    <div style="font-size:14px;margin-top:4px;"><strong>OS nº</strong> {{ service_order.pk|stringformat:"05d" }}</div>
+                    <div style="font-size:14px;margin-top:2px;"><strong>Data:</strong> {{ service_order.created_at|date:"d/m/Y" }}</div>
+                    <div style="margin-top:8px;">
                         <span class="os-badge
                             {% if service_order.status == 'completed' %}os-badge-completed
                             {% elif service_order.status == 'cancelled' %}os-badge-cancelled
@@ -232,36 +374,24 @@
         <!-- ── Client + Event info ────────────────────────────────────── -->
         <table class="os-info-table">
             <tr>
-                <td colspan="2" class="os-section-bar" style="padding:3px 16px;border:none;">DADOS CLIENTE</td>
-                <td colspan="2" class="os-section-bar" style="padding:3px 16px;border:none;">DADOS DO EVENTO</td>
+                <td class="os-section-bar" style="padding:3px 16px;border:none;">DADOS CLIENTE</td>
+                <td class="os-section-bar" style="padding:3px 16px;border:none;">DADOS DO EVENTO</td>
             </tr>
             <tr>
-                <td style="width:13%"><span class="os-info-label">Cliente:</span></td>
-                <td style="width:37%">
-                    <span class="os-info-value">{{ service_order.event.client.name|default:"—" }}</span>
-                </td>
-                <td style="width:18%"><span class="os-info-label">Evento:</span></td>
-                <td style="width:32%"><span class="os-info-value">{{ service_order.event.name|default:"—" }}</span></td>
+                <td style="width:50%"><span class="os-info-label">Cliente: </span><span class="os-info-value">{{ service_order.event.client.name|default:"—" }}</span></td>
+                <td style="width:50%"><span class="os-info-label">Evento: </span><span class="os-info-value">{{ service_order.event.name|default:"—" }}</span></td>
             </tr>
             <tr>
-                <td><span class="os-info-label">Contato:</span></td>
-                <td><span class="os-info-value">{{ service_order.event.client.contact_name|default:"—" }}</span></td>
-                <td><span class="os-info-label">Data do Evento:</span></td>
-                <td><span class="os-info-value">
-                    {% if service_order.event.event_date %}{{ service_order.event.event_date|date:"d/m/Y" }}{% else %}—{% endif %}
-                </span></td>
+                <td><span class="os-info-label">Contato: </span><span class="os-info-value">{{ service_order.event.client.contact_name|default:"—" }}</span></td>
+                <td><span class="os-info-label">Data do Evento: </span><span class="os-info-value">{% if service_order.event.event_date %}{{ service_order.event.event_date|date:"d/m/Y" }}{% else %}—{% endif %}</span></td>
             </tr>
             <tr>
-                <td><span class="os-info-label">E-mail:</span></td>
-                <td><span class="os-info-value">{{ service_order.event.client.email|default:"—" }}</span></td>
-                <td><span class="os-info-label">Local:</span></td>
-                <td><span class="os-info-value">{{ service_order.event.location|default:"—" }}</span></td>
+                <td><span class="os-info-label">E-mail: </span><span class="os-info-value">{{ service_order.event.client.email|default:"—" }}</span></td>
+                <td><span class="os-info-label">Local: </span><span class="os-info-value">{{ service_order.event.location|default:"—" }}</span></td>
             </tr>
             <tr>
-                <td><span class="os-info-label">Telefone:</span></td>
-                <td><span class="os-info-value">{{ service_order.event.client.phone|default:"—" }}</span></td>
-                <td><span class="os-info-label">Orçamento:</span></td>
-                <td><span class="os-info-value">{{ service_order.budget.name|default:"—" }}</span></td>
+                <td><span class="os-info-label">Telefone: </span><span class="os-info-value">{{ service_order.event.client.phone|default:"—" }}</span></td>
+                <td><span class="os-info-label">Orçamento: </span><span class="os-info-value">{{ service_order.budget.name|default:"—" }}</span></td>
             </tr>
         </table>
 
@@ -274,6 +404,7 @@
         <div class="os-section-title">OS #{{ service_order.pk|stringformat:"05d" }} — {{ service_order.event.name|default:"Ordem de Serviço" }}</div>
 
         <!-- ── Items table ────────────────────────────────────────────── -->
+        <div class="os-items-table-wrap">
         <table class="os-items-table">
             <thead>
                 <tr>
@@ -290,30 +421,28 @@
                 {% if sections %}
                     {% for section_name, items in sections.items %}
                     <!-- Section header row -->
-                    <tr>
+                    <tr class="os-section-row">
                         <td colspan="7"
-                            style="background:#3f3f3f;color:#eeece1;font-weight:700;font-size:10px;
-                                   text-transform:uppercase;letter-spacing:.05em;padding:6px 8px;">
+                            style="background:#3f3f3f;color:#eeece1;font-weight:700;font-size:13px;
+                                   text-transform:uppercase;letter-spacing:.05em;padding:6px 12px;">
                             {{ section_name }}
                         </td>
                     </tr>
                     {% for item in items %}
                     <tr>
-                        <td class="os-item-num">{{ forloop.counter }}</td>
-                        <td class="os-item-name">
-                            {{ item.name }}
-                        </td>
-                        <td class="os-item-desc">{{ item.description|default:"—" }}</td>
-                        <td class="text-center" style="font-weight:600;">{{ item.quantity }}</td>
-                        <td class="text-center">
+                        <td class="os-item-num" data-label="Nº">{{ forloop.counter }}</td>
+                        <td class="os-item-name" data-label="Item">{{ item.name }}</td>
+                        <td class="os-item-desc" data-label="Descritivo">{{ item.description|default:"—" }}</td>
+                        <td class="text-center" data-label="Qtd." style="font-weight:600;">{{ item.quantity }}</td>
+                        <td class="text-center" data-label="Medida">
                             {% if item.measurement %}
                                 {{ item.measurement }} {{ item.get_measurement_unit_display|default:"" }}
                             {% else %}—{% endif %}
                         </td>
-                        <td class="text-center">
+                        <td class="text-center" data-label="Peso (kg)">
                             {% if item.weight %}{{ item.weight }}{% else %}—{% endif %}
                         </td>
-                        <td class="text-center">
+                        <td class="text-center" data-label="Status">
                             <span class="exec-badge exec-{{ item.execution_status }}">
                                 {{ item.get_execution_status_display }}
                             </span>
@@ -325,29 +454,29 @@
 
                 {% if unsectioned %}
                     {% if sections %}
-                    <tr>
+                    <tr class="os-section-row">
                         <td colspan="7"
-                            style="background:#3f3f3f;color:#eeece1;font-weight:700;font-size:10px;
-                                   text-transform:uppercase;letter-spacing:.05em;padding:6px 8px;">
+                            style="background:#3f3f3f;color:#eeece1;font-weight:700;font-size:13px;
+                                   text-transform:uppercase;letter-spacing:.05em;padding:6px 12px;">
                             Outros
                         </td>
                     </tr>
                     {% endif %}
                     {% for item in unsectioned %}
                     <tr>
-                        <td class="os-item-num">{{ forloop.counter }}</td>
-                        <td class="os-item-name">{{ item.name }}</td>
-                        <td class="os-item-desc">{{ item.description|default:"—" }}</td>
-                        <td class="text-center" style="font-weight:600;">{{ item.quantity }}</td>
-                        <td class="text-center">
+                        <td class="os-item-num" data-label="Nº">{{ forloop.counter }}</td>
+                        <td class="os-item-name" data-label="Item">{{ item.name }}</td>
+                        <td class="os-item-desc" data-label="Descritivo">{{ item.description|default:"—" }}</td>
+                        <td class="text-center" data-label="Qtd." style="font-weight:600;">{{ item.quantity }}</td>
+                        <td class="text-center" data-label="Medida">
                             {% if item.measurement %}
                                 {{ item.measurement }} {{ item.get_measurement_unit_display|default:"" }}
                             {% else %}—{% endif %}
                         </td>
-                        <td class="text-center">
+                        <td class="text-center" data-label="Peso (kg)">
                             {% if item.weight %}{{ item.weight }}{% else %}—{% endif %}
                         </td>
-                        <td class="text-center">
+                        <td class="text-center" data-label="Status">
                             <span class="exec-badge exec-{{ item.execution_status }}">
                                 {{ item.get_execution_status_display }}
                             </span>
@@ -365,19 +494,11 @@
                 {% endif %}
             </tbody>
         </table>
+        </div><!-- /os-items-table-wrap -->
 
-        <!-- ── Print button ───────────────────────────────────────────── -->
-        <div style="padding:10px 16px;text-align:right;border-top:1px solid #c0c0c0;" class="no-print">
-            <button type="button" onclick="window.print()"
-                style="font-family:Arial,Helvetica,sans-serif;font-size:9px;font-weight:700;
-                       text-transform:uppercase;letter-spacing:.05em;padding:7px 16px;
-                       border:2px solid #3f3f3f;background:#fff;color:#3f3f3f;cursor:pointer;">
-                Imprimir / PDF
-            </button>
-        </div>
 
         <!-- ── Status footer ──────────────────────────────────────────── -->
-        <div style="background:var(--os-cream);padding:8px 16px;text-align:center;font-size:9px;
+        <div style="background:var(--os-cream);padding:10px 16px;text-align:center;font-size:13px;
                     font-weight:700;text-transform:uppercase;letter-spacing:0.05em;
                     color:var(--os-dark);border-top:1px solid var(--os-dark);">
             OS {{ service_order.get_status_display|upper }}
@@ -387,8 +508,8 @@
         </div>
 
         <!-- ── Observações fixas ──────────────────────────────────────── -->
-        <div style="padding:12px 16px;border-top:1px solid #c0c0c0;font-size:9px;color:#333;line-height:1.6;">
-            <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#3f3f3f;margin-bottom:6px;">Observações</div>
+        <div style="padding:14px 16px;border-top:1px solid #c0c0c0;font-size:12px;color:#333;line-height:1.6;">
+            <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#3f3f3f;margin-bottom:8px;">Observações</div>
             <p><strong>1)</strong> Este documento é de uso interno e destina-se à execução dos serviços descritos acima.</p>
             <p style="margin-top:4px;"><strong>2)</strong> Qualquer alteração deve ser comunicada à equipe responsável.</p>
         </div>
@@ -396,6 +517,13 @@
         <div class="os-footer">
             Código Eventos · Documento confidencial
         </div>
+    </div><!-- /os-doc -->
+
+    <!-- ── Print bar (outside doc) ───────────────────────────────── -->
+    <div class="os-print-bar no-print">
+        <button type="button" onclick="window.print()" class="os-btn">
+            🖨 Imprimir / Salvar PDF
+        </button>
     </div>
 
 </body>

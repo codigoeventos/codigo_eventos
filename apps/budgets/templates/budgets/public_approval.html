@@ -10,15 +10,15 @@
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         body {
             font-family: Arial, Helvetica, sans-serif;
-            font-size: 11px;
+            font-size: 15px;
             color: #000;
             background: #d4d4d4;
             line-height: 1.4;
-            zoom: 1.5;
             padding: 32px 16px;
+            min-height: 100vh;
         }
 
-        /* ── Palette (exact from PDF) ─────────────── */
+        /* ── Palette ─────────────────────────────── */
         :root {
             --os-dark:    #3f3f3f;
             --os-cream:   #eeece1;
@@ -27,7 +27,7 @@
             --os-border:  #3f3f3f;
         }
 
-        /* ── Document container ───────────────────── */
+        /* ── Document container (A4 = 794px) ──────── */
         .os-doc {
             max-width: 794px;
             margin: 0 auto;
@@ -39,23 +39,23 @@
         /* ── Header strip ─────────────────────────── */
         .os-header {
             background: var(--os-white);
-            padding: 14px 16px 10px;
+            padding: 20px 22px 14px;
             border-bottom: 2px solid var(--os-dark);
         }
         .os-header-title {
-            font-size: 16px;
+            font-size: 22px;
             font-weight: 700;
             color: var(--os-black);
         }
         .os-header-sub {
-            font-size: 10px;
+            font-size: 13px;
             font-weight: 700;
             color: var(--os-black);
             margin-top: 2px;
         }
         .os-header-right {
             text-align: right;
-            font-size: 10px;
+            font-size: 13px;
             color: var(--os-black);
         }
         .os-header-right strong { font-weight: 700; }
@@ -64,81 +64,86 @@
         .os-section-bar {
             background: var(--os-dark);
             color: var(--os-white);
-            font-size: 9px;
+            font-size: 12px;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.1em;
-            padding: 3px 16px;
+            padding: 5px 16px;
         }
 
         /* ── Big section title (cream text on dark) ── */
         .os-section-title {
             background: var(--os-dark);
             color: var(--os-cream);
-            font-size: 14px;
+            font-size: 18px;
             font-weight: 700;
             text-transform: uppercase;
             text-align: center;
-            padding: 6px 16px;
+            padding: 8px 16px;
         }
 
-        /* ── Info grid (form fields) ─────────────── */
+        /* ── Info grid ─────────────────────────────── */
         .os-info-table {
             width: 100%;
             border-collapse: collapse;
         }
         .os-info-table td {
             border: 1px solid var(--os-border);
-            padding: 3px 8px;
+            padding: 5px 10px;
             vertical-align: top;
-            font-size: 10px;
+            font-size: 13px;
         }
         .os-info-label {
             font-weight: 700;
-            font-size: 9px;
+            font-size: 12px;
             color: var(--os-black);
         }
         .os-info-value {
             font-weight: 400;
-            font-size: 10px;
+            font-size: 13px;
             color: var(--os-black);
-            min-height: 14px;
+            min-height: 18px;
         }
 
         /* ── Italic description line ─────────────── */
         .os-description {
             font-style: italic;
-            font-size: 10px;
+            font-size: 13px;
             text-align: center;
-            padding: 8px 16px;
+            padding: 10px 16px;
             color: var(--os-black);
         }
 
         /* ── Items table ─────────────────────────── */
+        .os-items-table-wrap {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
         .os-items-table {
             width: 100%;
+            min-width: 520px;
             border-collapse: collapse;
         }
         .os-items-table thead th {
             background: var(--os-white);
             border: 1px solid var(--os-border);
-            font-size: 9px;
+            font-size: 12px;
             font-weight: 700;
             text-transform: uppercase;
-            padding: 5px 8px;
+            padding: 7px 10px;
             color: var(--os-black);
         }
         .os-items-table tbody td {
             border: 1px solid #c0c0c0;
-            padding: 5px 8px;
-            font-size: 10px;
+            padding: 7px 10px;
+            font-size: 13px;
             color: var(--os-black);
             vertical-align: top;
         }
         .os-items-table tbody tr:nth-child(even) td {
             background: #f5f5f0;
         }
-        /* Dark gray left "number" column */
         .os-items-table tbody td.os-item-num {
             background: var(--os-dark) !important;
             color: var(--os-white) !important;
@@ -146,21 +151,16 @@
             text-align: center;
             width: 40px;
         }
-        .os-items-table tbody td.os-item-name {
-            font-weight: 600;
-        }
-        .os-items-table tbody td.os-item-desc {
-            color: #444;
-            font-size: 9px;
-        }
+        .os-items-table tbody td.os-item-name { font-weight: 600; }
+        .os-items-table tbody td.os-item-desc { color: #444; font-size: 12px; }
 
         /* ── Total row ────────────────────────────── */
         .os-total-row td {
             background: var(--os-dark) !important;
             color: var(--os-cream) !important;
             font-weight: 700;
-            font-size: 12px;
-            padding: 6px 8px;
+            font-size: 16px;
+            padding: 8px 10px;
             border: 1px solid var(--os-dark) !important;
         }
 
@@ -206,7 +206,7 @@
             padding: 10px 16px;
         }
         .os-action-inner {
-            max-width: 794px;
+            max-width: 810px;
             margin: 0 auto;
             display: flex;
             align-items: center;
@@ -282,22 +282,118 @@
             color: #333;
         }
 
-        /* ── Utility ────────────────────────────── */
+        /* ── Footer ─────────────────────────────────── */
+        .os-footer {
+            font-size: 11px;
+            font-weight: 700;
+            text-align: right;
+            padding: 6px 16px;
+            color: var(--os-black);
+            border-top: 1px solid var(--os-border);
+        }
+
+        /* ── Status badge ───────────────────────────── */
+        .os-badge {
+            display: inline-block;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 3px 10px;
+            border: 1px solid;
+        }
+        .os-badge-pending  { color: var(--os-dark); border-color: var(--os-dark); background: var(--os-white); }
+        .os-badge-approved { color: var(--os-white); border-color: #2e7d32; background: #2e7d32; }
+        .os-badge-rejected { color: var(--os-white); border-color: #c62828; background: #c62828; }
+
+        /* ── Checkbox ───────────────────────────────── */
+        .os-check {
+            width: 18px; height: 18px;
+            accent-color: var(--os-dark);
+            cursor: pointer;
+        }
+
+        /* ── Action bar (floating, no print) ───────── */
+        .os-action-bar {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            z-index: 100;
+            background: var(--os-white);
+            border-top: 2px solid var(--os-dark);
+            box-shadow: 0 -4px 16px rgba(0,0,0,.15);
+            padding: 10px 16px;
+        }
+        .os-action-inner {
+            max-width: 810px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .os-action-total { font-size: 14px; color: #555; }
+        .os-action-total strong { font-size: 20px; color: var(--os-black); }
+        .os-btn {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 10px 20px;
+            border: 2px solid var(--os-dark);
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .os-btn-outline { background: var(--os-white); color: var(--os-dark); }
+        .os-btn-outline:hover { background: var(--os-dark); color: var(--os-white); }
+        .os-btn-filled { background: var(--os-dark); color: var(--os-white); border-color: var(--os-dark); }
+        .os-btn-filled:hover { background: #2a2a2a; }
+
+        /* ── Notes Section ──────────────────────────── */
+        .os-notes-section { padding: 14px 16px; border-top: 1px solid #c0c0c0; }
+        .os-notes-label {
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--os-dark);
+            margin-bottom: 6px;
+        }
+        .os-notes-textarea {
+            width: 100%;
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 13px;
+            border: 1px solid #c0c0c0;
+            padding: 6px 8px;
+            resize: vertical;
+            outline: none;
+        }
+        .os-notes-textarea:focus { border-color: var(--os-dark); }
+        .os-notes-display {
+            border-left: 3px solid var(--os-dark);
+            padding: 4px 10px;
+            font-size: 13px;
+            color: #333;
+        }
+
+        /* ── Utility ────────────────────────────────── */
         .text-right { text-align: right; }
         .text-center { text-align: center; }
         .flex-row { display: flex; gap: 8px; }
         .flex-between { display: flex; justify-content: space-between; align-items: center; }
         .mt-8 { margin-top: 8px; }
 
-        /* ── Print ───────────────────────────────── */
+        /* ── Print ───────────────────────────────────── */
         @media print {
             .no-print { display: none !important; }
-            body { background: white !important; }
+            body { background: white !important; padding: 0; }
             * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-            .os-doc { box-shadow: none !important; border: none !important; margin: 0 !important; }
+            .os-doc { box-shadow: none !important; border: none !important; margin: 0 !important; max-width: 100%; }
+            .os-items-table { min-width: unset; }
         }
 
-        /* ── Modal ───────────────────────────────── */
+        /* ── Modal ───────────────────────────────────── */
         .os-modal-overlay {
             position: fixed; inset: 0; z-index: 200;
             background: rgba(0,0,0,.6);
@@ -306,48 +402,86 @@
         .os-modal-overlay.hidden { display: none; }
         .os-modal {
             background: var(--os-white);
-            width: 100%; max-width: 440px;
+            width: 100%; max-width: 460px;
             margin: 16px;
             border: 2px solid var(--os-dark);
         }
         .os-modal-header {
             background: var(--os-dark);
             color: var(--os-white);
-            padding: 10px 16px;
+            padding: 12px 16px;
             display: flex; align-items: center; justify-content: space-between;
         }
-        .os-modal-header h3 { font-size: 12px; font-weight: 700; text-transform: uppercase; }
-        .os-modal-header button { background: none; border: none; color: #aaa; font-size: 20px; cursor: pointer; }
+        .os-modal-header h3 { font-size: 14px; font-weight: 700; text-transform: uppercase; }
+        .os-modal-header button { background: none; border: none; color: #aaa; font-size: 22px; cursor: pointer; }
         .os-modal-header button:hover { color: #fff; }
-        .os-modal-body { padding: 14px 16px; font-size: 10px; color: #333; }
-        .os-modal-body ul { margin: 6px 0; padding: 0; list-style: none; }
-        .os-modal-body li {
-            display: flex; justify-content: space-between; padding: 2px 0;
-            font-size: 10px;
-        }
+        .os-modal-body { padding: 16px; font-size: 13px; color: #333; }
+        .os-modal-body ul { margin: 8px 0; padding: 0; list-style: none; }
+        .os-modal-body li { display: flex; justify-content: space-between; padding: 3px 0; font-size: 13px; }
         .os-modal-footer {
-            padding: 10px 16px;
+            padding: 12px 16px;
             border-top: 1px solid #ddd;
             display: flex; gap: 8px; justify-content: flex-end;
         }
 
-        /* ── Responsive ──────────────────────────── */
+        /* ── Mobile ──────────────────────────────────── */
         @media (max-width: 640px) {
-            .os-action-inner { flex-direction: column; text-align: center; }
+            body { background: #f0f0f0; padding: 0; font-size: 14px; }
+            .os-doc { border: none; box-shadow: none; }
+
+            /* Header */
+            .os-header { padding: 12px; }
             .os-header-flex { flex-direction: column !important; gap: 8px !important; }
+            .os-header-logo img { height: 50px !important; margin: 0 !important; }
+            .os-header-title { font-size: 17px; }
+            .os-header-right { text-align: left; }
+            .os-header-flex > div[style*="text-align:right"] { text-align: left !important; }
+
+            /* Info table → lista de campos */
+            .os-info-table, .os-info-table tbody, .os-info-table tr { display: block; }
+            .os-info-table thead { display: none; }
+            .os-info-table td {
+                display: block;
+                width: 100% !important;
+                border-left: none; border-right: none; border-bottom: none;
+                padding: 6px 12px;
+                font-size: 13px;
+            }
+            .os-info-table tr:last-child td:last-child { border-bottom: 1px solid var(--os-border); }
+            .os-section-bar { padding: 6px 12px; font-size: 11px; }
+            .os-section-title { font-size: 14px; padding: 8px 12px; }
+            .os-description { font-size: 12px; padding: 8px 12px; }
+
+            /* Items table → scroll horizontal */
+            .os-items-table { font-size: 12px; }
+            .os-items-table thead th { font-size: 11px; padding: 6px 8px; }
+            .os-items-table tbody td { font-size: 12px; padding: 6px 8px; }
+
+            /* Action bar */
+            .os-action-bar { padding: 10px 12px; }
+            .os-action-inner { flex-direction: column; text-align: center; gap: 8px; }
+            .os-btn { width: 100%; padding: 12px; }
+            .os-action-total { font-size: 13px; }
+            .os-action-total strong { font-size: 17px; }
+
+            /* Modal */
+            .os-modal { margin: 8px; }
         }
     </style>
 </head>
 <body>
 
-    <!-- ══ Floating action bar (editable only) ══════════════════════════════ -->
-    {% if is_editable %}
+    <!-- ── Floating action bar ─────────────────────────────────── -->
     <div class="os-action-bar no-print">
         <div class="os-action-inner">
+            {% if is_editable %}
             <div class="os-action-total">
                 Total selecionado: <strong id="total-bar">R$ 0,00</strong>
             </div>
             <div class="flex-row">
+                <button type="button" onclick="window.print()" class="os-btn os-btn-outline">
+                    🖨 Imprimir / PDF
+                </button>
                 <button type="button" data-confirm-action="reject" class="os-btn os-btn-outline">
                     ✗ Rejeitar
                 </button>
@@ -355,9 +489,14 @@
                     ✓ Aprovar Selecionados
                 </button>
             </div>
+            {% else %}
+            <div></div>
+            <button type="button" onclick="window.print()" class="os-btn os-btn-outline">
+                🖨 Imprimir / PDF
+            </button>
+            {% endif %}
         </div>
     </div>
-    {% endif %}
 
     <!-- ══ Messages ═════════════════════════════════════════════════════════ -->
     {% if messages %}
@@ -376,18 +515,19 @@
 
         <!-- ── Header ─────────────────────────────────────────────────── -->
         <div class="os-header">
-            <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;" class="os-header-flex">
-                <div>
-                    <div class="os-header-title">Ordem de Serviços</div>
-                    <div><strong>Data Orçamento:</strong> {{ budget.created_at|date:"d/m/Y" }}</div>
-                    <div style="margin-top:2px;"><strong>Orçamento nº</strong> {{ budget.id|stringformat:"05d" }}</div>
-                </div>
-                <div style="text-align:center;flex:1; padding: 2rem 7rem 2rem 0;">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:20px;" class="os-header-flex">
+                <!-- Logo – left, prominent -->
+                <div class="os-header-logo" style="flex-shrink:0; margin-left: 1rem;">
                     <img src="{% static 'assets/logo_black.png' %}" alt="Código Eventos"
-                         style="height:100px;width:auto;object-fit:contain;display:block;margin:0 auto;">
+                         style="height:80px;width:auto;object-fit:contain;display:block;">
                 </div>
-                <div class="os-header-right">
-                    <div style="margin-top:6px;">
+                <!-- Title + meta – right -->
+                <div style="text-align:right;">
+                    <div class="os-header-title">Orçamento</div>
+                    <div class="os-header-sub" style="margin-top:4px;">{{ budget.name }}</div>
+                    <div style="margin-top:2px;font-size:14px;"><strong>Data:</strong> {{ budget.created_at|date:"d/m/Y" }}</div>
+                    <div style="margin-top:2px;font-size:14px;"><strong>Orçamento nº</strong> {{ budget.id|stringformat:"05d" }}</div>
+                    <div style="margin-top:8px;">
                         <span class="os-badge
                             {% if budget.approval_status == 'approved' %}os-badge-approved
                             {% elif budget.approval_status == 'rejected' %}os-badge-rejected
@@ -402,34 +542,24 @@
         <!-- ── Client + Event info ────────────────────────────────────── -->
         <table class="os-info-table">
             <tr>
-                <td colspan="2" class="os-section-bar" style="padding:3px 16px;border:none;">DADOS CLIENTE</td>
-                <td colspan="2" class="os-section-bar" style="padding:3px 16px;border:none;">DADOS DO EVENTO</td>
+                <td class="os-section-bar" style="padding:3px 16px;border:none;">DADOS CLIENTE</td>
+                <td class="os-section-bar" style="padding:3px 16px;border:none;">DADOS DO EVENTO</td>
             </tr>
             <tr>
-                <td style="width:13%"><span class="os-info-label">Cliente:</span></td>
-                <td style="width:37%">
-                    <span class="os-info-value">{% if budget.proposal.event.client %}{{ budget.proposal.event.client.name }}{% endif %}</span>
-                </td>
-                <td style="width:18%"><span class="os-info-label">Prazo de Montagem:</span></td>
-                <td style="width:32%"><span class="os-info-value">—</span></td>
+                <td style="width:50%"><span class="os-info-label">Cliente: </span><span class="os-info-value">{% if budget.proposal.event.client %}{{ budget.proposal.event.client.name }}{% else %}—{% endif %}</span></td>
+                <td style="width:50%"><span class="os-info-label">Prazo de Montagem: </span><span class="os-info-value">—</span></td>
             </tr>
             <tr>
-                <td><span class="os-info-label">Contato:</span></td>
-                <td><span class="os-info-value">{% if budget.proposal.event.client %}{{ budget.proposal.event.client.contact_name|default:"—" }}{% endif %}</span></td>
-                <td><span class="os-info-label">Data do Evento:</span></td>
-                <td><span class="os-info-value">{% if budget.proposal.event.event_date %}{{ budget.proposal.event.event_date|date:"d/m/Y" }}{% else %}—{% endif %}</span></td>
+                <td><span class="os-info-label">Contato: </span><span class="os-info-value">{% if budget.proposal.event.client %}{{ budget.proposal.event.client.contact_name|default:"—" }}{% else %}—{% endif %}</span></td>
+                <td><span class="os-info-label">Data do Evento: </span><span class="os-info-value">{% if budget.proposal.event.event_date %}{{ budget.proposal.event.event_date|date:"d/m/Y" }}{% else %}—{% endif %}</span></td>
             </tr>
             <tr>
-                <td><span class="os-info-label">E-mail:</span></td>
-                <td><span class="os-info-value">{% if budget.proposal.event.client %}{{ budget.proposal.event.client.email|default:"—" }}{% endif %}</span></td>
-                <td><span class="os-info-label">Prazo de Desmontagem:</span></td>
-                <td><span class="os-info-value">—</span></td>
+                <td><span class="os-info-label">E-mail: </span><span class="os-info-value">{% if budget.proposal.event.client %}{{ budget.proposal.event.client.email|default:"—" }}{% else %}—{% endif %}</span></td>
+                <td><span class="os-info-label">Prazo de Desmontagem: </span><span class="os-info-value">—</span></td>
             </tr>
             <tr>
-                <td><span class="os-info-label">Telefones:</span></td>
-                <td><span class="os-info-value">{% if budget.proposal.event.client %}{{ budget.proposal.event.client.phone|default:"—" }}{% endif %}</span></td>
-                <td><span class="os-info-label">Local do Evento:</span></td>
-                <td><span class="os-info-value">{% if budget.proposal.event.location %}{{ budget.proposal.event.location }}{% else %}—{% endif %}</span></td>
+                <td><span class="os-info-label">Telefones: </span><span class="os-info-value">{% if budget.proposal.event.client %}{{ budget.proposal.event.client.phone|default:"—" }}{% else %}—{% endif %}</span></td>
+                <td><span class="os-info-label">Local do Evento: </span><span class="os-info-value">{% if budget.proposal.event.location %}{{ budget.proposal.event.location }}{% else %}—{% endif %}</span></td>
             </tr>
         </table>
 
@@ -455,6 +585,7 @@
             </div>
             {% endif %}
 
+            <div class="os-items-table-wrap">
             <table class="os-items-table">
                 <thead>
                     <tr>
@@ -481,7 +612,7 @@
                     {% if sections %}
                         {% for section in sections %}
                         <!-- Section header row -->
-                        <tr>
+                        <tr class="os-section-row">
                             {% if is_editable %}<td class="no-print"></td>{% endif %}
                             <td colspan="{% if is_editable %}{% if budget.include_fiscal_charges %}7{% else %}5{% endif %}{% else %}{% if budget.include_fiscal_charges %}8{% else %}6{% endif %}{% endif %}"
                                 style="background:#3f3f3f;color:#eeece1;font-weight:700;font-size:10px;
@@ -492,7 +623,7 @@
                         {% for item in section.section_items.all %}
                         <tr class="item-row" data-unit-total="{{ item.total_price }}" data-approved="{% if item.is_approved %}1{% else %}0{% endif %}">
                             {% if is_editable %}
-                            <td class="text-center no-print" style="padding:4px;">
+                            <td class="os-item-sel text-center no-print" style="padding:4px;">
                                 <input type="checkbox" name="items" value="{{ item.id }}"
                                     class="item-checkbox os-check"
                                     data-price="{{ item.total_price }}"
@@ -500,8 +631,8 @@
                                     {% if item.is_approved %}checked{% endif %}>
                             </td>
                             {% endif %}
-                            <td class="os-item-num">{{ forloop.counter }}</td>
-                            <td class="os-item-name">
+                            <td class="os-item-num" data-label="Nº">{{ forloop.counter }}</td>
+                            <td class="os-item-name" data-label="Item">
                                 {{ item.name }}
                                 {% if item.measurement %}
                                 <div style="font-size:8px;color:#666;font-weight:400;margin-top:1px;">
@@ -509,15 +640,15 @@
                                 </div>
                                 {% endif %}
                             </td>
-                            <td class="os-item-desc">{{ item.description|default:"—" }}</td>
-                            <td class="text-center" style="font-weight:600;">{{ item.quantity }}</td>
-                            <td class="text-right">R$ {{ item.unit_price|floatformat:2 }}</td>
+                            <td class="os-item-desc" data-label="Descritivo">{{ item.description|default:"—" }}</td>
+                            <td class="text-center" data-label="Qtd." style="font-weight:600;">{{ item.quantity }}</td>
+                            <td class="text-right" data-label="Valor Unit.">R$ {{ item.unit_price|floatformat:2 }}</td>
                             {% if budget.include_fiscal_charges %}
-                            <td class="text-right os-item-encargos">—</td>
-                            <td class="text-right os-item-total" style="font-weight:700;">—</td>
+                            <td class="text-right os-item-encargos" data-label="Encargos">—</td>
+                            <td class="text-right os-item-total" data-label="Total" style="font-weight:700;">—</td>
                             {% endif %}
                             {% if not is_editable %}
-                            <td class="text-center">
+                            <td class="text-center" data-label="Status">
                                 {% if item.is_approved %}
                                 <span class="os-badge os-badge-approved" style="font-size:8px;">&#10003;</span>
                                 {% else %}
@@ -533,7 +664,7 @@
                         {% for item in unsectioned_items %}
                         <tr class="item-row" data-unit-total="{{ item.total_price }}" data-approved="{% if item.is_approved %}1{% else %}0{% endif %}">
                             {% if is_editable %}
-                            <td class="text-center no-print" style="padding:4px;">
+                            <td class="os-item-sel text-center no-print" style="padding:4px;">
                                 <input type="checkbox" name="items" value="{{ item.id }}"
                                     class="item-checkbox os-check"
                                     data-price="{{ item.total_price }}"
@@ -541,8 +672,8 @@
                                     {% if item.is_approved %}checked{% endif %}>
                             </td>
                             {% endif %}
-                            <td class="os-item-num">{{ forloop.counter }}</td>
-                            <td class="os-item-name">
+                            <td class="os-item-num" data-label="Nº">{{ forloop.counter }}</td>
+                            <td class="os-item-name" data-label="Item">
                                 {{ item.name }}
                                 {% if item.measurement %}
                                 <div style="font-size:8px;color:#666;font-weight:400;margin-top:1px;">
@@ -550,15 +681,15 @@
                                 </div>
                                 {% endif %}
                             </td>
-                            <td class="os-item-desc">{{ item.description|default:"—" }}</td>
-                            <td class="text-center" style="font-weight:600;">{{ item.quantity }}</td>
-                            <td class="text-right">R$ {{ item.unit_price|floatformat:2 }}</td>
+                            <td class="os-item-desc" data-label="Descritivo">{{ item.description|default:"—" }}</td>
+                            <td class="text-center" data-label="Qtd." style="font-weight:600;">{{ item.quantity }}</td>
+                            <td class="text-right" data-label="Valor Unit.">R$ {{ item.unit_price|floatformat:2 }}</td>
                             {% if budget.include_fiscal_charges %}
-                            <td class="text-right os-item-encargos">—</td>
-                            <td class="text-right os-item-total" style="font-weight:700;">—</td>
+                            <td class="text-right os-item-encargos" data-label="Encargos">—</td>
+                            <td class="text-right os-item-total" data-label="Total" style="font-weight:700;">—</td>
                             {% endif %}
                             {% if not is_editable %}
-                            <td class="text-center">
+                            <td class="text-center" data-label="Status">
                                 {% if item.is_approved %}
                                 <span class="os-badge os-badge-approved" style="font-size:8px;">&#10003;</span>
                                 {% else %}
@@ -634,6 +765,7 @@
                     {% endif %}
                 </tfoot>
             </table>
+            </div><!-- /os-items-table-wrap -->
 
             <!-- ── Notes (editable only) ──────────────────────────────── -->
             {% if is_editable %}
@@ -651,13 +783,6 @@
                 <div class="os-notes-display">{{ budget.client_notes }}</div>
             </div>
             {% endif %}
-
-            <!-- ── Utility buttons ────────────────────────────────────── -->
-            <div class="os-notes-section no-print" style="text-align:right;">
-                <button type="button" onclick="window.print()" class="os-btn os-btn-outline" style="font-size:9px;padding:6px 14px;">
-                    Imprimir / PDF
-                </button>
-            </div>
 
             <!-- ── Read-only status footer ────────────────────────────── -->
             {% if not is_editable %}
