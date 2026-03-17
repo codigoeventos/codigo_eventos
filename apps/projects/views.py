@@ -75,7 +75,8 @@ class ProjectDetailView(LoginRequiredMixin, DetailView):
             'event__client',
             'contractor',
             'created_by',
-            'updated_by'
+            'updated_by',
+            'art',
         ).prefetch_related(
             'budgets',
             'budgets__items',
@@ -90,6 +91,12 @@ class ProjectDetailView(LoginRequiredMixin, DetailView):
             {'name': 'Projetos', 'url': reverse_lazy('projects:list')},
             {'name': self.object.title, 'url': None}
         ]
+        # ART helpers
+        context['has_budget'] = self.object.budgets.exists()
+        try:
+            context['project_art'] = self.object.art
+        except Exception:
+            context['project_art'] = None
         return context
 
 

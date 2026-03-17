@@ -26,6 +26,7 @@ urlpatterns = [
     path('technical-visits/', include('apps.technical_visits.urls')),
     path('contractors/', include('apps.contractors.urls')),
     path('logistics/', include('apps.logistics.urls')),
+    path('art/', include('apps.art.urls')),
     
     # TODO: Add URLs for other apps as they are developed
     # path('documents/', include('apps.documents.urls')),

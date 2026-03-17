@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ART {{ art.art_number }}</title>
+    <style>
+        /* ── Reset & Base ─────────────────────────── */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 15px;
+            color: #000;
+            background: #d4d4d4;
+            line-height: 1.4;
+            padding: 32px 16px;
+            min-height: 100vh;
+        }
+
+        /* ── Palette ──────────────────────────────── */
+        :root {
+            --art-dark:   #3f3f3f;
+            --art-cream:  #eeece1;
+            --art-white:  #ffffff;
+            --art-black:  #000000;
+            --art-border: #3f3f3f;
+        }
+
+        /* ── Document container (A4 = 794px) ──────── */
+        .art-doc {
+            max-width: 794px;
+            margin: 0 auto;
+            background: var(--art-white);
+            border: 1px solid #999;
+            box-shadow: 0 4px 24px rgba(0,0,0,.25);
+        }
+
+        /* ── Header strip ─────────────────────────── */
+        .art-header {
+            background: var(--art-white);
+            padding: 18px 22px 14px;
+            border-bottom: 2px solid var(--art-dark);
+        }
+        .art-header-flex {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+        }
+        .art-header-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--art-black);
+        }
+        .art-header-subtitle {
+            font-size: 12px;
+            color: #555;
+            margin-top: 2px;
+        }
+        .art-header-right {
+            text-align: right;
+            font-size: 13px;
+            color: var(--art-black);
+            flex-shrink: 0;
+        }
+        .art-header-right strong { font-weight: 700; }
+
+        /* ── Title bar ────────────────────────────── */
+        .art-section-title {
+            background: var(--art-dark);
+            color: var(--art-cream);
+            font-size: 14px;
+            font-weight: 700;
+            text-transform: uppercase;
+            text-align: center;
+            letter-spacing: 0.12em;
+            padding: 7px 16px;
+        }
+
+        /* ── Section bars ─────────────────────────── */
+        .art-section-bar {
+            background: var(--art-dark);
+            color: var(--art-white);
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            padding: 5px 16px;
+        }
+
+        /* ── Info grid ────────────────────────────── */
+        .art-info-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .art-info-table td {
+            border: 1px solid var(--art-border);
+            padding: 5px 10px;
+            vertical-align: top;
+            font-size: 13px;
+        }
+        .art-info-label {
+            font-weight: 700;
+            font-size: 11px;
+            color: var(--art-black);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: block;
+            margin-bottom: 2px;
+        }
+        .art-info-value {
+            font-weight: 400;
+            font-size: 13px;
+            color: var(--art-black);
+            min-height: 18px;
+        }
+
+        /* ── Activity block ───────────────────────── */
+        .art-activity {
+            padding: 10px 16px;
+            font-size: 13px;
+            color: var(--art-black);
+            border: 1px solid var(--art-border);
+            border-top: none;
+            min-height: 60px;
+            white-space: pre-line;
+        }
+
+        /* ── Quantity table ───────────────────────── */
+        .art-qty-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .art-qty-table th {
+            background: var(--art-white);
+            border: 1px solid var(--art-border);
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            padding: 6px 10px;
+            color: var(--art-black);
+            text-align: left;
+        }
+        .art-qty-table td {
+            border: 1px solid #c0c0c0;
+            padding: 7px 10px;
+            font-size: 13px;
+            color: var(--art-black);
+        }
+        .art-qty-table tr:nth-child(even) td { background: #f5f5f0; }
+        .art-qty-table td.art-num {
+            background: var(--art-dark) !important;
+            color: var(--art-white) !important;
+            font-weight: 700;
+            text-align: center;
+            width: 36px;
+        }
+
+        /* ── Signature block ──────────────────────── */
+        .art-sig-block {
+            display: flex;
+            gap: 0;
+        }
+        .art-sig-cell {
+            flex: 1;
+            border: 1px solid var(--art-border);
+            border-top: none;
+            padding: 28px 14px 10px;
+            text-align: center;
+        }
+        .art-sig-cell + .art-sig-cell { border-left: none; }
+        .art-sig-line {
+            border-top: 1px solid #000;
+            margin: 0 20px;
+        }
+        .art-sig-label {
+            font-size: 11px;
+            margin-top: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* ── Print bar ────────────────────────────── */
+        .art-print-bar {
+            max-width: 794px;
+            margin: 0 auto;
+            padding: 12px 4px;
+            display: flex;
+            justify-content: flex-end;
+        }
+        .art-btn {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 10px 20px;
+            border: 2px solid var(--art-dark);
+            cursor: pointer;
+            transition: all 0.15s;
+            background: var(--art-white);
+            color: var(--art-dark);
+        }
+        .art-btn:hover { background: var(--art-dark); color: var(--art-white); }
+
+        /* ── Footer ─────────────────────────────────── */
+        .art-footer {
+            font-size: 11px;
+            font-weight: 700;
+            text-align: right;
+            padding: 6px 16px;
+            color: var(--art-black);
+            border-top: 1px solid var(--art-border);
+        }
+
+        /* ── Print ───────────────────────────────── */
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white !important; padding: 0; }
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            .art-doc { box-shadow: none !important; border: none !important; margin: 0 !important; max-width: 100%; }
+        }
+
+        /* ── Mobile ─────────────────────────────── */
+        @media (max-width: 640px) {
+            body { background: #f0f0f0; padding: 0; font-size: 14px; }
+            .art-doc { border: none; box-shadow: none; }
+            .art-header { padding: 16px 12px 12px; }
+            .art-header-flex { flex-direction: column; align-items: center; gap: 10px; }
+            .art-header-right { text-align: center; width: 100%; }
+            .art-header-title { font-size: 18px; text-align: center; }
+            .art-print-bar { padding: 10px 12px; justify-content: stretch; }
+            .art-print-bar .art-btn { width: 100%; text-align: center; padding: 12px; }
+            .art-info-table td { padding: 5px 8px; font-size: 12px; }
+            .art-info-label { font-size: 10px; }
+            .art-info-value { font-size: 12px; }
+            .art-sig-block { flex-direction: column; }
+            .art-sig-cell + .art-sig-cell { border-left: 1px solid var(--art-border); border-top: none; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Print / action bar -->
+<div class="art-print-bar no-print">
+    <button class="art-btn" onclick="window.print()">⬇ Imprimir / Salvar PDF</button>
+</div>
+
+<!-- Document -->
+<div class="art-doc">
+
+    <!-- Header -->
+    <div class="art-header">
+        <div class="art-header-flex">
+            <div>
+                <div class="art-header-title">Anotação de Responsabilidade Técnica</div>
+                <div class="art-header-subtitle">Documento Técnico Oficial do Engenheiro Responsável</div>
+            </div>
+            <div class="art-header-right">
+                <strong>{{ art.art_number }}</strong><br>
+                Data: {{ art.created_at|date:"d/m/Y" }}<br>
+                {% if art.project.event %}
+                Evento: {{ art.project.event.name }}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Title bar -->
+    <div class="art-section-title">ART – Anotação de Responsabilidade Técnica</div>
+
+    <!-- ── 1. Contratante ───────────────────────────────────────────────── -->
+    <div class="art-section-bar">1. Contratante</div>
+    <table class="art-info-table">
+        <tr>
+            <td style="width:60%">
+                <span class="art-info-label">Nome / Razão Social</span>
+                <span class="art-info-value">
+                    {% if art.project.event and art.project.event.client %}
+                        {{ art.project.event.client.name }}
+                    {% else %}
+                        —
+                    {% endif %}
+                </span>
+            </td>
+            <td>
+                <span class="art-info-label">Projeto</span>
+                <span class="art-info-value">{{ art.project.title }}</span>
+            </td>
+        </tr>
+        {% if art.project.event %}
+        <tr>
+            <td colspan="2">
+                <span class="art-info-label">Evento</span>
+                <span class="art-info-value">{{ art.project.event.name }}</span>
+            </td>
+        </tr>
+        {% endif %}
+    </table>
+
+    <!-- ── 2. Profissional Responsável ─────────────────────────────────── -->
+    <div class="art-section-bar">2. Profissional Responsável</div>
+    <table class="art-info-table">
+        <tr>
+            <td style="width:60%">
+                <span class="art-info-label">Nome do Engenheiro</span>
+                <span class="art-info-value">{{ art.engineer_name }}</span>
+            </td>
+            <td>
+                <span class="art-info-label">Registro CREA</span>
+                <span class="art-info-value">{{ art.engineer_crea }}</span>
+            </td>
+        </tr>
+    </table>
+
+    <!-- ── 3. Dados da Obra / Serviço ──────────────────────────────────── -->
+    <div class="art-section-bar">3. Dados da Obra / Serviço</div>
+    <table class="art-info-table">
+        <tr>
+            <td colspan="2">
+                <span class="art-info-label">Local da Obra / Endereço</span>
+                <span class="art-info-value">{{ art.location }}</span>
+            </td>
+        </tr>
+    </table>
+
+    <!-- ── 4. Descrição da Atividade Técnica ──────────────────────────── -->
+    <div class="art-section-bar">4. Descrição da Atividade Técnica</div>
+    <div class="art-activity">{{ art.activity_description }}</div>
+
+    <!-- ── 5. Quantitativo ─────────────────────────────────────────────── -->
+    <div class="art-section-bar">5. Quantitativo</div>
+    <table class="art-qty-table">
+        <thead>
+            <tr>
+                <th style="width:36px">#</th>
+                <th>Descrição</th>
+                <th style="width:140px">Quantidade</th>
+                <th style="width:120px">Unidade</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="art-num">1</td>
+                <td>{{ art.activity_description|truncatechars:120 }}</td>
+                <td>{{ art.quantity|floatformat:3 }}</td>
+                <td>{{ art.get_measurement_unit_display }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- ── 6. Dados do Contrato ────────────────────────────────────────── -->
+    <div class="art-section-bar">6. Dados do Contrato</div>
+    <table class="art-info-table">
+        <tr>
+            <td style="width:33%">
+                <span class="art-info-label">Valor do Contrato (R$)</span>
+                <span class="art-info-value">
+                    {% if art.contract_value %}R$ {{ art.contract_value|floatformat:2 }}{% else %}—{% endif %}
+                </span>
+            </td>
+            <td style="width:33%">
+                <span class="art-info-label">Data de Início</span>
+                <span class="art-info-value">
+                    {% if art.start_date %}{{ art.start_date|date:"d/m/Y" }}{% else %}—{% endif %}
+                </span>
+            </td>
+            <td>
+                <span class="art-info-label">Data de Conclusão</span>
+                <span class="art-info-value">
+                    {% if art.end_date %}{{ art.end_date|date:"d/m/Y" }}{% else %}—{% endif %}
+                </span>
+            </td>
+        </tr>
+    </table>
+
+    {% if art.notes %}
+    <!-- ── 7. Observações ──────────────────────────────────────────────── -->
+    <div class="art-section-bar">7. Observações</div>
+    <div class="art-activity">{{ art.notes }}</div>
+    {% endif %}
+
+    <!-- ── Assinaturas ─────────────────────────────────────────────────── -->
+    <div class="art-sig-block">
+        <div class="art-sig-cell">
+            <div style="min-height: 40px;"></div>
+            <div class="art-sig-line"></div>
+            <div class="art-sig-label">
+                {{ art.engineer_name }}<br>
+                <span style="font-weight:400">{{ art.engineer_crea }}</span>
+            </div>
+        </div>
+        <div class="art-sig-cell">
+            <div style="min-height: 40px;"></div>
+            <div class="art-sig-line"></div>
+            <div class="art-sig-label">
+                Contratante<br>
+                {% if art.project.event and art.project.event.client %}
+                <span style="font-weight:400">{{ art.project.event.client.name }}</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="art-footer">
+        {{ art.art_number }} · Emitido em {{ art.created_at|date:"d/m/Y" }} · Sistema de Gestão de Eventos
+    </div>
+
+</div><!-- /art-doc -->
+
+</body>
+</html>
