@@ -104,6 +104,10 @@ def _save_sections_from_json(budget, sections_data_json):
             dim_width = to_decimal(item_data.get('dim_width'))
             dim_height = to_decimal(item_data.get('dim_height'))
 
+            billing_type = item_data.get('billing_type') or 'qty'
+            if billing_type not in ('qty', 'meter'):
+                billing_type = 'qty'
+
             item_fields = {
                 'budget': budget,
                 'section': section,
@@ -117,6 +121,7 @@ def _save_sections_from_json(budget, sections_data_json):
                 'measurement_unit': item_data.get('measurement_unit') or '',
                 'weight': to_decimal(item_data.get('weight')),
                 'unit_price': unit_price,
+                'billing_type': billing_type,
                 'is_approved': True,
             }
 
@@ -164,6 +169,7 @@ def _sections_to_json(budget):
                 'measurement_unit': item.measurement_unit or '',
                 'weight': str(item.weight) if item.weight else '',
                 'unit_price': str(item.unit_price),
+                'billing_type': item.billing_type or 'qty',
             })
         data.append({
             'id': section.pk,
@@ -188,6 +194,7 @@ def _sections_to_json(budget):
                 'measurement_unit': item.measurement_unit or '',
                 'weight': str(item.weight) if item.weight else '',
                 'unit_price': str(item.unit_price),
+                'billing_type': item.billing_type or 'qty',
             })
         data.insert(0, {
             'id': None,

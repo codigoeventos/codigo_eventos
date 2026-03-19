@@ -341,7 +341,19 @@ class BudgetItem(models.Model):
         default=True,
         help_text='Item selecionado para aprovação pelo cliente'
     )
-    
+
+    BILLING_CHOICES = [
+        ('qty',   'Por Quantidade'),
+        ('meter', 'Por Metro'),
+    ]
+    billing_type = models.CharField(
+        'Tipo de Cobrança',
+        max_length=10,
+        choices=BILLING_CHOICES,
+        default='qty',
+        help_text='Define se o total é calculado por quantidade ou por metragem'
+    )
+
     class Meta:
         verbose_name = 'Item do Orçamento'
         verbose_name_plural = 'Itens do Orçamento'
@@ -356,7 +368,11 @@ class BudgetItem(models.Model):
         if self.dim_length and self.dim_width and self.dim_height:
             self.measurement = self.dim_length * self.dim_width * self.dim_height
             self.measurement_unit = 'm3'
-        self.total_price = self.quantity * self.unit_price
+        # Total based on billing type
+        if self.billing_type == 'meter':
+            self.total_price = (self.measurement or 0) * self.quantity * self.unit_price
+        else:
+            self.total_price = self.quantity * self.unit_price
         super().save(*args, **kwargs)
 
 

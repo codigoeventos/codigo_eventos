@@ -14,6 +14,7 @@ from django.http import HttpResponseRedirect, JsonResponse
 from apps.common.mixins import AuditMixin
 from .models import Project, ProjectFile
 from .forms import ProjectForm, ProjectSearchForm, ProjectFileForm
+from apps.art.models import ART
 
 
 class ProjectListView(LoginRequiredMixin, ListView):
@@ -76,7 +77,6 @@ class ProjectDetailView(LoginRequiredMixin, DetailView):
             'contractor',
             'created_by',
             'updated_by',
-            'art',
         ).prefetch_related(
             'budgets',
             'budgets__items',
@@ -93,10 +93,8 @@ class ProjectDetailView(LoginRequiredMixin, DetailView):
         ]
         # ART helpers
         context['has_budget'] = self.object.budgets.exists()
-        try:
-            context['project_art'] = self.object.art
-        except Exception:
-            context['project_art'] = None
+        # Use manager directly so soft-deleted ARTs are excluded
+        context['project_art'] = ART.objects.filter(project=self.object).first()
         return context
 
 

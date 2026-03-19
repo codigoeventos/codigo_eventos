@@ -276,28 +276,6 @@ class ContractorMember(models.Model):
         null=True
     )
 
-    # --- Documentação Trabalhista: NR ---
-    nr_number = models.CharField(
-        'Número NR',
-        max_length=10,
-        blank=True,
-        null=True,
-        help_text='Ex: NR-10, NR-35, NR-33'
-    )
-
-    nr_certificate_expiry = models.DateField(
-        'Data de Validade do Certificado NR',
-        blank=True,
-        null=True
-    )
-
-    nr_certificate_file = models.FileField(
-        'Certificado NR (upload)',
-        upload_to='contractor_members/nr_certificates/',
-        blank=True,
-        null=True
-    )
-
     # --- Documentação Trabalhista: ASO ---
     aso_number = models.CharField(
         'Número ASO',
@@ -394,19 +372,6 @@ class ContractorMember(models.Model):
         return None
 
     @property
-    def nr_is_valid(self):
-        if self.nr_certificate_expiry:
-            return self.nr_certificate_expiry >= timezone.now().date()
-        return None
-
-    @property
-    def days_until_nr_expiry(self):
-        """Days until NR certificate expires. Negative = already expired."""
-        if self.nr_certificate_expiry:
-            return (self.nr_certificate_expiry - timezone.now().date()).days
-        return None
-
-    @property
     def days_until_aso_expiry(self):
         """Days until ASO expires. Negative = already expired."""
         if self.aso_expiry_date:
@@ -415,13 +380,14 @@ class ContractorMember(models.Model):
 
     @property
     def nr_doc_status(self):
-        """Returns: 'expired' | 'expiring_soon' (<=30d) | 'valid' | 'no_doc'"""
-        d = self.days_until_nr_expiry
-        if d is None:
+        """Worst NR status across all linked NRs: 'expired'|'expiring_soon'|'valid'|'no_doc'"""
+        nrs = list(self.nrs.all())
+        if not nrs:
             return 'no_doc'
-        if d < 0:
+        statuses = [nr.doc_status for nr in nrs]
+        if 'expired' in statuses:
             return 'expired'
-        if d <= 30:
+        if 'expiring_soon' in statuses:
             return 'expiring_soon'
         return 'valid'
 
@@ -480,6 +446,155 @@ class ContractorMember(models.Model):
 
         if errors:
             raise ValidationError(errors)
+
+
+class ContractorVehicle(models.Model):
+    """
+    A vehicle belonging to a Contractor.
+    A contractor can have multiple vehicles.
+    """
+
+    FUEL_CHOICES = [
+        ('gasolina', 'Gasolina'),
+        ('etanol', 'Etanol'),
+        ('flex', 'Flex'),
+        ('diesel', 'Diesel'),
+        ('eletrico', 'Elétrico'),
+        ('hibrid', 'Híbrido'),
+    ]
+
+    contractor = models.ForeignKey(
+        Contractor,
+        on_delete=models.CASCADE,
+        related_name='vehicles',
+        verbose_name='Empreiteira',
+    )
+
+    plate = models.CharField(
+        'Placa',
+        max_length=10,
+        help_text='Ex: ABC-1234 ou ABC1D23',
+    )
+
+    brand = models.CharField(
+        'Marca',
+        max_length=60,
+        blank=True,
+        null=True,
+    )
+
+    model = models.CharField(
+        'Modelo',
+        max_length=60,
+        blank=True,
+        null=True,
+    )
+
+    year = models.PositiveSmallIntegerField(
+        'Ano',
+        blank=True,
+        null=True,
+    )
+
+    color = models.CharField(
+        'Cor',
+        max_length=40,
+        blank=True,
+        null=True,
+    )
+
+    fuel = models.CharField(
+        'Combustível',
+        max_length=10,
+        blank=True,
+        null=True,
+        choices=FUEL_CHOICES,
+    )
+
+    notes = models.TextField(
+        'Observações',
+        blank=True,
+        null=True,
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Veículo'
+        verbose_name_plural = 'Veículos'
+        ordering = ['plate']
+
+    def __str__(self):
+        parts = [self.plate]
+        if self.brand and self.model:
+            parts.append(f'{self.brand} {self.model}')
+        if self.year:
+            parts.append(str(self.year))
+        return ' – '.join(parts)
+
+
+class ContractorMemberNR(models.Model):
+    """
+    A single NR (Norma Regulamentadora) certification belonging to a ContractorMember.
+    A member can hold multiple NRs (e.g. NR-10, NR-35, NR-33).
+    """
+
+    member = models.ForeignKey(
+        ContractorMember,
+        on_delete=models.CASCADE,
+        related_name='nrs',
+        verbose_name='Membro',
+    )
+
+    nr_number = models.CharField(
+        'Número NR',
+        max_length=20,
+        help_text='Ex: NR-10, NR-35, NR-33',
+    )
+
+    nr_certificate_expiry = models.DateField(
+        'Validade do Certificado',
+        blank=True,
+        null=True,
+    )
+
+    nr_certificate_file = models.FileField(
+        'Certificado NR (upload)',
+        upload_to='contractor_members/nr_certificates/',
+        blank=True,
+        null=True,
+    )
+
+    class Meta:
+        verbose_name = 'Certificado NR'
+        verbose_name_plural = 'Certificados NR'
+        ordering = ['nr_number']
+
+    def __str__(self):
+        return f"{self.nr_number} – {self.member.name}"
+
+    # ------------------------------------------------------------------ #
+    # Validity helpers
+    # ------------------------------------------------------------------ #
+
+    @property
+    def days_until_expiry(self):
+        if self.nr_certificate_expiry:
+            return (self.nr_certificate_expiry - timezone.now().date()).days
+        return None
+
+    @property
+    def doc_status(self):
+        """Returns: 'expired' | 'expiring_soon' (<=30d) | 'valid' | 'no_doc'"""
+        d = self.days_until_expiry
+        if d is None:
+            return 'no_doc'
+        if d < 0:
+            return 'expired'
+        if d <= 30:
+            return 'expiring_soon'
+        return 'valid'
 
 
 class EventContractor(models.Model):

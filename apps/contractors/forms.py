@@ -3,7 +3,8 @@ Contractor forms for Event Management System.
 """
 
 from django import forms
-from .models import Contractor, ContractorMember
+from django.forms import inlineformset_factory
+from .models import Contractor, ContractorMember, ContractorMemberNR, ContractorVehicle
 from apps.common.utils import validate_cpf, format_cpf
 
 CSS_INPUT = 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent'
@@ -61,8 +62,6 @@ class ContractorMemberForm(forms.ModelForm):
             'name', 'rg', 'cpf', 'birth_date', 'photo',
             # Dados Profissionais
             'role', 'specialty', 'experience_years',
-            # NR
-            'nr_number', 'nr_certificate_expiry', 'nr_certificate_file',
             # ASO
             'aso_number', 'aso_issue_date', 'aso_expiry_date', 'aso_exam_type', 'aso_file',
             # Contato
@@ -77,17 +76,14 @@ class ContractorMemberForm(forms.ModelForm):
             'name': forms.TextInput(attrs={'class': CSS_INPUT, 'placeholder': 'Nome completo'}),
             'rg': forms.TextInput(attrs={'class': CSS_INPUT, 'placeholder': 'Ex: 12.345.678-9'}),
             'cpf': forms.TextInput(attrs={'class': CSS_INPUT, 'placeholder': '000.000.000-00'}),
-            'birth_date': forms.DateInput(attrs={'class': CSS_INPUT, 'type': 'date'}),
+            'birth_date': forms.DateInput(attrs={'class': CSS_INPUT, 'type': 'date'}, format='%Y-%m-%d'),
             'photo': forms.FileInput(attrs={'class': CSS_FILE}),
             'role': forms.TextInput(attrs={'class': CSS_INPUT, 'placeholder': 'Ex: Eletricista, Técnico de Som'}),
             'specialty': forms.TextInput(attrs={'class': CSS_INPUT, 'placeholder': 'Ex: Alta tensão, Áudio ao vivo'}),
             'experience_years': forms.NumberInput(attrs={'class': CSS_INPUT, 'placeholder': 'Anos', 'min': '0'}),
-            'nr_number': forms.TextInput(attrs={'class': CSS_INPUT, 'placeholder': 'Ex: NR-10, NR-35, NR-33'}),
-            'nr_certificate_expiry': forms.DateInput(attrs={'class': CSS_INPUT, 'type': 'date'}),
-            'nr_certificate_file': forms.FileInput(attrs={'class': CSS_FILE}),
             'aso_number': forms.TextInput(attrs={'class': CSS_INPUT, 'placeholder': 'Número do ASO'}),
-            'aso_issue_date': forms.DateInput(attrs={'class': CSS_INPUT, 'type': 'date'}),
-            'aso_expiry_date': forms.DateInput(attrs={'class': CSS_INPUT, 'type': 'date'}),
+            'aso_issue_date': forms.DateInput(attrs={'class': CSS_INPUT, 'type': 'date'}, format='%Y-%m-%d'),
+            'aso_expiry_date': forms.DateInput(attrs={'class': CSS_INPUT, 'type': 'date'}, format='%Y-%m-%d'),
             'aso_exam_type': forms.Select(attrs={'class': CSS_SELECT}),
             'aso_file': forms.FileInput(attrs={'class': CSS_FILE}),
             'phone': forms.TextInput(attrs={'class': CSS_INPUT, 'placeholder': '(00) 00000-0000'}),
@@ -121,6 +117,56 @@ class ContractorMemberForm(forms.ModelForm):
                 f'Este CPF já está cadastrado para {other.name} ({contractor_name}).'
             )
         return cpf
+
+
+class ContractorMemberNRForm(forms.ModelForm):
+    """Form for a single NR certification linked to a ContractorMember."""
+
+    class Meta:
+        model = ContractorMemberNR
+        fields = ['nr_number', 'nr_certificate_expiry', 'nr_certificate_file']
+        widgets = {
+            'nr_number': forms.TextInput(attrs={'class': CSS_INPUT, 'placeholder': 'Ex: NR-10, NR-35'}),
+            'nr_certificate_expiry': forms.DateInput(attrs={'class': CSS_INPUT, 'type': 'date'}, format='%Y-%m-%d'),
+            'nr_certificate_file': forms.FileInput(attrs={'class': CSS_FILE}),
+        }
+
+
+NRInlineFormSet = inlineformset_factory(
+    ContractorMember,
+    ContractorMemberNR,
+    form=ContractorMemberNRForm,
+    extra=1,
+    can_delete=True,
+    min_num=0,
+)
+
+
+class ContractorVehicleForm(forms.ModelForm):
+    """Form for a single vehicle belonging to a Contractor."""
+
+    class Meta:
+        model = ContractorVehicle
+        fields = ['plate', 'brand', 'model', 'year', 'color', 'fuel', 'notes']
+        widgets = {
+            'plate': forms.TextInput(attrs={'class': CSS_INPUT, 'placeholder': 'Ex: ABC-1234 ou ABC1D23'}),
+            'brand': forms.TextInput(attrs={'class': CSS_INPUT, 'placeholder': 'Ex: Toyota, Ford, VW'}),
+            'model': forms.TextInput(attrs={'class': CSS_INPUT, 'placeholder': 'Ex: Corolla, Ranger, Gol'}),
+            'year': forms.NumberInput(attrs={'class': CSS_INPUT, 'placeholder': str(__import__('datetime').date.today().year), 'min': '1950', 'max': '2100'}),
+            'color': forms.TextInput(attrs={'class': CSS_INPUT, 'placeholder': 'Ex: Branco, Prata, Preto'}),
+            'fuel': forms.Select(attrs={'class': CSS_SELECT}),
+            'notes': forms.Textarea(attrs={'class': CSS_TEXTAREA, 'rows': 2, 'placeholder': 'Observações sobre o veículo'}),
+        }
+
+
+VehicleInlineFormSet = inlineformset_factory(
+    Contractor,
+    ContractorVehicle,
+    form=ContractorVehicleForm,
+    extra=1,
+    can_delete=True,
+    min_num=0,
+)
 
 
 class ContractorSearchForm(forms.Form):

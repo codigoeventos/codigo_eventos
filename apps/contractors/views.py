@@ -15,8 +15,9 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 
 from apps.common.mixins import AuditMixin
-from .models import Contractor, ContractorMember
-from .forms import ContractorForm, ContractorSearchForm, ContractorMemberForm
+from .models import Contractor, ContractorMember, ContractorVehicle
+from .forms import ContractorForm, ContractorSearchForm, ContractorMemberForm, NRInlineFormSet, ContractorVehicleForm
+from django.contrib import messages
 
 
 class ContractorListView(LoginRequiredMixin, ListView):
@@ -124,13 +125,12 @@ class ContractorDeleteView(LoginRequiredMixin, DeleteView):
 # ContractorMember CRUD
 # ---------------------------------------------------------------------------
 
-class MemberCreateView(LoginRequiredMixin, SuccessMessageMixin, CreateView):
+class MemberCreateView(LoginRequiredMixin, CreateView):
     """Add a member to a contractor."""
 
     model = ContractorMember
     form_class = ContractorMemberForm
     template_name = 'contractors/member_form.html'
-    success_message = "Membro %(name)s adicionado com sucesso!"
 
     def get_contractor(self):
         return get_object_or_404(Contractor, pk=self.kwargs['contractor_pk'])
@@ -146,11 +146,22 @@ class MemberCreateView(LoginRequiredMixin, SuccessMessageMixin, CreateView):
         ]
         context['form_title'] = f'Novo Membro – {contractor.name}'
         context['submit_text'] = 'Adicionar Membro'
+        if 'nr_formset' not in context:
+            context['nr_formset'] = NRInlineFormSet(prefix='nrs')
         return context
 
-    def form_valid(self, form):
-        form.instance.contractor = self.get_contractor()
-        return super().form_valid(form)
+    def post(self, request, *args, **kwargs):
+        self.object = None
+        form = self.get_form()
+        nr_formset = NRInlineFormSet(request.POST, request.FILES, prefix='nrs')
+        if form.is_valid() and nr_formset.is_valid():
+            form.instance.contractor = self.get_contractor()
+            self.object = form.save()
+            nr_formset.instance = self.object
+            nr_formset.save()
+            messages.success(request, f'Membro {self.object.name} adicionado com sucesso!')
+            return HttpResponseRedirect(self.get_success_url())
+        return self.render_to_response(self.get_context_data(form=form, nr_formset=nr_formset))
 
     def get_success_url(self):
         return reverse_lazy('contractors:detail', kwargs={'pk': self.kwargs['contractor_pk']})
@@ -175,13 +186,12 @@ class MemberDetailView(LoginRequiredMixin, DetailView):
         return context
 
 
-class MemberUpdateView(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
+class MemberUpdateView(LoginRequiredMixin, UpdateView):
     """Update a contractor member."""
 
     model = ContractorMember
     form_class = ContractorMemberForm
     template_name = 'contractors/member_form.html'
-    success_message = "Membro %(name)s atualizado com sucesso!"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -195,7 +205,20 @@ class MemberUpdateView(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
         ]
         context['form_title'] = f'Editar Membro: {self.object.name}'
         context['submit_text'] = 'Salvar Alterações'
+        if 'nr_formset' not in context:
+            context['nr_formset'] = NRInlineFormSet(instance=self.object, prefix='nrs')
         return context
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        form = self.get_form()
+        nr_formset = NRInlineFormSet(request.POST, request.FILES, instance=self.object, prefix='nrs')
+        if form.is_valid() and nr_formset.is_valid():
+            self.object = form.save()
+            nr_formset.save()
+            messages.success(request, f'Membro {self.object.name} atualizado com sucesso!')
+            return HttpResponseRedirect(self.get_success_url())
+        return self.render_to_response(self.get_context_data(form=form, nr_formset=nr_formset))
 
     def get_success_url(self):
         return reverse_lazy('contractors:member_detail', kwargs={'pk': self.object.pk})
@@ -328,7 +351,7 @@ class ContractorDetailView(LoginRequiredMixin, DetailView):
     context_object_name = 'contractor'
 
     def get_queryset(self):
-        return Contractor.objects.prefetch_related('members', 'created_by', 'updated_by')
+        return Contractor.objects.prefetch_related('members', 'vehicles', 'created_by', 'updated_by')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -339,6 +362,7 @@ class ContractorDetailView(LoginRequiredMixin, DetailView):
         ]
         context['blocked_members_count'] = sum(1 for m in members if m.is_blocked_from_events)
         context['expiring_members_count'] = sum(1 for m in members if m.worst_doc_status == 'expiring_soon')
+        context['vehicles'] = list(self.object.vehicles.all())
         return context
 
 
@@ -412,6 +436,96 @@ class ContractorDeleteView(LoginRequiredMixin, DeleteView):
     def get(self, request, *args, **kwargs):
         contractor = self.get_object()
         return HttpResponseRedirect(reverse_lazy('contractors:detail', kwargs={'pk': contractor.pk}))
+
+
+# ---------------------------------------------------------------------------
+# ContractorVehicle CRUD
+# ---------------------------------------------------------------------------
+
+class VehicleCreateView(LoginRequiredMixin, View):
+    """Add a vehicle to a contractor."""
+
+    def get_contractor(self, pk):
+        return get_object_or_404(Contractor, pk=pk)
+
+    def get(self, request, contractor_pk):
+        contractor = self.get_contractor(contractor_pk)
+        form = ContractorVehicleForm()
+        return self._render(request, contractor, form)
+
+    def post(self, request, contractor_pk):
+        contractor = self.get_contractor(contractor_pk)
+        form = ContractorVehicleForm(request.POST)
+        if form.is_valid():
+            vehicle = form.save(commit=False)
+            vehicle.contractor = contractor
+            vehicle.save()
+            messages.success(request, f'Veículo {vehicle.plate} adicionado com sucesso!')
+            return HttpResponseRedirect(reverse_lazy('contractors:detail', kwargs={'pk': contractor_pk}))
+        return self._render(request, contractor, form)
+
+    def _render(self, request, contractor, form):
+        from django.shortcuts import render as dj_render
+        return dj_render(request, 'contractors/vehicle_form.html', {
+            'contractor': contractor,
+            'form': form,
+            'form_title': f'Novo Veículo – {contractor.name}',
+            'submit_text': 'Adicionar Veículo',
+            'breadcrumbs': [
+                {'name': 'Empreiteiras', 'url': reverse_lazy('contractors:list')},
+                {'name': contractor.name, 'url': reverse_lazy('contractors:detail', kwargs={'pk': contractor.pk})},
+                {'name': 'Novo Veículo', 'url': None},
+            ],
+        })
+
+
+class VehicleUpdateView(LoginRequiredMixin, View):
+    """Update a contractor vehicle."""
+
+    def get_vehicle(self, pk):
+        return get_object_or_404(ContractorVehicle, pk=pk)
+
+    def get(self, request, pk):
+        vehicle = self.get_vehicle(pk)
+        form = ContractorVehicleForm(instance=vehicle)
+        return self._render(request, vehicle, form)
+
+    def post(self, request, pk):
+        vehicle = self.get_vehicle(pk)
+        form = ContractorVehicleForm(request.POST, instance=vehicle)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'Veículo {vehicle.plate} atualizado com sucesso!')
+            return HttpResponseRedirect(reverse_lazy('contractors:detail', kwargs={'pk': vehicle.contractor.pk}))
+        return self._render(request, vehicle, form)
+
+    def _render(self, request, vehicle, form):
+        from django.shortcuts import render as dj_render
+        contractor = vehicle.contractor
+        return dj_render(request, 'contractors/vehicle_form.html', {
+            'contractor': contractor,
+            'vehicle': vehicle,
+            'form': form,
+            'form_title': f'Editar Veículo: {vehicle.plate}',
+            'submit_text': 'Salvar Alterações',
+            'breadcrumbs': [
+                {'name': 'Empreiteiras', 'url': reverse_lazy('contractors:list')},
+                {'name': contractor.name, 'url': reverse_lazy('contractors:detail', kwargs={'pk': contractor.pk})},
+                {'name': f'Veículo {vehicle.plate}', 'url': None},
+            ],
+        })
+
+
+class VehicleDeleteView(LoginRequiredMixin, View):
+    """Delete a contractor vehicle via POST."""
+
+    def post(self, request, pk):
+        vehicle = get_object_or_404(ContractorVehicle, pk=pk)
+        contractor_pk = vehicle.contractor.pk
+        plate = vehicle.plate
+        vehicle.delete()
+        messages.success(request, f'Veículo {plate} excluído com sucesso!')
+        return HttpResponseRedirect(reverse_lazy('contractors:detail', kwargs={'pk': contractor_pk}))
 
 
 # ---------------------------------------------------------------------------

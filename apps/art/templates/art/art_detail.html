@@ -32,14 +32,10 @@
                         </svg>
                         Link Público
                     </a>
-                    <form method="post" action="{% url 'art:delete' art.pk %}"
-                        onsubmit="return confirm('Excluir esta ART? Essa ação não pode ser desfeita.');">
-                        {% csrf_token %}
-                        <button type="submit"
-                            class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all text-sm">
-                            Excluir
-                        </button>
-                    </form>
+                    <button type="button" onclick="document.getElementById('modal-delete-art').classList.remove('hidden')"
+                        class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all text-sm">
+                        Excluir
+                    </button>
                 </div>
             </div>
 
@@ -194,7 +190,47 @@
     </div>
 </div>
 
+<!-- Modal de confirmação de exclusão -->
+<div id="modal-delete-art" class="hidden fixed inset-0 z-50 flex items-center justify-center">
+    <!-- Backdrop -->
+    <div class="absolute inset-0 bg-black/50" onclick="document.getElementById('modal-delete-art').classList.add('hidden')"></div>
+    <!-- Dialog -->
+    <div class="relative bg-white rounded-xl shadow-xl max-w-md w-full mx-4 p-6">
+        <div class="flex items-start gap-4 mb-5">
+            <div class="flex-shrink-0 w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                </svg>
+            </div>
+            <div>
+                <h3 class="text-base font-semibold text-gray-900">Excluir ART</h3>
+                <p class="text-sm text-gray-500 mt-1">Tem certeza que deseja excluir a ART <strong>{{ art.art_number }}</strong>? Essa ação não pode ser desfeita.</p>
+            </div>
+        </div>
+        <div class="flex justify-end gap-3">
+            <button type="button" onclick="document.getElementById('modal-delete-art').classList.add('hidden')"
+                class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all text-sm">
+                Cancelar
+            </button>
+            <form method="post" action="{% url 'art:delete' art.pk %}">
+                {% csrf_token %}
+                <button type="submit"
+                    class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all text-sm">
+                    Sim, excluir
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
 <script>
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        document.getElementById('modal-delete-art').classList.add('hidden');
+    }
+});
+
 function copyArtUrl() {
     const input = document.getElementById('public-url-input');
     input.select();

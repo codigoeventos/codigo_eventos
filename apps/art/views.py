@@ -41,12 +41,11 @@ class ARTGenerateView(LoginRequiredMixin, View):
         if not project.budgets.exists():
             messages.error(request, 'Não é possível gerar uma ART sem um orçamento vinculado ao projeto.')
             return redirect('projects:detail', pk=project.pk)
-        try:
-            existing = project.art
+        # Use the SafeDelete-aware manager to check for an existing (non-deleted) ART
+        existing = ART.objects.filter(project=project).first()
+        if existing:
             messages.info(request, 'Este projeto já possui uma ART.')
             return redirect('art:detail', pk=existing.pk)
-        except ART.DoesNotExist:
-            pass
         return None
 
     def _build_art_data(self, project):
@@ -87,18 +86,34 @@ class ARTGenerateView(LoginRequiredMixin, View):
 
         data = self._build_art_data(project)
 
-        art = ART.objects.create(
-            project=project,
-            activity_description=data['activity_description'],
-            location=data['location'],
-            quantity=data['quantity'],
-            measurement_unit='m3',
-            contract_value=data['contract_value'] if data['contract_value'] else None,
-            start_date=data['start_date'],
-            end_date=data['end_date'],
-            created_by=request.user,
-            updated_by=request.user,
-        )
+        # If a soft-deleted ART already exists for this project, restore and
+        # update it instead of creating a new one (avoids UniqueConstraint error).
+        deleted_art = ART.all_objects.filter(project=project).first()
+        if deleted_art:
+            deleted_art.undelete()
+            deleted_art.activity_description = data['activity_description']
+            deleted_art.location = data['location']
+            deleted_art.quantity = data['quantity']
+            deleted_art.measurement_unit = 'm3'
+            deleted_art.contract_value = data['contract_value'] if data['contract_value'] else None
+            deleted_art.start_date = data['start_date']
+            deleted_art.end_date = data['end_date']
+            deleted_art.updated_by = request.user
+            deleted_art.save()
+            art = deleted_art
+        else:
+            art = ART.objects.create(
+                project=project,
+                activity_description=data['activity_description'],
+                location=data['location'],
+                quantity=data['quantity'],
+                measurement_unit='m3',
+                contract_value=data['contract_value'] if data['contract_value'] else None,
+                start_date=data['start_date'],
+                end_date=data['end_date'],
+                created_by=request.user,
+                updated_by=request.user,
+            )
 
         messages.success(request, f'ART {art.art_number} gerada com sucesso!')
         return redirect('art:detail', pk=art.pk)

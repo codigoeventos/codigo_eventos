@@ -215,14 +215,14 @@
                                 {% else %}<span class="text-gray-400 text-xs">—</span>{% endif %}
                             </td>
                             <td class="py-2.5 pr-4">
-                                {% if member.nr_certificate_expiry %}
+                                {% if member.nr_doc_status != 'no_doc' %}
                                 <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium
                                     {% if member.nr_doc_status == 'expired' %}bg-red-100 text-red-700
                                     {% elif member.nr_doc_status == 'expiring_soon' %}bg-yellow-100 text-yellow-700
                                     {% else %}bg-green-100 text-green-700{% endif %}">
-                                    {{ member.nr_certificate_expiry|date:"d/m/Y" }}
-                                    {% if member.nr_doc_status == 'expired' %}&nbsp;vencido
-                                    {% elif member.nr_doc_status == 'expiring_soon' %}&nbsp;{{ member.days_until_nr_expiry }}d{% endif %}
+                                    {% if member.nr_doc_status == 'expired' %}vencido
+                                    {% elif member.nr_doc_status == 'expiring_soon' %}vencendo
+                                    {% else %}em dia{% endif %}
                                 </span>
                                 {% else %}<span class="text-gray-400 text-xs">—</span>{% endif %}
                             </td>
@@ -291,14 +291,14 @@
                                     {% endif %}
                                 </span>
                                 {% endif %}
-                                {% if member.nr_certificate_expiry %}
+                                {% if member.nr_doc_status != 'no_doc' %}
                                 <span class="inline-block px-1.5 py-0.5 rounded text-xs font-medium
                                     {% if member.nr_doc_status == 'expired' %}bg-red-100 text-red-700
                                     {% elif member.nr_doc_status == 'expiring_soon' %}bg-yellow-100 text-yellow-700
                                     {% else %}bg-green-100 text-green-700{% endif %}">
                                     NR
                                     {% if member.nr_doc_status == 'expiring_soon' %}
-                                        {{ member.days_until_nr_expiry }}d
+                                        vencendo
                                     {% elif member.nr_doc_status == 'expired' %}
                                         vencido
                                     {% else %}
@@ -322,6 +322,66 @@
             </div>
             {% else %}
             <p class="text-sm text-gray-500 text-center py-4">Nenhum membro cadastrado</p>
+            {% endif %}
+        </div>
+
+        <!-- Vehicles -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold text-gray-900">Veículos</h3>
+                <a href="{% url 'contractors:vehicle_create' contractor.pk %}"
+                    class="text-sm text-black hover:underline font-medium flex items-center gap-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    Adicionar Veículo
+                </a>
+            </div>
+            {% if vehicles %}
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="border-b border-gray-200">
+                            <th class="text-left text-xs font-medium text-gray-500 uppercase pb-2">Placa</th>
+                            <th class="text-left text-xs font-medium text-gray-500 uppercase pb-2">Marca / Modelo</th>
+                            <th class="text-left text-xs font-medium text-gray-500 uppercase pb-2">Ano</th>
+                            <th class="text-left text-xs font-medium text-gray-500 uppercase pb-2">Cor</th>
+                            <th class="text-left text-xs font-medium text-gray-500 uppercase pb-2">Combustível</th>
+                            <th class="pb-2"></th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        {% for vehicle in vehicles %}
+                        <tr class="hover:bg-gray-50">
+                            <td class="py-2.5 pr-4">
+                                <span class="font-mono font-semibold text-gray-900 tracking-widest">{{ vehicle.plate }}</span>
+                            </td>
+                            <td class="py-2.5 pr-4">
+                                {% if vehicle.brand or vehicle.model %}
+                                {{ vehicle.brand|default:"" }}{% if vehicle.brand and vehicle.model %} / {% endif %}{{ vehicle.model|default:"" }}
+                                {% else %}<span class="text-gray-400">—</span>{% endif %}
+                            </td>
+                            <td class="py-2.5 pr-4">{{ vehicle.year|default:"—" }}</td>
+                            <td class="py-2.5 pr-4">{{ vehicle.color|default:"—" }}</td>
+                            <td class="py-2.5 pr-4">{{ vehicle.get_fuel_display|default:"—" }}</td>
+                            <td class="py-2.5">
+                                <div class="flex items-center gap-2 justify-end">
+                                    <a href="{% url 'contractors:vehicle_edit' vehicle.pk %}"
+                                        class="text-xs text-gray-500 hover:text-gray-900 hover:underline">Editar</a>
+                                    <form method="post" action="{% url 'contractors:vehicle_delete' vehicle.pk %}"
+                                        onsubmit="return confirm('Excluir o veículo {{ vehicle.plate|escapejs }}?')">
+                                        {% csrf_token %}
+                                        <button type="submit" class="text-xs text-red-500 hover:text-red-700 hover:underline">Excluir</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-sm text-gray-500 text-center py-4">Nenhum veículo cadastrado</p>
             {% endif %}
         </div>
     </div>

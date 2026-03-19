@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}{{ form_title }} - Empreiteiras{% endblock %}
+{% block page_title %}{{ form_title }}{% endblock %}
+
+{% block content %}
+{% include 'components/breadcrumbs.html' %}
+{% include 'components/form_errors.html' %}
+
+<form method="post" class="space-y-6">
+    {% csrf_token %}
+
+    <!-- Dados do Veículo -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-5 pb-3 border-b border-gray-100">Dados do Veículo</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Placa <span class="text-red-500">*</span>
+                </label>
+                {{ form.plate }}
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Combustível</label>
+                {{ form.fuel }}
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Marca</label>
+                {{ form.brand }}
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Modelo</label>
+                {{ form.model }}
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Ano</label>
+                {{ form.year }}
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Cor</label>
+                {{ form.color }}
+            </div>
+            <div class="md:col-span-2">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Observações</label>
+                {{ form.notes }}
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex justify-end gap-3 pb-6">
+        <a href="{% url 'contractors:detail' contractor.pk %}"
+            class="px-6 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
+            Cancelar
+        </a>
+        <button type="submit"
+            class="px-6 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-all font-medium">
+            {{ submit_text }}
+        </button>
+    </div>
+</form>
+{% endblock %}

@@ -3,14 +3,21 @@ Admin configuration for contractors app.
 """
 
 from django.contrib import admin
-from .models import Contractor, ContractorMember, EventContractor
+from .models import Contractor, ContractorMember, ContractorMemberNR, ContractorVehicle, EventContractor
 
 
-class ContractorMemberInline(admin.TabularInline):
-    """Inline admin for contractor members."""
-    model = ContractorMember
+class ContractorMemberNRInline(admin.TabularInline):
+    """Inline admin for NR certificates."""
+    model = ContractorMemberNR
     extra = 1
-    fields = ('name', 'role', 'cpf', 'phone', 'email')
+    fields = ('nr_number', 'nr_certificate_expiry', 'nr_certificate_file')
+
+
+class ContractorVehicleInline(admin.TabularInline):
+    """Inline admin for contractor vehicles."""
+    model = ContractorVehicle
+    extra = 1
+    fields = ('plate', 'brand', 'model', 'year', 'color', 'fuel')
 
 
 @admin.register(Contractor)
@@ -21,7 +28,7 @@ class ContractorAdmin(admin.ModelAdmin):
     list_filter = ('created_at', 'address_state')
     search_fields = ('name', 'trade_name', 'cnpj', 'legal_representative', 'email')
     ordering = ('name',)
-    inlines = [ContractorMemberInline]
+    inlines = [ContractorVehicleInline]
 
     fieldsets = (
         ('Identificação', {
@@ -55,10 +62,10 @@ class ContractorAdmin(admin.ModelAdmin):
 class ContractorMemberAdmin(admin.ModelAdmin):
     """Admin interface for ContractorMember model."""
 
-    list_display = ('name', 'role', 'contractor', 'cpf', 'phone', 'aso_expiry_date', 'nr_certificate_expiry', 'created_at')
+    list_display = ('name', 'role', 'contractor', 'cpf', 'phone', 'aso_expiry_date', 'created_at')
     list_filter = ('role', 'contractor', 'aso_exam_type', 'created_at')
     search_fields = ('name', 'cpf', 'rg', 'role')
-    ordering = ('name',)
+    inlines = [ContractorMemberNRInline]
 
     fieldsets = (
         ('Dados Pessoais', {
@@ -66,10 +73,6 @@ class ContractorMemberAdmin(admin.ModelAdmin):
         }),
         ('Dados Profissionais', {
             'fields': ('role', 'specialty', 'experience_years')
-        }),
-        ('NR – Norma Regulamentadora', {
-            'fields': ('nr_number', 'nr_certificate_expiry', 'nr_certificate_file'),
-            'classes': ('collapse',)
         }),
         ('ASO – Atestado de Saúde Ocupacional', {
             'fields': ('aso_number', 'aso_issue_date', 'aso_expiry_date', 'aso_exam_type', 'aso_file'),

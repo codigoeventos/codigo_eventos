@@ -235,20 +235,24 @@
 <!-- Item template -->
 <template id="item-template">
     <div class="item-form bg-white border border-gray-200 rounded-lg p-4"
-         data-item-id="" data-deleted="false">
+         data-item-id="" data-deleted="false" data-billing-type="qty">
 
-        <!-- Row 1: Name + Qty + Price + Total -->
+        <!-- Row 1: Name + Billing toggle/Qty + Price + Total -->
         <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
-            <div class="md:col-span-5">
+            <div class="md:col-span-4">
                 <label class="block text-xs font-medium text-gray-600 mb-1">Item <span class="text-red-500">*</span></label>
                 <input type="text" class="item-name w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-sm" placeholder="Nome do item">
             </div>
             <div class="md:col-span-2">
-                <label class="block text-xs font-medium text-gray-600 mb-1">Quantidade <span class="text-red-500">*</span></label>
-                <input type="number" class="item-quantity w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-sm" min="1" value="1">
+                <label class="block text-xs font-medium text-gray-600 mb-1">Cobrar por</label>
+                <div class="flex rounded-lg border border-gray-300 overflow-hidden mb-1.5">
+                    <button type="button" class="billing-btn billing-qty flex-1 text-xs py-1.5 font-medium transition-all bg-black text-white" data-type="qty">Qtd</button>
+                    <button type="button" class="billing-btn billing-meter flex-1 text-xs py-1.5 font-medium transition-all bg-white text-gray-500" data-type="meter">Metro</button>
+                </div>
+                <input type="number" class="item-quantity w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-sm" min="1" value="1" placeholder="1">
             </div>
-            <div class="md:col-span-2">
-                <label class="block text-xs font-medium text-gray-600 mb-1">Preço Unitário (R$) <span class="text-red-500">*</span></label>
+            <div class="md:col-span-3">
+                <label class="item-unit-price-label block text-xs font-medium text-gray-600 mb-1">Preço Unitário (R$) <span class="text-red-500">*</span></label>
                 <input type="number" class="item-unit-price w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-sm" step="0.01" min="0" placeholder="0,00">
             </div>
             <div class="md:col-span-3">
@@ -277,9 +281,10 @@
                     <input type="number" class="item-dim item-dim-height w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-sm" step="0.001" min="0" placeholder="0.000">
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1">Volume (m³)</label>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Volume / Metragem</label>
                     <input type="number" class="item-measurement w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent bg-gray-50 text-sm" step="0.001" min="0" placeholder="auto">
                     <p class="text-xs text-blue-500 mt-0.5">C×L×A auto</p>
+                    <p class="item-meter-hint hidden text-xs text-green-600 mt-0.5 font-medium">↑ base de cobrança (metro)</p>
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">Unidade</label>
@@ -567,6 +572,9 @@
         if (data && data.weight)           node.querySelector('.item-weight').value        = data.weight;
         if (data && data.description)      node.querySelector('.item-description').value   = data.description;
 
+        // Apply billing type (must be done after node is populated)
+        applyBillingType(node, (data && data.billing_type) || 'qty');
+
         // Populate description select
         populateDescriptionSelect(node.querySelector('.item-description-select'));
 
@@ -582,6 +590,14 @@
         node.querySelector('.new-description-link').addEventListener('click', (e) => {
             e.preventDefault();
             openDescriptionModal(node);
+        });
+
+        // Billing type toggle
+        node.querySelectorAll('.billing-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                applyBillingType(node, btn.dataset.type);
+                recalcAll();
+            });
         });
 
         // Remove button
@@ -603,13 +619,34 @@
         return node;
     }
 
+    // ── Billing type UI ────────────────────────────────────────────────────
+    function applyBillingType(node, type) {
+        node.dataset.billingType = type;
+        const qtyBtn     = node.querySelector('.billing-qty');
+        const mtrBtn     = node.querySelector('.billing-meter');
+        const priceLabel = node.querySelector('.item-unit-price-label');
+        const meterHint  = node.querySelector('.item-meter-hint');
+        const measInput  = node.querySelector('.item-measurement');
+        if (type === 'meter') {
+            qtyBtn.classList.remove('bg-black', 'text-white'); qtyBtn.classList.add('bg-white', 'text-gray-500');
+            mtrBtn.classList.remove('bg-white', 'text-gray-500'); mtrBtn.classList.add('bg-green-600', 'text-white');
+            if (priceLabel) priceLabel.innerHTML = 'Preço/metro (R$) <span class="text-red-500">*</span>';
+            meterHint?.classList.remove('hidden');
+            if (measInput) { measInput.classList.remove('bg-gray-50'); measInput.classList.add('bg-green-50', 'border-green-400'); }
+        } else {
+            qtyBtn.classList.remove('bg-white', 'text-gray-500'); qtyBtn.classList.add('bg-black', 'text-white');
+            mtrBtn.classList.remove('bg-green-600', 'text-white'); mtrBtn.classList.add('bg-white', 'text-gray-500');
+            if (priceLabel) priceLabel.innerHTML = 'Preço Unitário (R$) <span class="text-red-500">*</span>';
+            meterHint?.classList.add('hidden');
+            if (measInput) { measInput.classList.remove('bg-green-50', 'border-green-400'); measInput.classList.add('bg-gray-50'); }
+        }
+    }
+
     // ── Per-item calculations ──────────────────────────────────────────────
     function calcItem(row) {
+        const billingType = row.dataset.billingType || 'qty';
         const qty   = num(row.querySelector('.item-quantity')?.value);
         const price = num(row.querySelector('.item-unit-price')?.value);
-        const total = qty * price;
-        const tot   = row.querySelector('.item-total');
-        if (tot) tot.value = fmt(total);
 
         const l = num(row.querySelector('.item-dim-length')?.value);
         const w = num(row.querySelector('.item-dim-width')?.value);
@@ -625,6 +662,16 @@
         } else if (measInput && unitSelect?.value === 'm3') {
             vol = num(measInput.value);
         }
+
+        let total;
+        if (billingType === 'meter') {
+            const meas = num(measInput?.value);
+            total = meas * qty * price;
+        } else {
+            total = qty * price;
+        }
+        const tot = row.querySelector('.item-total');
+        if (tot) tot.value = fmt(total);
 
         const weight      = num(row.querySelector('.item-weight')?.value);
         const volTotal    = vol * qty;
@@ -647,9 +694,7 @@
     function updateSectionSubtotal(sectionNode) {
         let sub = 0;
         sectionNode.querySelectorAll('.item-form[data-deleted="false"]').forEach(row => {
-            const qty   = num(row.querySelector('.item-quantity')?.value);
-            const price = num(row.querySelector('.item-unit-price')?.value);
-            sub += qty * price;
+            sub += calcItem(row).total;
         });
         const el = sectionNode.querySelector('.section-subtotal');
         if (el) el.textContent = fmt(sub);
@@ -728,8 +773,7 @@
                 let itemsTotal = 0;
                 document.querySelectorAll('.section-card').forEach(secNode => {
                     secNode.querySelectorAll('.item-form[data-deleted="false"]').forEach(row => {
-                        itemsTotal += num(row.querySelector('.item-quantity')?.value) *
-                                      num(row.querySelector('.item-unit-price')?.value);
+                        itemsTotal += calcItem(row).total;
                     });
                 });
                 currentFreight = d.freight_total || 0;
@@ -790,6 +834,7 @@
                     measurement_unit: itemNode.querySelector('.item-measurement-unit')?.value || '',
                     weight:           itemNode.querySelector('.item-weight')?.value || '',
                     unit_price:       itemNode.querySelector('.item-unit-price')?.value || '0',
+                    billing_type:     itemNode.dataset.billingType || 'qty',
                 });
             });
             sections.push({
