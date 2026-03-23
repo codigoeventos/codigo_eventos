@@ -218,15 +218,13 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                 </svg>
                             </a>
-                            <form method="post" action="{% url 'events:contractor_assign_remove' event.pk assignment.pk %}"
-                                onsubmit="return confirm('Remover {{ assignment.contractor.name|escapejs }} deste evento?')">
-                                {% csrf_token %}
-                                <button type="submit" class="p-1 text-gray-400 hover:text-red-600 transition-colors" title="Remover">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                    </svg>
-                                </button>
-                            </form>
+                            <button type="button"
+                                onclick="openContractorRemoveModal('{% url 'events:contractor_assign_remove' event.pk assignment.pk %}', '{{ assignment.contractor.name|escapejs }}')"
+                                class="p-1 text-gray-400 hover:text-red-600 transition-colors" title="Remover">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                            </button>
                         </div>
                     </div>
                     <!-- Selected members -->
@@ -265,6 +263,11 @@
 {% csrf_token %}
 
 <script>
+function openContractorRemoveModal(url, contractorName) {
+    const itemDetails = `<p class="text-sm font-medium text-gray-900">${contractorName}</p>`;
+    openDeleteModal(url, `a empreiteira "${contractorName}" deste evento`, itemDetails, null, null);
+}
+
 function openEventDeleteModal(eventId, eventName, clientName, eventDate, projectsCount) {
     const deleteUrl = `/events/${eventId}/delete/`;
     const redirectUrl = '{% url "events:list" %}';
