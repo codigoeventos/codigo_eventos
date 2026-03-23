@@ -4,14 +4,18 @@ Event views for Event Management System.
 
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.messages.views import SuccessMessageMixin
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+from django.views import View
 from django.db.models import Q
 from django.http import HttpResponseRedirect, JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.core.exceptions import ValidationError
 
 from apps.common.mixins import AuditMixin
 from .models import Event
 from .forms import EventForm, EventSearchForm
+from apps.contractors.models import Contractor, ContractorMember, EventContractor, EventContractorMember
 
 
 class EventListView(LoginRequiredMixin, ListView):
@@ -70,6 +74,7 @@ class EventDetailView(LoginRequiredMixin, DetailView):
             'service_orders',
             'technical_visits',
             'contractors__contractor',
+            'contractors__selected_members__member',
         )
     
     def get_context_data(self, **kwargs):
@@ -155,3 +160,129 @@ class EventDeleteView(LoginRequiredMixin, DeleteView):
         """Redirect GET requests to event detail page."""
         event = self.get_object()
         return HttpResponseRedirect(reverse_lazy('events:detail', kwargs={'pk': event.pk}))
+
+
+# ─── Contractor Assignment Views ──────────────────────────────────────────────
+
+class ContractorMembersJSONView(LoginRequiredMixin, View):
+    """Return JSON list of members for a given contractor (for dynamic loading)."""
+
+    def get(self, request):
+        contractor_id = request.GET.get('contractor_id')
+        if not contractor_id:
+            return JsonResponse({'members': []})
+        members = ContractorMember.objects.filter(
+            contractor_id=contractor_id
+        ).order_by('name').values('id', 'name', 'role')
+        return JsonResponse({'members': list(members)})
+
+
+class ContractorAssignView(LoginRequiredMixin, View):
+    """Assign a (new) contractor to an event and select participating members."""
+
+    template_name = 'events/event_assign_contractor.html'
+
+    def _get_event(self, pk):
+        return get_object_or_404(Event, pk=pk)
+
+    def get(self, request, pk):
+        event = self._get_event(pk)
+        assigned_ids = event.contractors.values_list('contractor_id', flat=True)
+        contractors = Contractor.objects.exclude(pk__in=assigned_ids).order_by('name')
+        return render(request, self.template_name, {
+            'event': event,
+            'contractors': contractors,
+            'assignment': None,
+            'selected_member_ids': [],
+            'breadcrumbs': [
+                {'name': 'Eventos', 'url': reverse('events:list')},
+                {'name': event.name, 'url': reverse('events:detail', kwargs={'pk': pk})},
+                {'name': 'Vincular Empreiteira', 'url': None},
+            ],
+        })
+
+    def post(self, request, pk):
+        event = self._get_event(pk)
+        contractor_id = request.POST.get('contractor')
+        member_ids = request.POST.getlist('members')
+        notes = request.POST.get('notes', '')
+        error = None
+
+        if not contractor_id:
+            error = 'Selecione uma empreiteira.'
+        else:
+            try:
+                assignment, _ = EventContractor.objects.get_or_create(
+                    event=event,
+                    contractor_id=contractor_id,
+                    defaults={'notes': notes},
+                )
+                assignment.notes = notes
+                assignment.save(update_fields=['notes'])
+                assignment.selected_members.all().delete()
+                for mid in member_ids:
+                    EventContractorMember.objects.create(assignment=assignment, member_id=mid)
+                return redirect('events:detail', pk=pk)
+            except ValidationError as e:
+                error = ' '.join(e.messages)
+
+        assigned_ids = event.contractors.values_list('contractor_id', flat=True)
+        contractors = Contractor.objects.exclude(pk__in=assigned_ids).order_by('name')
+        return render(request, self.template_name, {
+            'event': event,
+            'contractors': contractors,
+            'assignment': None,
+            'selected_member_ids': member_ids,
+            'error': error,
+            'breadcrumbs': [
+                {'name': 'Eventos', 'url': reverse('events:list')},
+                {'name': event.name, 'url': reverse('events:detail', kwargs={'pk': pk})},
+                {'name': 'Vincular Empreiteira', 'url': None},
+            ],
+        })
+
+
+class ContractorAssignEditView(LoginRequiredMixin, View):
+    """Edit the member selection for an existing contractor assignment."""
+
+    template_name = 'events/event_assign_contractor.html'
+
+    def _get_objects(self, pk, assignment_pk):
+        event = get_object_or_404(Event, pk=pk)
+        assignment = get_object_or_404(EventContractor, pk=assignment_pk, event=event)
+        return event, assignment
+
+    def get(self, request, pk, assignment_pk):
+        event, assignment = self._get_objects(pk, assignment_pk)
+        selected_ids = list(assignment.selected_members.values_list('member_id', flat=True))
+        return render(request, self.template_name, {
+            'event': event,
+            'contractors': [assignment.contractor],
+            'assignment': assignment,
+            'selected_member_ids': selected_ids,
+            'breadcrumbs': [
+                {'name': 'Eventos', 'url': reverse('events:list')},
+                {'name': event.name, 'url': reverse('events:detail', kwargs={'pk': pk})},
+                {'name': 'Editar Membros', 'url': None},
+            ],
+        })
+
+    def post(self, request, pk, assignment_pk):
+        event, assignment = self._get_objects(pk, assignment_pk)
+        member_ids = request.POST.getlist('members')
+        notes = request.POST.get('notes', '')
+        assignment.notes = notes
+        assignment.save(update_fields=['notes'])
+        assignment.selected_members.all().delete()
+        for mid in member_ids:
+            EventContractorMember.objects.create(assignment=assignment, member_id=mid)
+        return redirect('events:detail', pk=pk)
+
+
+class ContractorAssignRemoveView(LoginRequiredMixin, View):
+    """Remove a contractor (and its members) from an event."""
+
+    def post(self, request, pk, assignment_pk):
+        assignment = get_object_or_404(EventContractor, pk=assignment_pk, event_id=pk)
+        assignment.delete()
+        return redirect('events:detail', pk=pk)

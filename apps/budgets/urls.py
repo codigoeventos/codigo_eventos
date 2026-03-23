@@ -16,6 +16,7 @@ urlpatterns = [
     path('<int:pk>/calculate-freight/', views.BudgetCalculateFreightView.as_view(), name='calculate-freight'),
     path('freight-preview/', views.BudgetFreightPreviewView.as_view(), name='freight-preview'),
     path('item-descriptions/', views.ItemDescriptionListCreateView.as_view(), name='item-descriptions'),
+    path('item-descriptions/<int:pk>/', views.ItemDescriptionDetailView.as_view(), name='item-descriptions-detail'),
     
     # Public approval URLs (no login required)
     path('approval/<uuid:token>/', views.PublicBudgetApprovalView.as_view(), name='public_approval'),

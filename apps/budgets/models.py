@@ -354,6 +354,13 @@ class BudgetItem(models.Model):
         help_text='Define se o total é calculado por quantidade ou por metragem'
     )
 
+    subitems_data = models.JSONField(
+        'Subitens',
+        null=True,
+        blank=True,
+        help_text='Lista de subitens com medidas individuais quando cada unidade tem dimensões diferentes'
+    )
+
     class Meta:
         verbose_name = 'Item do Orçamento'
         verbose_name_plural = 'Itens do Orçamento'

@@ -182,19 +182,33 @@ class ProjectDeleteView(LoginRequiredMixin, DeleteView):
 
 
 class ProjectFileCreateView(LoginRequiredMixin, View):
-    """Upload a new file to a project."""
+    """Upload one or more files to a project."""
 
     def post(self, request, project_pk):
         project = get_object_or_404(Project, pk=project_pk)
-        form = ProjectFileForm(request.POST, request.FILES)
-        if form.is_valid():
-            project_file = form.save(commit=False)
-            project_file.project = project
-            project_file.uploaded_by = request.user
-            project_file.save()
-            messages.success(request, f'Arquivo "{project_file.name}" enviado com sucesso!')
-        else:
-            messages.error(request, 'Erro ao enviar arquivo. Verifique os campos.')
+        uploaded_files = request.FILES.getlist('files')
+        if not uploaded_files:
+            messages.error(request, 'Nenhum arquivo selecionado.')
+            return redirect('projects:detail', pk=project_pk)
+
+        file_type = request.POST.get('file_type', 'other')
+        notes = request.POST.get('notes', '')
+        custom_name = request.POST.get('name', '').strip()
+        count = 0
+        for uploaded_file in uploaded_files:
+            name = custom_name if (custom_name and len(uploaded_files) == 1) else uploaded_file.name
+            ProjectFile.objects.create(
+                project=project,
+                file=uploaded_file,
+                name=name,
+                file_type=file_type,
+                notes=notes,
+                uploaded_by=request.user,
+            )
+            count += 1
+
+        msg = f'{count} arquivo(s) enviado(s) com sucesso!' if count > 1 else f'Arquivo "{custom_name or uploaded_files[0].name}" enviado com sucesso!'
+        messages.success(request, msg)
         return redirect('projects:detail', pk=project_pk)
 
     def get(self, request, project_pk):

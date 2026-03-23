@@ -15,7 +15,7 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 
 from apps.common.mixins import AuditMixin
-from .models import Contractor, ContractorMember, ContractorVehicle
+from .models import Contractor, ContractorMember, ContractorMemberNR, ContractorMemberNRFile, ContractorVehicle
 from .forms import ContractorForm, ContractorSearchForm, ContractorMemberForm, NRInlineFormSet, ContractorVehicleForm
 from django.contrib import messages
 
@@ -159,6 +159,11 @@ class MemberCreateView(LoginRequiredMixin, CreateView):
             self.object = form.save()
             nr_formset.instance = self.object
             nr_formset.save()
+            for i, nr_form in enumerate(nr_formset.forms):
+                if not nr_form.instance.pk:
+                    continue
+                for f in request.FILES.getlist(f'nrs-{i}-nr_certificate_files'):
+                    ContractorMemberNRFile.objects.create(nr=nr_form.instance, file=f)
             messages.success(request, f'Membro {self.object.name} adicionado com sucesso!')
             return HttpResponseRedirect(self.get_success_url())
         return self.render_to_response(self.get_context_data(form=form, nr_formset=nr_formset))
@@ -216,12 +221,30 @@ class MemberUpdateView(LoginRequiredMixin, UpdateView):
         if form.is_valid() and nr_formset.is_valid():
             self.object = form.save()
             nr_formset.save()
+            for i, nr_form in enumerate(nr_formset.forms):
+                if not nr_form.instance.pk:
+                    continue
+                for f in request.FILES.getlist(f'nrs-{i}-nr_certificate_files'):
+                    ContractorMemberNRFile.objects.create(nr=nr_form.instance, file=f)
             messages.success(request, f'Membro {self.object.name} atualizado com sucesso!')
             return HttpResponseRedirect(self.get_success_url())
         return self.render_to_response(self.get_context_data(form=form, nr_formset=nr_formset))
 
     def get_success_url(self):
         return reverse_lazy('contractors:member_detail', kwargs={'pk': self.object.pk})
+
+
+class NRFileDeleteView(LoginRequiredMixin, View):
+    """Delete a single ContractorMemberNRFile."""
+
+    def post(self, request, pk):
+        from django.shortcuts import get_object_or_404, redirect
+        nr_file = get_object_or_404(ContractorMemberNRFile, pk=pk)
+        member_pk = nr_file.nr.member_id
+        nr_file.file.delete(save=False)
+        nr_file.delete()
+        messages.success(request, 'Arquivo removido.')
+        return redirect('contractors:member_edit', pk=member_pk)
 
 
 class MemberDeleteView(LoginRequiredMixin, DeleteView):

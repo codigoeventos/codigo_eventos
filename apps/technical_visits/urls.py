@@ -13,4 +13,6 @@ urlpatterns = [
     path('<int:pk>/', views.TechnicalVisitDetailView.as_view(), name='detail'),
     path('<int:pk>/edit/', views.TechnicalVisitUpdateView.as_view(), name='edit'),
     path('<int:pk>/delete/', views.TechnicalVisitDeleteView.as_view(), name='delete'),
+    path('<int:pk>/attachments/upload/', views.TechnicalVisitAttachmentUploadView.as_view(), name='attachment-upload'),
+    path('<int:pk>/attachments/<int:attachment_pk>/delete/', views.TechnicalVisitAttachmentDeleteView.as_view(), name='attachment-delete'),
 ]

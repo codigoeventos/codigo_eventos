@@ -72,6 +72,17 @@
                 <div id="no-sections-msg" class="py-10 text-center text-gray-400 border-2 border-dashed border-gray-200 rounded-lg hidden">
                     Nenhuma seção adicionada ainda. Clique em <strong>Adicionar Seção</strong> para começar.
                 </div>
+
+                <!-- Botão adicionar seção (embaixo) -->
+                <div class="mt-4 flex justify-center">
+                    <button type="button" id="add-section-bottom"
+                        class="flex items-center gap-2 px-5 py-2.5 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-700 transition-all">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                        </svg>
+                        Adicionar Seção
+                    </button>
+                </div>
             </div>
 
             <!-- ── Totals & Freight Panel ─────────────────────────────── -->
@@ -225,8 +236,17 @@
         </div>
         <div class="section-body bg-gray-50">
             <div class="items-list space-y-3 p-4"></div>
-            <div class="empty-section-msg px-4 pb-4 pt-0 text-center text-sm text-gray-400 hidden">
-                Nenhum item nesta seção. Clique em <strong>+ Item</strong> para adicionar.
+            <div class="empty-section-msg px-4 pb-2 pt-0 text-center text-sm text-gray-400 hidden">
+                Nenhum item nesta seção. Clique em <strong>+ Adicionar Item</strong> para começar.
+            </div>
+            <!-- Botão adicionar item (embaixo da seção) -->
+            <div class="px-4 pb-4 flex justify-center">
+                <button type="button" class="add-item-btn flex items-center gap-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white text-xs font-medium rounded-lg transition-colors">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    Adicionar Item
+                </button>
             </div>
         </div>
     </div>
@@ -237,41 +257,75 @@
     <div class="item-form bg-white border border-gray-200 rounded-lg p-4"
          data-item-id="" data-deleted="false" data-billing-type="qty">
 
-        <!-- Row 1: Name + Billing toggle/Qty + Price + Total -->
+        <!-- Row 1: Name + Unidade -->
         <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
-            <div class="md:col-span-4">
+            <div class="md:col-span-8">
                 <label class="block text-xs font-medium text-gray-600 mb-1">Item <span class="text-red-500">*</span></label>
                 <input type="text" class="item-name w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-sm" placeholder="Nome do item">
             </div>
-            <div class="md:col-span-2">
-                <label class="block text-xs font-medium text-gray-600 mb-1">Cobrar por</label>
-                <div class="flex rounded-lg border border-gray-300 overflow-hidden mb-1.5">
-                    <button type="button" class="billing-btn billing-qty flex-1 text-xs py-1.5 font-medium transition-all bg-black text-white" data-type="qty">Qtd</button>
-                    <button type="button" class="billing-btn billing-meter flex-1 text-xs py-1.5 font-medium transition-all bg-white text-gray-500" data-type="meter">Metro</button>
-                </div>
-                <input type="number" class="item-quantity w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-sm" min="1" value="1" placeholder="1">
-            </div>
-            <div class="md:col-span-3">
-                <label class="item-unit-price-label block text-xs font-medium text-gray-600 mb-1">Preço Unitário (R$) <span class="text-red-500">*</span></label>
-                <input type="number" class="item-unit-price w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-sm" step="0.01" min="0" placeholder="0,00">
-            </div>
-            <div class="md:col-span-3">
-                <label class="block text-xs font-medium text-gray-600 mb-1">Valor Total (R$)</label>
-                <input type="text" readonly class="item-total w-full px-3 py-2 border border-gray-200 rounded-lg bg-white text-gray-800 font-semibold text-sm" value="R$ 0,00">
+            <div class="md:col-span-4">
+                <label class="block text-xs font-medium text-gray-600 mb-1">Unidade</label>
+                <select class="item-billing-select w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-sm">
+                    <option value="qty">Quantidade</option>
+                    <option value="meter">Metro</option>
+                </select>
             </div>
         </div>
 
-        <!-- Row 2: Dimensions & logistics -->
-        <div class="mt-3 p-3 bg-blue-50 border border-blue-100 rounded-lg">
-            <p class="text-xs font-semibold text-blue-700 mb-2 uppercase tracking-wide">
-                📦 Dimensões &amp; Logística
-                <span class="font-normal text-blue-500 ml-1">(usadas no cálculo de frete)</span>
-            </p>
-            <div class="grid grid-cols-2 md:grid-cols-7 gap-3">
+        <!-- Qty panel (shown by default) -->
+        <div class="qty-panel mt-3">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1">Comprimento (m)</label>
-                    <input type="number" class="item-dim item-dim-length w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-sm" step="0.001" min="0" placeholder="0.000">
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Quantidade</label>
+                    <input type="number" class="item-quantity w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-sm" min="1" value="1" placeholder="1">
                 </div>
+                <div>
+                    <label class="item-unit-price-label block text-xs font-medium text-gray-600 mb-1">Valor Unitário (R$) <span class="text-red-500">*</span></label>
+                    <input type="number" class="item-unit-price w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-sm" step="0.01" min="0" placeholder="0,00">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Valor Total (R$)</label>
+                    <input type="text" readonly class="item-total w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-gray-800 font-semibold text-sm" value="R$ 0,00">
+                </div>
+            </div>
+
+            <!-- Same measurements question (shown when qty > 1) -->
+            <div class="same-measures-question mt-3 hidden bg-amber-50 border border-amber-200 rounded-lg p-3">
+                <p class="text-sm font-medium text-amber-800 mb-2">
+                    📐 Os <span class="same-measures-qty-text font-bold"></span> itens têm as mesmas medidas/dimensões?
+                </p>
+                <div class="flex gap-2 flex-wrap">
+                    <button type="button" class="same-measures-yes px-3 py-1.5 text-xs font-medium bg-white border border-amber-300 text-amber-800 rounded-lg hover:bg-amber-50 transition-all">
+                        ✓ Sim, medidas iguais
+                    </button>
+                    <button type="button" class="same-measures-no px-3 py-1.5 text-xs font-medium bg-white border border-amber-300 text-amber-800 rounded-lg hover:bg-amber-50 transition-all">
+                        ≠ Não, medidas diferentes
+                    </button>
+                </div>
+            </div>
+
+            <!-- Subitems panel (shown when user says "No") -->
+            <div class="subitems-panel mt-3 hidden">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs font-semibold text-gray-700">
+                        Subitens
+                        <span class="subitems-count-badge text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full ml-1">0 de 0</span>
+                    </span>
+                    <button type="button" class="add-subitem text-xs px-3 py-1 bg-gray-800 text-white rounded-lg hover:bg-gray-600 transition-all">
+                        + Subitem
+                    </button>
+                </div>
+                <div class="subitems-list space-y-2"></div>
+                <p class="subitems-warning mt-1.5 text-xs text-red-500 hidden">
+                    ⚠️ A soma das quantidades dos subitens (<span class="subitems-sum-text">0</span>) deve ser igual à quantidade total do item (<span class="subitems-total-text">0</span>).
+                </p>
+            </div>
+        </div>
+
+        <!-- Meter panel (hidden by default) -->
+        <div class="meter-panel mt-3 hidden">
+            <!-- Dimensions -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">Largura (m)</label>
                     <input type="number" class="item-dim item-dim-width w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-sm" step="0.001" min="0" placeholder="0.000">
@@ -281,37 +335,76 @@
                     <input type="number" class="item-dim item-dim-height w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-sm" step="0.001" min="0" placeholder="0.000">
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1">Volume / Metragem</label>
-                    <input type="number" class="item-measurement w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent bg-gray-50 text-sm" step="0.001" min="0" placeholder="auto">
-                    <p class="text-xs text-blue-500 mt-0.5">C×L×A auto</p>
-                    <p class="item-meter-hint hidden text-xs text-green-600 mt-0.5 font-medium">↑ base de cobrança (metro)</p>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Profundidade (m)</label>
+                    <input type="number" class="item-dim item-dim-length w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-sm" step="0.001" min="0" placeholder="0.000">
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1">Unidade</label>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Volume / Metragem</label>
+                    <input type="number" class="item-measurement w-full px-3 py-2 bg-green-50 border border-green-300 rounded-lg focus:ring-2 focus:ring-green-400 focus:border-transparent text-sm" step="0.001" min="0" placeholder="automático">
+                    <p class="text-xs text-gray-400 mt-0.5">L × A × P calculado automático</p>
+                </div>
+            </div>
+            <!-- Unit + Price + Total -->
+            <div class="mt-3 grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Unidade do metro</label>
                     <select class="item-measurement-unit w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-sm">
-                        <option value="">–</option>
-                        <option value="m">m</option>
-                        <option value="m2">m²</option>
-                        <option value="m3">m³</option>
+                        <option value="m">m (linear)</option>
+                        <option value="m2">m² (quadrado)</option>
+                        <option value="m3">m³ (cúbico)</option>
                     </select>
                 </div>
-                <div class="md:col-span-2">
-                    <label class="block text-xs font-medium text-gray-600 mb-1">Peso unit. (kg)</label>
-                    <input type="number" class="item-weight w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-sm" step="0.001" min="0" placeholder="0.000">
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Valor por metro (R$) <span class="text-red-500">*</span></label>
+                    <input type="number" class="item-unit-price w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-sm" step="0.01" min="0" placeholder="0,00">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Valor Total (R$)</label>
+                    <input type="text" readonly class="item-total w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-gray-800 font-semibold text-sm" value="R$ 0,00">
                 </div>
             </div>
-            <div class="item-logistics-summary mt-2 text-xs text-blue-700 hidden">
-                Vol. total: <strong class="item-vol-total">–</strong> m³ &nbsp;|&nbsp;
-                Peso total: <strong class="item-wt-total">–</strong> kg
-            </div>
+            <!-- Hidden quantity = 1 for meter mode -->
+            <input type="hidden" class="item-quantity" value="1">
         </div>
 
-        <!-- Row 3: Description + remove -->
+        <!-- Logistics (collapsible) -->
+        <div class="mt-3 pt-3 border-t border-gray-100">
+            <details class="group">
+                <summary class="text-xs text-gray-400 cursor-pointer hover:text-gray-600 select-none flex items-center gap-1">
+                    <svg class="w-3 h-3 transition-transform group-open:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                    </svg>
+                    📦 Logística (peso unitário, para cálculo de frete)
+                </summary>
+                <div class="mt-2 grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Peso unitário (kg)</label>
+                        <input type="number" class="item-weight w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-sm" step="0.001" min="0" placeholder="0.000">
+                    </div>
+                    <div class="item-logistics-summary hidden flex items-end pb-2">
+                        <span class="text-xs text-blue-600">
+                            Vol. total: <strong class="item-vol-total">–</strong> m³ &nbsp;|&nbsp;
+                            Peso total: <strong class="item-wt-total">–</strong> kg
+                        </span>
+                    </div>
+                </div>
+            </details>
+        </div>
+
+        <!-- Description + remove -->
         <div class="mt-3 grid grid-cols-1 gap-3">
             <div>
                 <label class="block text-xs font-medium text-gray-600 mb-1 flex items-center justify-between">
                     <span>Descrição</span>
-                    <a href="#" class="new-description-link text-xs text-blue-600 hover:text-blue-800 font-medium">+ Nova descrição</a>
+                    <div class="flex items-center gap-3">
+                        <a href="#" class="edit-description-link text-xs text-gray-400 hover:text-blue-600 font-medium hidden flex items-center gap-1" title="Editar descrição selecionada">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                            </svg>
+                            Editar
+                        </a>
+                        <a href="#" class="new-description-link text-xs text-blue-600 hover:text-blue-800 font-medium">+ Nova descrição</a>
+                    </div>
                 </label>
                 <select class="item-description-select w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-sm bg-white">
                     <option value="">— selecione uma descrição —</option>
@@ -328,12 +421,48 @@
     </div>
 </template>
 
-<!-- ── Modal: Nova Descrição de Item ────────────────────────────────────────────── -->
+<!-- Subitem template -->
+<template id="subitem-template">
+    <div class="subitem-row bg-gray-50 border border-gray-200 rounded-lg p-3">
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-2 items-end">
+            <div class="md:col-span-5">
+                <label class="block text-xs font-medium text-gray-500 mb-1">Nome do subitem</label>
+                <input type="text" class="subitem-name w-full px-2 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-black focus:border-transparent" placeholder="ex.: Painel A">
+            </div>
+            <div class="md:col-span-2">
+                <label class="block text-xs font-medium text-gray-500 mb-1">Qtd.</label>
+                <input type="number" class="subitem-qty w-full px-2 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-black focus:border-transparent" min="1" value="1">
+            </div>
+            <div class="md:col-span-5">
+                <label class="block text-xs font-medium text-gray-500 mb-1">Largura / Altura / Prof. / Vol.</label>
+                <div class="grid grid-cols-4 gap-1">
+                    <input type="number" class="subitem-dim subitem-dim-width w-full px-2 py-1.5 border border-gray-300 rounded-md text-xs focus:ring-2 focus:ring-black" step="0.001" min="0" placeholder="Larg.">
+                    <input type="number" class="subitem-dim subitem-dim-height w-full px-2 py-1.5 border border-gray-300 rounded-md text-xs focus:ring-2 focus:ring-black" step="0.001" min="0" placeholder="Alt.">
+                    <input type="number" class="subitem-dim subitem-dim-length w-full px-2 py-1.5 border border-gray-300 rounded-md text-xs focus:ring-2 focus:ring-black" step="0.001" min="0" placeholder="Prof.">
+                    <input type="number" class="subitem-measurement w-full px-2 py-1.5 border border-green-300 bg-green-50 rounded-md text-xs focus:ring-2 focus:ring-green-400" step="0.001" min="0" placeholder="auto">
+                </div>
+            </div>
+        </div>
+        <div class="mt-2 flex items-center gap-3 flex-wrap">
+            <select class="subitem-measurement-unit px-2 py-1.5 border border-gray-300 rounded-md text-xs focus:ring-2 focus:ring-black">
+                <option value="m">m (linear)</option>
+                <option value="m2">m² (quadrado)</option>
+                <option value="m3">m³ (cúbico)</option>
+            </select>
+            <span class="subitem-vol-display text-xs text-gray-500 flex-1"></span>
+            <button type="button" class="remove-subitem text-xs text-red-500 hover:text-red-700 px-2 py-1 border border-red-200 rounded-md hover:bg-red-50 transition-all">
+                ✕ Remover
+            </button>
+        </div>
+    </div>
+</template>
+
+<!-- ── Modal: Nova / Editar Descrição de Item ───────────────────────────────── -->
 <div id="item-desc-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4" role="dialog" aria-modal="true">
     <div class="absolute inset-0 bg-black/50" id="item-desc-modal-backdrop"></div>
     <div class="relative bg-white rounded-xl shadow-xl w-full max-w-lg p-6 z-10">
         <div class="flex items-center justify-between mb-4">
-            <h3 class="text-base font-semibold text-gray-900">Nova Descrição de Item</h3>
+            <h3 id="item-desc-modal-title" class="text-base font-semibold text-gray-900">Nova Descrição de Item</h3>
             <button type="button" id="item-desc-modal-close" class="text-gray-400 hover:text-gray-600">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
@@ -351,9 +480,15 @@
             </div>
             <p id="item-desc-error" class="text-sm text-red-600 hidden"></p>
         </div>
-        <div class="mt-5 flex justify-end gap-3">
-            <button type="button" id="item-desc-modal-cancel" class="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">Cancelar</button>
-            <button type="button" id="item-desc-modal-save" class="px-4 py-2 text-sm bg-black text-white rounded-lg hover:bg-gray-800">Salvar</button>
+        <div class="mt-5 flex items-center justify-between">
+            <button type="button" id="item-desc-modal-delete"
+                class="hidden px-4 py-2 text-sm border border-red-300 text-red-600 rounded-lg hover:bg-red-50 transition-all">
+                🗑️ Excluir
+            </button>
+            <div class="flex gap-3 ml-auto">
+                <button type="button" id="item-desc-modal-cancel" class="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">Cancelar</button>
+                <button type="button" id="item-desc-modal-save" class="px-4 py-2 text-sm bg-black text-white rounded-lg hover:bg-gray-800">Salvar</button>
+            </div>
         </div>
     </div>
 </div>
@@ -390,18 +525,29 @@
     }
 
     let _activeDescItemNode = null;
+    let _editingDescId      = null;
 
     const descModal        = document.getElementById('item-desc-modal');
+    const descModalTitle   = document.getElementById('item-desc-modal-title');
     const descTitleInput   = document.getElementById('item-desc-title');
     const descBodyInput    = document.getElementById('item-desc-body');
     const descErrorEl      = document.getElementById('item-desc-error');
     const descSaveBtn      = document.getElementById('item-desc-modal-save');
+    const descDeleteBtn    = document.getElementById('item-desc-modal-delete');
 
-    function openDescriptionModal(itemNode) {
+    function openDescriptionModal(itemNode, descToEdit = null) {
         _activeDescItemNode  = itemNode;
-        descTitleInput.value = '';
-        descBodyInput.value  = '';
+        _editingDescId       = descToEdit ? descToEdit.id : null;
+        descTitleInput.value = descToEdit ? descToEdit.title : '';
+        descBodyInput.value  = descToEdit ? descToEdit.body  : '';
         descErrorEl.classList.add('hidden');
+        if (descToEdit) {
+            descModalTitle.textContent = 'Editar Descrição';
+            descDeleteBtn.classList.remove('hidden');
+        } else {
+            descModalTitle.textContent = 'Nova Descrição de Item';
+            descDeleteBtn.classList.add('hidden');
+        }
         descModal.classList.remove('hidden');
         setTimeout(() => descTitleInput.focus(), 50);
     }
@@ -409,6 +555,7 @@
     function closeDescriptionModal() {
         descModal.classList.add('hidden');
         _activeDescItemNode = null;
+        _editingDescId      = null;
     }
 
     document.getElementById('item-desc-modal-close').addEventListener('click',  closeDescriptionModal);
@@ -427,24 +574,37 @@
         descSaveBtn.disabled    = true;
         descSaveBtn.textContent = 'Salvando…';
         try {
-            const res  = await fetch(ITEM_DESC_URL, {
-                method:  'POST',
+            const isEdit = _editingDescId !== null;
+            const url    = isEdit ? `${ITEM_DESC_URL}${_editingDescId}/` : ITEM_DESC_URL;
+            const res    = await fetch(url, {
+                method:  isEdit ? 'PATCH' : 'POST',
                 headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
                 body:    JSON.stringify({ title, body }),
             });
             const data = await res.json();
             if (!res.ok) throw new Error(data.error || 'Erro ao salvar.');
 
-            // Add to local list
-            ITEM_DESCRIPTIONS.push(data);
-            refreshAllDescriptionSelects();
-
-            // Select the new description on the triggering item and copy body
-            if (_activeDescItemNode) {
-                const sel = _activeDescItemNode.querySelector('.item-description-select');
-                if (sel) sel.value = data.id;
-                const ta = _activeDescItemNode.querySelector('.item-description');
-                if (ta) ta.value = data.body;
+            if (isEdit) {
+                const idx = ITEM_DESCRIPTIONS.findIndex(d => d.id === data.id);
+                if (idx !== -1) ITEM_DESCRIPTIONS[idx] = data;
+                refreshAllDescriptionSelects();
+                if (_activeDescItemNode) {
+                    const sel = _activeDescItemNode.querySelector('.item-description-select');
+                    if (sel) sel.value = data.id;
+                    const ta = _activeDescItemNode.querySelector('.item-description');
+                    if (ta && ta.value) ta.value = data.body;
+                }
+            } else {
+                ITEM_DESCRIPTIONS.push(data);
+                refreshAllDescriptionSelects();
+                if (_activeDescItemNode) {
+                    const sel = _activeDescItemNode.querySelector('.item-description-select');
+                    if (sel) sel.value = data.id;
+                    const ta = _activeDescItemNode.querySelector('.item-description');
+                    if (ta) ta.value = data.body;
+                    // Show edit pencil for newly created description
+                    _activeDescItemNode.querySelector('.edit-description-link')?.classList.remove('hidden');
+                }
             }
             closeDescriptionModal();
         } catch (err) {
@@ -453,6 +613,37 @@
         } finally {
             descSaveBtn.disabled    = false;
             descSaveBtn.textContent = 'Salvar';
+        }
+    });
+
+    descDeleteBtn.addEventListener('click', async () => {
+        if (!_editingDescId) return;
+        if (!confirm('Excluir esta descrição? Ela será removida de todos os seletores.')) return;
+        descDeleteBtn.disabled    = true;
+        descDeleteBtn.textContent = 'Excluindo…';
+        try {
+            const res = await fetch(`${ITEM_DESC_URL}${_editingDescId}/`, {
+                method:  'DELETE',
+                headers: { 'X-CSRFToken': csrfToken },
+            });
+            if (!res.ok) throw new Error('Erro ao excluir.');
+            const idx = ITEM_DESCRIPTIONS.findIndex(d => d.id === _editingDescId);
+            if (idx !== -1) ITEM_DESCRIPTIONS.splice(idx, 1);
+            refreshAllDescriptionSelects();
+            if (_activeDescItemNode) {
+                const sel = _activeDescItemNode.querySelector('.item-description-select');
+                if (sel && String(sel.value) === String(_editingDescId)) {
+                    sel.value = '';
+                    _activeDescItemNode.querySelector('.edit-description-link')?.classList.add('hidden');
+                }
+            }
+            closeDescriptionModal();
+        } catch (err) {
+            descErrorEl.textContent = err.message;
+            descErrorEl.classList.remove('hidden');
+        } finally {
+            descDeleteBtn.disabled    = false;
+            descDeleteBtn.textContent = '🗑️ Excluir';
         }
     });
 
@@ -467,6 +658,7 @@
     const addSectionBtn     = document.getElementById('add-section');
     const sectionTmpl       = document.getElementById('section-template');
     const itemTmpl          = document.getElementById('item-template');
+    const subitemTmpl       = document.getElementById('subitem-template');
     const sectionsDataInput = document.getElementById('sections-data');
     const freightURL        = "{% url 'budgets:freight-preview' %}";
     const csrfToken         = document.querySelector('[name=csrfmiddlewaretoken]').value;
@@ -524,10 +716,14 @@
             }
         });
 
-        // Add item button
-        node.querySelector('.add-item-btn').addEventListener('click', () => {
-            addItem(node, null);
-            updateEmptySectionMsg(node);
+        // Add item buttons (header + bottom)
+        node.querySelectorAll('.add-item-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                addItem(node, null);
+                updateEmptySectionMsg(node);
+                const lastItem = node.querySelector('.items-list .item-form:last-child');
+                if (lastItem) lastItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            });
         });
 
         sectionsContainer.appendChild(node);
@@ -554,13 +750,169 @@
     }
 
     // ── Item management ────────────────────────────────────────────────────
+    // ── Same-measures / subitem helpers ───────────────────────────────────
+    function checkSameMeasuresVisibility(itemNode) {
+        const qty  = parseInt(itemNode.querySelector('.qty-panel .item-quantity')?.value) || 1;
+        const qDiv = itemNode.querySelector('.same-measures-question');
+        const sDiv = itemNode.querySelector('.subitems-panel');
+        if (!qDiv) return;
+        if (itemNode.dataset.billingType !== 'qty' || qty <= 1) {
+            qDiv.classList.add('hidden');
+            // Don't hide subitems-panel here so data isn't lost if user reduces qty temporarily
+            return;
+        }
+        qDiv.classList.remove('hidden');
+        const qTxt = qDiv.querySelector('.same-measures-qty-text');
+        if (qTxt) qTxt.textContent = qty;
+        if (qDiv.dataset.answered === 'no') {
+            sDiv?.classList.remove('hidden');
+        }
+        updateSubitemsCounter(itemNode);
+    }
+
+    function updateSameMeasuresButtons(itemNode, answer) {
+        const qDiv   = itemNode.querySelector('.same-measures-question');
+        const yesBtn = itemNode.querySelector('.same-measures-yes');
+        const noBtn  = itemNode.querySelector('.same-measures-no');
+        if (!qDiv) return;
+        qDiv.dataset.answered = answer;
+        if (answer === 'yes') {
+            yesBtn?.classList.add('bg-green-600', 'text-white', 'border-green-600');
+            yesBtn?.classList.remove('bg-white', 'text-amber-800', 'border-amber-300');
+            noBtn?.classList.remove('bg-amber-600', 'text-white', 'border-amber-600');
+            noBtn?.classList.add('bg-white', 'text-amber-800', 'border-amber-300');
+        } else {
+            noBtn?.classList.add('bg-amber-600', 'text-white', 'border-amber-600');
+            noBtn?.classList.remove('bg-white', 'text-amber-800', 'border-amber-300');
+            yesBtn?.classList.remove('bg-green-600', 'text-white', 'border-green-600');
+            yesBtn?.classList.add('bg-white', 'text-amber-800', 'border-amber-300');
+        }
+    }
+
+    function updateSubitemsCounter(itemNode) {
+        const totalQty = parseInt(itemNode.querySelector('.qty-panel .item-quantity')?.value) || 1;
+        const subRows  = itemNode.querySelectorAll('.subitems-list .subitem-row');
+        let sumQty = 0;
+        subRows.forEach(row => { sumQty += parseInt(row.querySelector('.subitem-qty')?.value) || 0; });
+
+        const badge   = itemNode.querySelector('.subitems-count-badge');
+        const warning = itemNode.querySelector('.subitems-warning');
+        const sumText = itemNode.querySelector('.subitems-sum-text');
+        const totText = itemNode.querySelector('.subitems-total-text');
+        const qTxt    = itemNode.querySelector('.same-measures-qty-text');
+
+        if (badge)   badge.textContent   = `${sumQty} de ${totalQty}`;
+        if (qTxt)    qTxt.textContent    = totalQty;
+        if (sumText) sumText.textContent = sumQty;
+        if (totText) totText.textContent = totalQty;
+
+        // Badge colour
+        if (badge) {
+            badge.className = 'subitems-count-badge text-xs px-2 py-0.5 rounded-full ml-1';
+            if (subRows.length === 0 || sumQty === 0) {
+                badge.classList.add('bg-gray-100', 'text-gray-500');
+            } else if (sumQty === totalQty) {
+                badge.classList.add('bg-green-100', 'text-green-700');
+            } else if (sumQty > totalQty) {
+                badge.classList.add('bg-red-100', 'text-red-700');
+            } else {
+                badge.classList.add('bg-amber-100', 'text-amber-700');
+            }
+        }
+
+        // Warning
+        if (warning) {
+            const showWarn = subRows.length > 0 && sumQty !== totalQty;
+            warning.classList.toggle('hidden', !showWarn);
+        }
+    }
+
+    function calcSubitem(row) {
+        const l = num(row.querySelector('.subitem-dim-length')?.value);
+        const w = num(row.querySelector('.subitem-dim-width')?.value);
+        const h = num(row.querySelector('.subitem-dim-height')?.value);
+        const measInput  = row.querySelector('.subitem-measurement');
+        const unitSelect = row.querySelector('.subitem-measurement-unit');
+        let vol = 0;
+
+        if (l > 0 && w > 0 && h > 0) {
+            vol = l * w * h;
+            if (measInput)  measInput.value  = vol.toFixed(3);
+            if (unitSelect) unitSelect.value = 'm3';
+        } else if (w > 0 && h > 0) {
+            vol = w * h;
+            if (measInput)  measInput.value  = vol.toFixed(3);
+            if (unitSelect) unitSelect.value = 'm2';
+        } else if (w > 0 || h > 0 || l > 0) {
+            vol = w || h || l;
+            if (measInput)  measInput.value  = vol.toFixed(3);
+            if (unitSelect && !unitSelect.value) unitSelect.value = 'm';
+        } else {
+            vol = num(measInput?.value);
+        }
+
+        const volDisplay = row.querySelector('.subitem-vol-display');
+        if (volDisplay) {
+            const unit = unitSelect?.value || '';
+            volDisplay.textContent = vol > 0 ? `${vol.toFixed(3)} ${unit}` : '';
+        }
+        return vol;
+    }
+
+    function addSubitem(itemNode, data) {
+        const row = subitemTmpl.content.cloneNode(true).firstElementChild;
+
+        if (data) {
+            if (data.name)             row.querySelector('.subitem-name').value            = data.name;
+            if (data.qty)              row.querySelector('.subitem-qty').value             = data.qty;
+            if (data.dim_width)        row.querySelector('.subitem-dim-width').value       = data.dim_width;
+            if (data.dim_height)       row.querySelector('.subitem-dim-height').value      = data.dim_height;
+            if (data.dim_length)       row.querySelector('.subitem-dim-length').value      = data.dim_length;
+            if (data.measurement)      row.querySelector('.subitem-measurement').value     = data.measurement;
+            if (data.measurement_unit) {
+                row.querySelector('.subitem-measurement-unit').value = data.measurement_unit;
+            }
+        }
+
+        row.querySelectorAll('.subitem-dim').forEach(el => el.addEventListener('input', () => {
+            calcSubitem(row);
+            updateSubitemsCounter(itemNode);
+            recalcAll();
+        }));
+        row.querySelector('.subitem-measurement')?.addEventListener('input', () => {
+            updateSubitemsCounter(itemNode);
+            recalcAll();
+        });
+        row.querySelector('.subitem-qty')?.addEventListener('input', () => {
+            updateSubitemsCounter(itemNode);
+            recalcAll();
+        });
+        row.querySelector('.subitem-measurement-unit')?.addEventListener('change', () => {
+            calcSubitem(row);
+            recalcAll();
+        });
+        row.querySelector('.remove-subitem')?.addEventListener('click', () => {
+            row.remove();
+            updateSubitemsCounter(itemNode);
+            recalcAll();
+        });
+
+        itemNode.querySelector('.subitems-list').appendChild(row);
+        calcSubitem(row);
+        updateSubitemsCounter(itemNode);
+        return row;
+    }
+
     function addItem(sectionNode, data) {
         const node = itemTmpl.content.cloneNode(true).firstElementChild;
 
         if (data && data.id)               node.dataset.itemId    = data.id;
         if (data && data.name)             node.querySelector('.item-name').value         = data.name;
-        if (data && data.quantity)         node.querySelector('.item-quantity').value      = data.quantity;
-        if (data && data.unit_price)       node.querySelector('.item-unit-price').value    = data.unit_price;
+        if (data && data.quantity)         node.querySelector('.qty-panel .item-quantity').value = data.quantity;
+        if (data && data.unit_price) {
+            // Set price on both panels so the active one is ready
+            node.querySelectorAll('.item-unit-price').forEach(el => el.value = data.unit_price);
+        }
         if (data && data.dim_length)       node.querySelector('.item-dim-length').value    = data.dim_length;
         if (data && data.dim_width)        node.querySelector('.item-dim-width').value     = data.dim_width;
         if (data && data.dim_height)       node.querySelector('.item-dim-height').value    = data.dim_height;
@@ -575,14 +927,29 @@
         // Apply billing type (must be done after node is populated)
         applyBillingType(node, (data && data.billing_type) || 'qty');
 
+        // Load subitems if provided (edit mode)
+        if (data && data.subitems && data.subitems.length > 0) {
+            const qDiv = node.querySelector('.same-measures-question');
+            if (qDiv) qDiv.dataset.answered = 'no';
+            updateSameMeasuresButtons(node, 'no');
+            node.querySelector('.subitems-panel')?.classList.remove('hidden');
+            data.subitems.forEach(s => addSubitem(node, s));
+        }
+        // Call visibility check to show/hide the question based on initial quantity
+        checkSameMeasuresVisibility(node);
+
         // Populate description select
         populateDescriptionSelect(node.querySelector('.item-description-select'));
 
-        // When a description is selected, copy its body to the textarea
+        // When a description is selected, copy its body + show/hide edit pencil
         node.querySelector('.item-description-select').addEventListener('change', function () {
-            const desc = ITEM_DESCRIPTIONS.find(d => String(d.id) === this.value);
+            const desc     = ITEM_DESCRIPTIONS.find(d => String(d.id) === this.value);
+            const editLink = node.querySelector('.edit-description-link');
             if (desc) {
                 node.querySelector('.item-description').value = desc.body;
+                editLink?.classList.remove('hidden');
+            } else {
+                editLink?.classList.add('hidden');
             }
         });
 
@@ -592,12 +959,38 @@
             openDescriptionModal(node);
         });
 
-        // Billing type toggle
-        node.querySelectorAll('.billing-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                applyBillingType(node, btn.dataset.type);
-                recalcAll();
-            });
+        // "Editar" pencil link opens modal in edit mode
+        node.querySelector('.edit-description-link').addEventListener('click', (e) => {
+            e.preventDefault();
+            const sel  = node.querySelector('.item-description-select');
+            const desc = ITEM_DESCRIPTIONS.find(d => String(d.id) === sel?.value);
+            if (desc) openDescriptionModal(node, desc);
+        });
+
+        // Billing type select
+        node.querySelector('.item-billing-select')?.addEventListener('change', function () {
+            applyBillingType(node, this.value);
+            checkSameMeasuresVisibility(node);
+            recalcAll();
+        });
+
+        // Same-measures buttons
+        node.querySelector('.same-measures-yes')?.addEventListener('click', () => {
+            updateSameMeasuresButtons(node, 'yes');
+            node.querySelector('.subitems-panel')?.classList.add('hidden');
+            recalcAll();
+        });
+        node.querySelector('.same-measures-no')?.addEventListener('click', () => {
+            updateSameMeasuresButtons(node, 'no');
+            node.querySelector('.subitems-panel')?.classList.remove('hidden');
+            updateSubitemsCounter(node);
+            recalcAll();
+        });
+
+        // Add subitem button
+        node.querySelector('.add-subitem')?.addEventListener('click', () => {
+            addSubitem(node, null);
+            recalcAll();
         });
 
         // Remove button
@@ -608,9 +1001,13 @@
             recalcAll();
         });
 
-        // Live recalc on input
-        node.querySelectorAll('.item-quantity, .item-unit-price, .item-dim, .item-measurement, .item-measurement-unit, .item-weight')
+        // Live recalc on input; also update same-measures visibility when qty changes
+        node.querySelectorAll('.item-quantity, .item-unit-price, .item-dim, .item-measurement, .item-weight')
             .forEach(el => el.addEventListener('input', recalcAll));
+        node.querySelector('.item-measurement-unit')?.addEventListener('change', recalcAll);
+        node.querySelector('.qty-panel .item-quantity')?.addEventListener('input', () => {
+            checkSameMeasuresVisibility(node);
+        });
 
         sectionNode.querySelector('.items-list').appendChild(node);
 
@@ -622,31 +1019,27 @@
     // ── Billing type UI ────────────────────────────────────────────────────
     function applyBillingType(node, type) {
         node.dataset.billingType = type;
-        const qtyBtn     = node.querySelector('.billing-qty');
-        const mtrBtn     = node.querySelector('.billing-meter');
-        const priceLabel = node.querySelector('.item-unit-price-label');
-        const meterHint  = node.querySelector('.item-meter-hint');
-        const measInput  = node.querySelector('.item-measurement');
+        const billingSelect = node.querySelector('.item-billing-select');
+        const qtyPanel      = node.querySelector('.qty-panel');
+        const meterPanel    = node.querySelector('.meter-panel');
+        if (billingSelect) billingSelect.value = type;
         if (type === 'meter') {
-            qtyBtn.classList.remove('bg-black', 'text-white'); qtyBtn.classList.add('bg-white', 'text-gray-500');
-            mtrBtn.classList.remove('bg-white', 'text-gray-500'); mtrBtn.classList.add('bg-green-600', 'text-white');
-            if (priceLabel) priceLabel.innerHTML = 'Preço/metro (R$) <span class="text-red-500">*</span>';
-            meterHint?.classList.remove('hidden');
-            if (measInput) { measInput.classList.remove('bg-gray-50'); measInput.classList.add('bg-green-50', 'border-green-400'); }
+            qtyPanel?.classList.add('hidden');
+            meterPanel?.classList.remove('hidden');
         } else {
-            qtyBtn.classList.remove('bg-white', 'text-gray-500'); qtyBtn.classList.add('bg-black', 'text-white');
-            mtrBtn.classList.remove('bg-green-600', 'text-white'); mtrBtn.classList.add('bg-white', 'text-gray-500');
-            if (priceLabel) priceLabel.innerHTML = 'Preço Unitário (R$) <span class="text-red-500">*</span>';
-            meterHint?.classList.add('hidden');
-            if (measInput) { measInput.classList.remove('bg-green-50', 'border-green-400'); measInput.classList.add('bg-gray-50'); }
+            qtyPanel?.classList.remove('hidden');
+            meterPanel?.classList.add('hidden');
         }
     }
 
     // ── Per-item calculations ──────────────────────────────────────────────
     function calcItem(row) {
-        const billingType = row.dataset.billingType || 'qty';
-        const qty   = num(row.querySelector('.item-quantity')?.value);
-        const price = num(row.querySelector('.item-unit-price')?.value);
+        const billingType  = row.dataset.billingType || 'qty';
+        const qtyPanel     = row.querySelector('.qty-panel');
+        const meterPanel   = row.querySelector('.meter-panel');
+        const activePanel  = billingType === 'meter' ? meterPanel : qtyPanel;
+        const qty          = billingType === 'meter' ? 1 : num(row.querySelector('.qty-panel .item-quantity')?.value);
+        const price        = num(activePanel?.querySelector('.item-unit-price')?.value);
 
         const l = num(row.querySelector('.item-dim-length')?.value);
         const w = num(row.querySelector('.item-dim-width')?.value);
@@ -656,22 +1049,33 @@
         const unitSelect = row.querySelector('.item-measurement-unit');
 
         if (l > 0 && w > 0 && h > 0) {
+            // All three dims → m³
             vol = l * w * h;
             if (measInput)  measInput.value  = vol.toFixed(3);
             if (unitSelect) unitSelect.value = 'm3';
-        } else if (measInput && unitSelect?.value === 'm3') {
-            vol = num(measInput.value);
+        } else if (w > 0 && h > 0) {
+            // Width + height → m²
+            vol = w * h;
+            if (measInput)  measInput.value  = vol.toFixed(3);
+            if (unitSelect) unitSelect.value = 'm2';
+        } else if (w > 0 || h > 0 || l > 0) {
+            // Single dim → m linear
+            vol = w || h || l;
+            if (measInput)  measInput.value  = vol.toFixed(3);
+            if (unitSelect && unitSelect.value === '') unitSelect.value = 'm';
+        } else {
+            // Manual measurement
+            vol = num(measInput?.value);
         }
 
         let total;
         if (billingType === 'meter') {
             const meas = num(measInput?.value);
-            total = meas * qty * price;
+            total = meas * price;
         } else {
             total = qty * price;
         }
-        const tot = row.querySelector('.item-total');
-        if (tot) tot.value = fmt(total);
+        row.querySelectorAll('.item-total').forEach(el => { el.value = fmt(total); });
 
         const weight      = num(row.querySelector('.item-weight')?.value);
         const volTotal    = vol * qty;
@@ -821,20 +1225,22 @@
             const items = [];
             secNode.querySelectorAll('.item-form').forEach(itemNode => {
                 const deleted = itemNode.dataset.deleted === 'true';
+                const bType      = itemNode.dataset.billingType || 'qty';
+                const pricePanel = bType === 'meter' ? '.meter-panel' : '.qty-panel';
                 items.push({
                     id:               itemNode.dataset.itemId || null,
                     delete:           deleted,
                     name:             itemNode.querySelector('.item-name')?.value || '',
                     description:      itemNode.querySelector('.item-description')?.value || '',
-                    quantity:         itemNode.querySelector('.item-quantity')?.value || '1',
+                    quantity:         bType === 'meter' ? '1' : (itemNode.querySelector('.qty-panel .item-quantity')?.value || '1'),
                     dim_length:       itemNode.querySelector('.item-dim-length')?.value || '',
                     dim_width:        itemNode.querySelector('.item-dim-width')?.value || '',
                     dim_height:       itemNode.querySelector('.item-dim-height')?.value || '',
                     measurement:      itemNode.querySelector('.item-measurement')?.value || '',
                     measurement_unit: itemNode.querySelector('.item-measurement-unit')?.value || '',
                     weight:           itemNode.querySelector('.item-weight')?.value || '',
-                    unit_price:       itemNode.querySelector('.item-unit-price')?.value || '0',
-                    billing_type:     itemNode.dataset.billingType || 'qty',
+                    unit_price:       itemNode.querySelector(pricePanel + ' .item-unit-price')?.value || '0',
+                    billing_type:     bType,
                 });
             });
             sections.push({
@@ -847,10 +1253,13 @@
     });
 
     // ── Init ───────────────────────────────────────────────────────────────
-    addSectionBtn.addEventListener('click', () => {
+    function handleAddSection() {
         const sec = addSection(null);
         sec.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    });
+        sec.querySelector('.section-title-input')?.focus();
+    }
+    addSectionBtn.addEventListener('click', handleAddSection);
+    document.getElementById('add-section-bottom')?.addEventListener('click', handleAddSection);
 
     document.getElementById('freight-urgency')?.addEventListener('change', recalcAll);
     document.getElementById('freight-distance')?.addEventListener('input', recalcAll);

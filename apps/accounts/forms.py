@@ -52,7 +52,7 @@ class UserCreationForm(forms.ModelForm):
     
     class Meta:
         model = User
-        fields = ('email', 'first_name', 'last_name', 'groups', 'is_active', 'is_staff', 'is_superuser')
+        fields = ('email', 'first_name', 'last_name', 'groups', 'is_active', 'is_superuser')
         widgets = {
             'email': forms.EmailInput(attrs={
                 'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent',
@@ -67,7 +67,6 @@ class UserCreationForm(forms.ModelForm):
                 'placeholder': 'Sobrenome'
             }),
             'is_active': forms.CheckboxInput(attrs={'class': 'rounded border-gray-300 text-black focus:ring-black'}),
-            'is_staff': forms.CheckboxInput(attrs={'class': 'rounded border-gray-300 text-black focus:ring-black'}),
             'is_superuser': forms.CheckboxInput(attrs={'class': 'rounded border-gray-300 text-black focus:ring-black'}),
         }
         labels = {
@@ -75,8 +74,7 @@ class UserCreationForm(forms.ModelForm):
             'first_name': 'Nome',
             'last_name': 'Sobrenome',
             'is_active': 'Ativo',
-            'is_staff': 'Acesso ao Admin',
-            'is_superuser': 'Superusuário',
+            'is_superuser': 'Acesso Total (ignora grupos e permissões)',
         }
     
     def __init__(self, *args, **kwargs):
@@ -87,6 +85,8 @@ class UserCreationForm(forms.ModelForm):
     def save(self, commit=True):
         user = super().save(commit=False)
         user.set_password('123')
+        if self.cleaned_data.get('is_superuser'):
+            user.is_staff = True
         user.must_change_password = True
         if commit:
             user.save()
@@ -130,7 +130,7 @@ class UserUpdateForm(forms.ModelForm):
     
     class Meta:
         model = User
-        fields = ('email', 'first_name', 'last_name', 'groups', 'is_active', 'is_staff', 'is_superuser')
+        fields = ('email', 'first_name', 'last_name', 'groups', 'is_active', 'is_superuser')
         widgets = {
             'email': forms.EmailInput(attrs={
                 'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent',
@@ -145,7 +145,6 @@ class UserUpdateForm(forms.ModelForm):
                 'placeholder': 'Sobrenome'
             }),
             'is_active': forms.CheckboxInput(attrs={'class': 'rounded border-gray-300 text-black focus:ring-black'}),
-            'is_staff': forms.CheckboxInput(attrs={'class': 'rounded border-gray-300 text-black focus:ring-black'}),
             'is_superuser': forms.CheckboxInput(attrs={'class': 'rounded border-gray-300 text-black focus:ring-black'}),
         }
         labels = {
@@ -153,8 +152,7 @@ class UserUpdateForm(forms.ModelForm):
             'first_name': 'Nome',
             'last_name': 'Sobrenome',
             'is_active': 'Ativo',
-            'is_staff': 'Acesso ao Admin',
-            'is_superuser': 'Superusuário',
+            'is_superuser': 'Acesso Total (ignora grupos e permissões)',
         }
     
     def __init__(self, *args, **kwargs):
@@ -181,7 +179,10 @@ class UserUpdateForm(forms.ModelForm):
     
     def save(self, commit=True):
         user = super().save(commit=False)
-        
+
+        # is_staff must follow is_superuser (Django requirement)
+        user.is_staff = self.cleaned_data.get('is_superuser', False)
+
         # Handle password reset to "123"
         if self.cleaned_data.get('reset_password'):
             user.set_password('123')

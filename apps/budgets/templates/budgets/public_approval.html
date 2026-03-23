@@ -39,7 +39,7 @@
         /* ── Header strip ─────────────────────────── */
         .os-header {
             background: var(--os-white);
-            padding: 20px 22px 14px;
+            padding: 2rem 0.5rem;
             border-bottom: 2px solid var(--os-dark);
         }
         .os-header-title {
@@ -516,25 +516,26 @@
         <!-- ── Header ─────────────────────────────────────────────────── -->
         <div class="os-header">
             <div style="display:flex;align-items:center;justify-content:space-between;gap:20px;" class="os-header-flex">
-                <!-- Logo – left, prominent -->
-                <div class="os-header-logo" style="flex-shrink:0; margin-left: 1rem;">
-                    <img src="{% static 'assets/logo_black.png' %}" alt="Código Eventos"
-                         style="height:80px;width:auto;object-fit:contain;display:block;">
-                </div>
-                <!-- Title + meta – right -->
-                <div style="text-align:right;">
+                <!-- Info – left -->
+                <div style="text-align:left;flex:1;">
                     <div class="os-header-title">Orçamento</div>
                     <div class="os-header-sub" style="margin-top:4px;">{{ budget.name }}</div>
                     <div style="margin-top:2px;font-size:14px;"><strong>Data:</strong> {{ budget.created_at|date:"d/m/Y" }}</div>
                     <div style="margin-top:2px;font-size:14px;"><strong>Orçamento nº</strong> {{ budget.id|stringformat:"05d" }}</div>
-                    <div style="margin-top:8px;">
-                        <span class="os-badge
-                            {% if budget.approval_status == 'approved' %}os-badge-approved
-                            {% elif budget.approval_status == 'rejected' %}os-badge-rejected
-                            {% else %}os-badge-pending{% endif %}">
-                            {{ budget.get_approval_status_display }}
-                        </span>
-                    </div>
+                </div>
+                <!-- Logo – center -->
+                <div class="os-header-logo" style="flex-shrink:0;">
+                    <img src="{% static 'assets/logo_black.png' %}" alt="Código Eventos"
+                         style="height:80px;width:auto;object-fit:contain;display:block;">
+                </div>
+                <!-- Status – right -->
+                <div style="text-align:right;flex:1;">
+                    <span class="os-badge
+                        {% if budget.approval_status == 'approved' %}os-badge-approved
+                        {% elif budget.approval_status == 'rejected' %}os-badge-rejected
+                        {% else %}os-badge-pending{% endif %}">
+                        {{ budget.get_approval_status_display }}
+                    </span>
                 </div>
             </div>
         </div>

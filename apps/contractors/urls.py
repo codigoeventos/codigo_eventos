@@ -26,6 +26,7 @@ urlpatterns = [
     path('members/<int:pk>/', views.MemberDetailView.as_view(), name='member_detail'),
     path('members/<int:pk>/edit/', views.MemberUpdateView.as_view(), name='member_edit'),
     path('members/<int:pk>/delete/', views.MemberDeleteView.as_view(), name='member_delete'),
+    path('members/nr-files/<int:pk>/delete/', views.NRFileDeleteView.as_view(), name='nr_file_delete'),
 
     # Vehicle CRUD (nested under contractor)
     path('<int:contractor_pk>/vehicles/add/', views.VehicleCreateView.as_view(), name='vehicle_create'),

@@ -39,7 +39,7 @@
         /* ── Header strip ─────────────────────────── */
         .os-header {
             background: var(--os-white);
-            padding: 18px 22px 14px;
+            padding: 2rem 0.5rem;
             border-bottom: 2px solid var(--os-dark);
         }
         .os-header-title {
@@ -348,25 +348,26 @@
         <!-- ── Header ─────────────────────────────────────────────────── -->
         <div class="os-header">
             <div style="display:flex;align-items:center;justify-content:space-between;gap:20px;" class="os-header-flex">
-                <!-- Logo – left, prominent -->
-                <div class="os-header-logo" style="flex-shrink:0; margin-left:1rem;">
-                    <img src="{% static 'assets/logo_black.png' %}" alt="Código Eventos"
-                         style="height:80px;width:auto;object-fit:contain;display:block;">
-                </div>
-                <!-- Title + meta – right -->
-                <div style="text-align:right;">
+                <!-- Info – left -->
+                <div style="text-align:left;flex:1;">
                     <div class="os-header-title">Ordem de Serviço</div>
                     <div style="font-size:14px;margin-top:4px;"><strong>OS nº</strong> {{ service_order.pk|stringformat:"05d" }}</div>
                     <div style="font-size:14px;margin-top:2px;"><strong>Data:</strong> {{ service_order.created_at|date:"d/m/Y" }}</div>
-                    <div style="margin-top:8px;">
-                        <span class="os-badge
-                            {% if service_order.status == 'completed' %}os-badge-completed
-                            {% elif service_order.status == 'cancelled' %}os-badge-cancelled
-                            {% elif service_order.status == 'in_progress' %}os-badge-progress
-                            {% else %}os-badge-pending{% endif %}">
-                            {{ service_order.get_status_display }}
-                        </span>
-                    </div>
+                </div>
+                <!-- Logo – center -->
+                <div class="os-header-logo" style="flex-shrink:0;">
+                    <img src="{% static 'assets/logo_black.png' %}" alt="Código Eventos"
+                         style="height:80px;width:auto;object-fit:contain;display:block;">
+                </div>
+                <!-- Status – right -->
+                <div style="text-align:right;flex:1;">
+                    <span class="os-badge
+                        {% if service_order.status == 'completed' %}os-badge-completed
+                        {% elif service_order.status == 'cancelled' %}os-badge-cancelled
+                        {% elif service_order.status == 'in_progress' %}os-badge-progress
+                        {% else %}os-badge-pending{% endif %}">
+                        {{ service_order.get_status_display }}
+                    </span>
                 </div>
             </div>
         </div>

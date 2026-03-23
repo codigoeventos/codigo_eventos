@@ -138,21 +138,35 @@
                                 </dd>
                             </div>
                             {% endif %}
-                            {% if nr.nr_certificate_file %}
-                            <div>
-                                <dt class="text-xs text-gray-500">Certificado</dt>
-                                <dd class="mt-0.5">
-                                    <a href="{{ nr.nr_certificate_file.url }}" target="_blank"
-                                        class="inline-flex items-center gap-1 text-xs text-blue-600 hover:underline">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            {% with nr_files=nr.files.all %}
+                            {% if nr_files or nr.nr_certificate_file %}
+                            <div class="md:col-span-2">
+                                <dt class="text-xs text-gray-500 mb-1">Certificado{{ nr_files|length|pluralize:"s" }}</dt>
+                                <dd class="space-y-1">
+                                    {% for nrf in nr_files %}
+                                    <a href="{{ nrf.file.url }}" target="_blank"
+                                        class="flex items-center gap-1.5 text-xs text-blue-600 hover:underline">
+                                        <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                         </svg>
-                                        Baixar
+                                        {{ nrf.file.name|slice:"50" }}
                                     </a>
+                                    {% endfor %}
+                                    {% if nr.nr_certificate_file %}
+                                    <a href="{{ nr.nr_certificate_file.url }}" target="_blank"
+                                        class="flex items-center gap-1.5 text-xs text-blue-600 hover:underline">
+                                        <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                        </svg>
+                                        Certificado (legado)
+                                    </a>
+                                    {% endif %}
                                 </dd>
                             </div>
                             {% endif %}
+                            {% endwith %}
                         </dl>
                     </div>
                     {% endfor %}

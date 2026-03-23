@@ -108,6 +108,10 @@ def _save_sections_from_json(budget, sections_data_json):
             if billing_type not in ('qty', 'meter'):
                 billing_type = 'qty'
 
+            subitems = item_data.get('subitems')
+            if subitems and not isinstance(subitems, list):
+                subitems = None
+
             item_fields = {
                 'budget': budget,
                 'section': section,
@@ -122,6 +126,7 @@ def _save_sections_from_json(budget, sections_data_json):
                 'weight': to_decimal(item_data.get('weight')),
                 'unit_price': unit_price,
                 'billing_type': billing_type,
+                'subitems_data': subitems or None,
                 'is_approved': True,
             }
 
@@ -170,6 +175,7 @@ def _sections_to_json(budget):
                 'weight': str(item.weight) if item.weight else '',
                 'unit_price': str(item.unit_price),
                 'billing_type': item.billing_type or 'qty',
+                'subitems': item.subitems_data or [],
             })
         data.append({
             'id': section.pk,
@@ -195,6 +201,7 @@ def _sections_to_json(budget):
                 'weight': str(item.weight) if item.weight else '',
                 'unit_price': str(item.unit_price),
                 'billing_type': item.billing_type or 'qty',
+                'subitems': item.subitems_data or [],
             })
         data.insert(0, {
             'id': None,
@@ -773,3 +780,33 @@ class ItemDescriptionListCreateView(LoginRequiredMixin, View):
 
         desc = ItemDescription.objects.create(title=title, body=body)
         return JsonResponse({'id': desc.id, 'title': desc.title, 'body': desc.body}, status=201)
+
+
+class ItemDescriptionDetailView(LoginRequiredMixin, View):
+    """
+    PATCH  /budgets/item-descriptions/<pk>/  → update title/body
+    DELETE /budgets/item-descriptions/<pk>/  → delete
+    """
+
+    def patch(self, request, pk):
+        desc = get_object_or_404(ItemDescription, pk=pk)
+        try:
+            data = json.loads(request.body)
+        except (json.JSONDecodeError, ValueError):
+            return JsonResponse({'error': 'JSON inválido.'}, status=400)
+
+        title = (data.get('title') or '').strip()
+        body  = (data.get('body')  or '').strip()
+
+        if not title:
+            return JsonResponse({'error': 'Título é obrigatório.'}, status=400)
+
+        desc.title = title
+        desc.body  = body
+        desc.save()
+        return JsonResponse({'id': desc.id, 'title': desc.title, 'body': desc.body})
+
+    def delete(self, request, pk):
+        desc = get_object_or_404(ItemDescription, pk=pk)
+        desc.delete()
+        return JsonResponse({'ok': True})

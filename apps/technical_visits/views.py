@@ -6,11 +6,14 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.messages.views import SuccessMessageMixin
 from django.urls import reverse_lazy
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+from django.views import View
 from django.db.models import Q
 from django.http import HttpResponseRedirect, JsonResponse
+from django.shortcuts import get_object_or_404, redirect
+from django.contrib import messages
 
 from apps.common.mixins import AuditMixin
-from .models import TechnicalVisit
+from .models import TechnicalVisit, TechnicalVisitAttachment
 from .forms import TechnicalVisitForm, TechnicalVisitSearchForm
 
 
@@ -134,6 +137,32 @@ class TechnicalVisitUpdateView(LoginRequiredMixin, AuditMixin, SuccessMessageMix
         context['form_title'] = f'Editar Levantamento de Informações: {self.object.event.name}'
         context['submit_text'] = 'Salvar Alterações'
         return context
+
+
+class TechnicalVisitAttachmentUploadView(LoginRequiredMixin, View):
+    """Upload one or more attachments to a technical visit."""
+
+    def post(self, request, pk):
+        visit = get_object_or_404(TechnicalVisit, pk=pk)
+        files = request.FILES.getlist('files')
+        if not files:
+            messages.error(request, 'Nenhum arquivo selecionado.')
+            return redirect('technical_visits:detail', pk=pk)
+        for f in files:
+            TechnicalVisitAttachment.objects.create(visit=visit, file=f)
+        messages.success(request, f'{len(files)} arquivo(s) enviado(s) com sucesso.')
+        return redirect('technical_visits:detail', pk=pk)
+
+
+class TechnicalVisitAttachmentDeleteView(LoginRequiredMixin, View):
+    """Delete a single attachment."""
+
+    def post(self, request, pk, attachment_pk):
+        attachment = get_object_or_404(TechnicalVisitAttachment, pk=attachment_pk, visit__pk=pk)
+        attachment.file.delete(save=False)
+        attachment.delete()
+        messages.success(request, 'Anexo removido.')
+        return redirect('technical_visits:detail', pk=pk)
 
 
 class TechnicalVisitDeleteView(LoginRequiredMixin, DeleteView):

@@ -118,6 +118,7 @@ class ProjectFile(models.Model):
         ('drawing', 'Desenho Técnico'),
         ('specification', 'Especificação'),
         ('contract', 'Contrato'),
+        ('image', 'Imagem'),
         ('other', 'Outro'),
     ]
 

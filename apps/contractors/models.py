@@ -597,6 +597,35 @@ class ContractorMemberNR(models.Model):
         return 'valid'
 
 
+class ContractorMemberNRFile(models.Model):
+    """
+    Additional certificate files for a single NR entry.
+    Allows uploading multiple documents per NR (e.g. front + back of certificate).
+    """
+
+    nr = models.ForeignKey(
+        ContractorMemberNR,
+        on_delete=models.CASCADE,
+        related_name='files',
+        verbose_name='NR',
+    )
+
+    file = models.FileField(
+        'Arquivo',
+        upload_to='contractor_members/nr_certificates/',
+    )
+
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Arquivo NR'
+        verbose_name_plural = 'Arquivos NR'
+        ordering = ['uploaded_at']
+
+    def __str__(self):
+        return f"Arquivo – {self.nr}"
+
+
 class EventContractor(models.Model):
     """
     Association between an event and a contractor company.
@@ -654,3 +683,32 @@ class EventContractor(models.Model):
     def save(self, *args, **kwargs):
         self.full_clean()
         super().save(*args, **kwargs)
+
+
+class EventContractorMember(models.Model):
+    """
+    Selected member of a contractor for a specific event assignment.
+    """
+
+    assignment = models.ForeignKey(
+        EventContractor,
+        on_delete=models.CASCADE,
+        related_name='selected_members',
+        verbose_name='Vínculo Empreiteira-Evento'
+    )
+
+    member = models.ForeignKey(
+        ContractorMember,
+        on_delete=models.CASCADE,
+        related_name='event_participations',
+        verbose_name='Membro'
+    )
+
+    class Meta:
+        verbose_name = 'Membro em Evento'
+        verbose_name_plural = 'Membros em Eventos'
+        unique_together = [['assignment', 'member']]
+        ordering = ['member__name']
+
+    def __str__(self):
+        return f"{self.member.name} — {self.assignment}"
