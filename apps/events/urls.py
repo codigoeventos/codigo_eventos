@@ -19,4 +19,7 @@ urlpatterns = [
     path('<int:pk>/contractors/<int:assignment_pk>/edit/', views.ContractorAssignEditView.as_view(), name='contractor_assign_edit'),
     path('<int:pk>/contractors/<int:assignment_pk>/remove/', views.ContractorAssignRemoveView.as_view(), name='contractor_assign_remove'),
     path('api/contractor-members/', views.ContractorMembersJSONView.as_view(), name='contractor_members_json'),
+
+    # Public contractor page (no login required)
+    path('contractors/public/<uuid:token>/', views.PublicContractorView.as_view(), name='public_contractor'),
 ]

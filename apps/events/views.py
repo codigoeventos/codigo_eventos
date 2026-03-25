@@ -286,3 +286,30 @@ class ContractorAssignRemoveView(LoginRequiredMixin, View):
         assignment = get_object_or_404(EventContractor, pk=assignment_pk, event_id=pk)
         assignment.delete()
         return redirect('events:detail', pk=pk)
+
+
+class PublicContractorView(View):
+    """
+    Public view for sharing contractor assignment details without login.
+    Accessed via unique token — shows members and vehicles.
+    """
+
+    template_name = 'events/public_contractor.html'
+
+    def get(self, request, token):
+        assignment = get_object_or_404(
+            EventContractor.objects.select_related(
+                'event', 'event__client', 'contractor'
+            ).prefetch_related(
+                'selected_members__member__nrs',
+                'contractor__vehicles',
+            ),
+            public_token=token,
+        )
+        members = [em.member for em in assignment.selected_members.all()]
+        vehicles = list(assignment.contractor.vehicles.all())
+        return render(request, self.template_name, {
+            'assignment': assignment,
+            'members': members,
+            'vehicles': vehicles,
+        })

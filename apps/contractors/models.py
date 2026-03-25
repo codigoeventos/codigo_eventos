@@ -2,6 +2,7 @@
 Contractor models for event contractor management.
 """
 
+import uuid
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.utils import timezone
@@ -653,6 +654,14 @@ class EventContractor(models.Model):
         null=True
     )
 
+    public_token = models.UUIDField(
+        'Token Público',
+        default=uuid.uuid4,
+        unique=True,
+        editable=False,
+        help_text='Token único para link público de visualização da empreiteira no evento'
+    )
+
     class Meta:
         verbose_name = 'Empreiteira do Evento'
         verbose_name_plural = 'Empreiteiras dos Eventos'
@@ -661,6 +670,11 @@ class EventContractor(models.Model):
 
     def __str__(self):
         return f"{self.event} - {self.contractor}"
+
+    def get_public_url(self):
+        """Generate public share URL for this contractor assignment."""
+        from django.urls import reverse
+        return reverse('events:public_contractor', kwargs={'token': str(self.public_token)})
 
     def clean(self):
         """Block assignment when the contractor has members with expired docs."""
