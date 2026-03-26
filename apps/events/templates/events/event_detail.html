@@ -43,6 +43,20 @@
                     <dd class="mt-1 text-sm text-gray-900">{{ event.event_date|date:"d/m/Y" }}</dd>
                 </div>
 
+                {% if event.setup_date %}
+                <div>
+                    <dt class="text-sm font-medium text-gray-500">Data de Montagem</dt>
+                    <dd class="mt-1 text-sm text-gray-900">{{ event.setup_date|date:"d/m/Y" }}</dd>
+                </div>
+                {% endif %}
+
+                {% if event.teardown_date %}
+                <div>
+                    <dt class="text-sm font-medium text-gray-500">Data de Desmontagem</dt>
+                    <dd class="mt-1 text-sm text-gray-900">{{ event.teardown_date|date:"d/m/Y" }}</dd>
+                </div>
+                {% endif %}
+
                 <div>
                     <dt class="text-sm font-medium text-gray-500">Local</dt>
                     <dd class="mt-1 text-sm text-gray-900">{{ event.location }}</dd>

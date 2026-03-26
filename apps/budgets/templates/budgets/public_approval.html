@@ -548,7 +548,7 @@
             </tr>
             <tr>
                 <td style="width:50%"><span class="os-info-label">Cliente: </span><span class="os-info-value">{% if budget.proposal.event.client %}{{ budget.proposal.event.client.name }}{% else %}—{% endif %}</span></td>
-                <td style="width:50%"><span class="os-info-label">Prazo de Montagem: </span><span class="os-info-value">—</span></td>
+                <td style="width:50%"><span class="os-info-label">Montagem: </span><span class="os-info-value">{% if budget.proposal.event.setup_date %}{{ budget.proposal.event.setup_date|date:"d/m/Y" }}{% else %}—{% endif %}</span></td>
             </tr>
             <tr>
                 <td><span class="os-info-label">Contato: </span><span class="os-info-value">{% if budget.proposal.event.client %}{{ budget.proposal.event.client.contact_name|default:"—" }}{% else %}—{% endif %}</span></td>
@@ -556,7 +556,7 @@
             </tr>
             <tr>
                 <td><span class="os-info-label">E-mail: </span><span class="os-info-value">{% if budget.proposal.event.client %}{{ budget.proposal.event.client.email|default:"—" }}{% else %}—{% endif %}</span></td>
-                <td><span class="os-info-label">Prazo de Desmontagem: </span><span class="os-info-value">—</span></td>
+                <td><span class="os-info-label">Desmontagem: </span><span class="os-info-value">{% if budget.proposal.event.teardown_date %}{{ budget.proposal.event.teardown_date|date:"d/m/Y" }}{% else %}—{% endif %}</span></td>
             </tr>
             <tr>
                 <td><span class="os-info-label">Telefones: </span><span class="os-info-value">{% if budget.proposal.event.client %}{{ budget.proposal.event.client.phone|default:"—" }}{% else %}—{% endif %}</span></td>
@@ -742,12 +742,12 @@
                         {% if is_editable %}<td class="no-print"></td>{% endif %}
                         <td></td>
                         <td colspan="3" style="text-align:right;">
-                            {% if is_editable %}TOTAL SELECIONADO{% else %}TOTAL APROVADO{% endif %}
+                            {% if budget.extra_charges_total %}SUBTOTAL ITENS{% elif is_editable %}TOTAL SELECIONADO{% else %}TOTAL APROVADO{% endif %}
                         </td>
                         <td class="text-right" id="subtotal-value" style="opacity:.8;font-size:11px;">R$ 0,00</td>
                         <td class="text-right" id="fiscal-charges-value" style="opacity:.8;font-size:11px;">R$ 0,00</td>
-                        <td class="text-right" style="font-size:14px;" id="total-value">
-                            {% if is_editable %}R$ {{ budget.total_value|floatformat:2 }}{% else %}R$ {{ budget.approved_value|floatformat:2 }}{% endif %}
+                        <td class="text-right" style="font-size:13px;" {% if not budget.extra_charges_total %}id="total-value"{% else %}id="items-total-value"{% endif %}>
+                            R$ {{ budget.total_value|floatformat:2 }}
                         </td>
                         {% if not is_editable %}<td></td>{% endif %}
                     </tr>
@@ -756,10 +756,10 @@
                         {% if is_editable %}<td class="no-print"></td>{% endif %}
                         <td></td>
                         <td colspan="3" style="text-align:right;">
-                            {% if is_editable %}TOTAL SELECIONADO{% else %}TOTAL APROVADO{% endif %}
+                            {% if budget.extra_charges_total %}SUBTOTAL ITENS{% elif is_editable %}TOTAL SELECIONADO{% else %}TOTAL APROVADO{% endif %}
                         </td>
-                        <td class="text-right" style="font-size:14px;" id="total-value">
-                            {% if is_editable %}R$ {{ budget.total_value|floatformat:2 }}{% else %}R$ {{ budget.approved_value|floatformat:2 }}{% endif %}
+                        <td class="text-right" style="font-size:13px;" {% if not budget.extra_charges_total %}id="total-value"{% else %}id="items-total-value"{% endif %}>
+                            R$ {{ budget.total_value|floatformat:2 }}
                         </td>
                         {% if not is_editable %}<td></td>{% endif %}
                     </tr>
@@ -767,6 +767,103 @@
                 </tfoot>
             </table>
             </div><!-- /os-items-table-wrap -->
+
+            {% if budget.extra_charges %}
+            <div class="os-section-bar" style="margin-top:16px;">
+                <span>Encargos Adicionais</span>
+            </div>
+            <div class="os-items-table-wrap">
+            <table class="os-items-table">
+                <thead>
+                    <tr>
+                        <th style="width:40px;">Nº</th>
+                        <th style="text-align:left;">Item</th>
+                        <th style="text-align:left;">Descritivo</th>
+                        <th style="text-align:right;">Valor</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% with counter=0 %}
+                {% for group_key, rows in budget.extra_charges.items %}
+                {% if rows %}
+                {% for row in rows %}
+                <tr>
+                    <td class="os-item-num" data-label="Nº">{{ forloop.parentloop.counter }}.{{ forloop.counter }}</td>
+                    <td class="os-item-name" data-label="Item">
+                        {% if group_key == "apoio" %}Apoio
+                        {% elif group_key == "mao_de_obra" %}Extra mão de obra
+                        {% elif group_key == "documentacao" %}Documentação legal
+                        {% elif group_key == "taxa_feira" %}Taxa feira
+                        {% else %}{{ group_key }}{% endif %}
+                    </td>
+                    <td class="os-item-desc" data-label="Descritivo">{{ row.label|default:"—" }}</td>
+                    <td class="text-right" data-label="Valor" style="font-weight:600;">R$ {{ row.value|floatformat:2 }}</td>
+                </tr>
+                {% endfor %}
+                {% endif %}
+                {% endfor %}
+                {% endwith %}
+                </tbody>
+                <tfoot>
+                    <tr class="os-total-row">
+                        <td></td>
+                        <td colspan="2" style="text-align:right;">TOTAL ENCARGOS ADICIONAIS</td>
+                        <td class="text-right" style="font-size:14px;">R$ {{ budget.extra_charges_total|floatformat:2 }}</td>
+                    </tr>
+                </tfoot>
+            </table>
+            </div><!-- /extra-charges-table-wrap -->
+            {% endif %}
+
+            <!-- ── Grand summary (only when extra charges exist) ──────── -->
+            {% if budget.extra_charges_total %}
+            <div class="os-items-table-wrap" style="margin-top:16px;">
+            <table class="os-items-table">
+                <tfoot>
+                    <tr class="os-total-row" style="font-size:11px;font-weight:400;opacity:.8;">
+                        {% if is_editable %}<td class="no-print"></td>{% endif %}
+                        <td></td>
+                        <td colspan="{% if budget.include_fiscal_charges %}4{% else %}3{% endif %}" style="text-align:right;">Total dos Itens</td>
+                        {% if budget.include_fiscal_charges %}<td></td>{% endif %}
+                        <td class="text-right" id="items-total-value">R$ {{ budget.total_value|floatformat:2 }}</td>
+                        {% if not is_editable %}<td></td>{% endif %}
+                    </tr>
+                    {% if budget.freight_cost %}
+                    <tr class="os-total-row" style="font-size:11px;font-weight:400;opacity:.8;">
+                        {% if is_editable %}<td class="no-print"></td>{% endif %}
+                        <td></td>
+                        <td colspan="{% if budget.include_fiscal_charges %}4{% else %}3{% endif %}" style="text-align:right;">
+                            Frete{% if budget.freight_urgency %} — {{ budget.freight_urgency.label }}{% endif %}
+                        </td>
+                        {% if budget.include_fiscal_charges %}<td></td>{% endif %}
+                        <td class="text-right">R$ {{ budget.freight_cost|floatformat:2 }}</td>
+                        {% if not is_editable %}<td></td>{% endif %}
+                    </tr>
+                    {% endif %}
+                    {% if budget.extra_charges_total %}
+                    <tr class="os-total-row" style="font-size:11px;font-weight:400;opacity:.8;">
+                        {% if is_editable %}<td class="no-print"></td>{% endif %}
+                        <td></td>
+                        <td colspan="{% if budget.include_fiscal_charges %}4{% else %}3{% endif %}" style="text-align:right;">Total dos Encargos Adicionais</td>
+                        {% if budget.include_fiscal_charges %}<td></td>{% endif %}
+                        <td class="text-right">R$ {{ budget.extra_charges_total|floatformat:2 }}</td>
+                        {% if not is_editable %}<td></td>{% endif %}
+                    </tr>
+                    {% endif %}
+                    <tr class="os-total-row">
+                        {% if is_editable %}<td class="no-print"></td>{% endif %}
+                        <td></td>
+                        <td colspan="{% if budget.include_fiscal_charges %}4{% else %}3{% endif %}" style="text-align:right;">VALOR TOTAL</td>
+                        {% if budget.include_fiscal_charges %}<td></td>{% endif %}
+                        <td class="text-right" style="font-size:15px;" id="total-value">
+                            {% if is_editable %}R$ {{ budget.total_with_freight|floatformat:2 }}{% else %}R$ {{ budget.approved_value|floatformat:2 }}{% endif %}
+                        </td>
+                        {% if not is_editable %}<td></td>{% endif %}
+                    </tr>
+                </tfoot>
+            </table>
+            </div><!-- /grand-summary-wrap -->
+            {% endif %}
 
             <!-- ── Notes (editable only) ──────────────────────────────── -->
             {% if is_editable %}
@@ -861,6 +958,7 @@
 
         /* ── Total update (editable mode) ────────────────────── */
         const freightCost = {{ budget.freight_cost|default:0 }};
+        const extraChargesTotal = {{ budget.extra_charges_total|default:0 }};
 
         function updateTotal() {
             let subtotal = 0;
@@ -878,14 +976,17 @@
                     if (freightRow) freightRow.style.opacity = '0.35';
                 }
             }
+            total += extraChargesTotal;
             const el = document.getElementById('total-value');
             const bar = document.getElementById('total-bar');
             const subtotalEl = document.getElementById('subtotal-value');
             const fiscalEl = document.getElementById('fiscal-charges-value');
+            const itemsEl = document.getElementById('items-total-value');
             if (el) el.textContent = fmt(total);
             if (bar) bar.textContent = fmt(total);
             if (subtotalEl) subtotalEl.textContent = fmt(subtotal);
             if (fiscalEl) fiscalEl.textContent = fmt(subtotal * 0.17);
+            if (itemsEl) itemsEl.textContent = fmt(subtotal * FISCAL_MULT);
         }
 
         /* ── Grand total for non-editable (no checkboxes) ───────────────── */
@@ -905,12 +1006,15 @@
             const freightRowRO = document.getElementById('freight-row');
             if (freightRowRO) freightRowRO.style.opacity = '0.35';
             {% endif %}
+            sum += extraChargesTotal;
             const el = document.getElementById('total-value');
             if (el) el.textContent = fmt(sum);
             const subtotalEl = document.getElementById('subtotal-value');
             const fiscalEl = document.getElementById('fiscal-charges-value');
+            const itemsElRO = document.getElementById('items-total-value');
             if (subtotalEl) subtotalEl.textContent = fmt(subtotalRO);
             if (fiscalEl) fiscalEl.textContent = fmt(subtotalRO * 0.17);
+            if (itemsElRO) itemsElRO.textContent = fmt(subtotalRO * FISCAL_MULT);
         }
 
         /* ── Select all ─────────────────────────────────────────────────── */

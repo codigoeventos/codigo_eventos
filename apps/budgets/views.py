@@ -322,6 +322,7 @@ class BudgetCreateView(LoginRequiredMixin, AuditMixin, SuccessMessageMixin, Crea
 
         # Pass existing sections JSON (empty for new budget)
         context['sections_json'] = '[]'
+        context['extra_charges_json'] = '{}'
 
         # Pass item descriptions for the select dropdown
         context['item_descriptions_json'] = json.dumps(
@@ -337,6 +338,13 @@ class BudgetCreateView(LoginRequiredMixin, AuditMixin, SuccessMessageMixin, Crea
         response = super().form_valid(form)
         sections_data_json = self.request.POST.get('sections_data', '')
         _save_sections_from_json(self.object, sections_data_json)
+        # Save extra charges
+        try:
+            extra_charges = json.loads(self.request.POST.get('extra_charges_data', '{}') or '{}')
+        except (json.JSONDecodeError, ValueError):
+            extra_charges = {}
+        self.object.extra_charges = extra_charges
+        self.object.save(update_fields=['extra_charges'])
         # Mirror items to Service Order (without financial values)
         from apps.budgets.signals import sync_service_order_items
         sync_service_order_items(self.object)
@@ -371,6 +379,7 @@ class BudgetUpdateView(LoginRequiredMixin, AuditMixin, SuccessMessageMixin, Upda
 
         # Serialize existing sections + items as JSON for the JS UI
         context['sections_json'] = _sections_to_json(self.object)
+        context['extra_charges_json'] = json.dumps(self.object.extra_charges or {})
 
         # Pass item descriptions for the select dropdown
         context['item_descriptions_json'] = json.dumps(
@@ -384,6 +393,13 @@ class BudgetUpdateView(LoginRequiredMixin, AuditMixin, SuccessMessageMixin, Upda
         response = super().form_valid(form)
         sections_data_json = self.request.POST.get('sections_data', '')
         _save_sections_from_json(self.object, sections_data_json)
+        # Save extra charges
+        try:
+            extra_charges = json.loads(self.request.POST.get('extra_charges_data', '{}') or '{}')
+        except (json.JSONDecodeError, ValueError):
+            extra_charges = {}
+        self.object.extra_charges = extra_charges
+        self.object.save(update_fields=['extra_charges'])
         # Re-sync items to Service Order after edit (without financial values)
         from apps.budgets.signals import sync_service_order_items
         sync_service_order_items(self.object)

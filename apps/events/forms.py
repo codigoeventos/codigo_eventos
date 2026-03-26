@@ -11,7 +11,7 @@ class EventForm(forms.ModelForm):
     
     class Meta:
         model = Event
-        fields = ['client', 'name', 'event_date', 'location', 'notes']
+        fields = ['client', 'name', 'setup_date', 'event_date', 'teardown_date', 'location', 'notes']
         widgets = {
             'client': forms.Select(attrs={
                 'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent'
@@ -20,7 +20,21 @@ class EventForm(forms.ModelForm):
                 'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent',
                 'placeholder': 'Nome do evento'
             }),
+            'setup_date': forms.DateInput(
+                format='%Y-%m-%d',
+                attrs={
+                    'type': 'date',
+                    'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent'
+                }
+            ),
             'event_date': forms.DateInput(
+                format='%Y-%m-%d',
+                attrs={
+                    'type': 'date',
+                    'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent'
+                }
+            ),
+            'teardown_date': forms.DateInput(
                 format='%Y-%m-%d',
                 attrs={
                     'type': 'date',
@@ -40,7 +54,9 @@ class EventForm(forms.ModelForm):
         labels = {
             'client': 'Cliente',
             'name': 'Nome do Evento',
+            'setup_date': 'Data de Montagem',
             'event_date': 'Data do Evento',
+            'teardown_date': 'Data de Desmontagem',
             'location': 'Local',
             'notes': 'Observações',
         }

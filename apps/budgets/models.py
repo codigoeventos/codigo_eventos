@@ -122,6 +122,13 @@ class Budget(BaseModel):
         help_text='Aplica 17% de encargos fiscais sobre os itens do orçamento'
     )
 
+    extra_charges = models.JSONField(
+        'Encargos Adicionais',
+        default=dict,
+        blank=True,
+        help_text='Apoio, mão de obra extra, documentação e taxas da feira'
+    )
+
     class Meta:
         verbose_name = 'Orçamento'
         verbose_name_plural = 'Orçamentos'
@@ -140,7 +147,21 @@ class Budget(BaseModel):
         """Calculate total value from all budget items."""
         total = self.items.aggregate(total=Sum('total_price'))['total']
         return total or 0
-    
+
+    @property
+    def extra_charges_total(self):
+        """Sum all extra charge entries from the JSON field."""
+        total = Decimal('0')
+        charges = self.extra_charges or {}
+        for rows in charges.values():
+            if isinstance(rows, list):
+                for row in rows:
+                    try:
+                        total += Decimal(str(row.get('value') or 0))
+                    except Exception:
+                        pass
+        return total
+
     @property
     def approved_value(self):
         """Calculate total value from approved items only (+ encargos + freight se incluídos)."""
@@ -149,8 +170,9 @@ class Budget(BaseModel):
             total = total * Decimal('1.17')
         if self.freight_included and self.freight_cost:
             total += self.freight_cost
+        total += self.extra_charges_total
         return total
-    
+
     @property
     def is_editable(self):
         """Check if budget can still be edited."""
@@ -158,9 +180,9 @@ class Budget(BaseModel):
 
     @property
     def total_with_freight(self):
-        """Budget total value plus freight cost."""
+        """Budget total value plus freight cost and extra charges."""
         freight = self.freight_cost or 0
-        return self.total_value + freight
+        return self.total_value + freight + self.extra_charges_total
 
     @property
     def total_weight(self):

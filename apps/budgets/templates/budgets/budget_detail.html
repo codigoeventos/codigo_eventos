@@ -81,9 +81,27 @@
                     <dt class="text-sm font-medium text-gray-500">Valor Total dos Itens</dt>
                     <dd class="mt-1 text-2xl font-bold text-gray-900">R$ {{ budget.total_value|floatformat:2 }}</dd>
                 </div>
+                {% if budget.extra_charges_total %}
+                <div class="md:col-span-2">
+                    <dt class="text-sm font-medium text-gray-500">Encargos Adicionais</dt>
+                    <dd class="mt-1 text-lg font-semibold text-gray-700">R$ {{ budget.extra_charges_total|floatformat:2 }}</dd>
+                    <dd class="mt-1 text-xs text-gray-400 space-y-0.5">
+                        {% for group_key, rows in budget.extra_charges.items %}
+                            {% for row in rows %}
+                            <div>{{ row.label|default:"-" }}: R$ {{ row.value|floatformat:2 }}</div>
+                            {% endfor %}
+                        {% endfor %}
+                    </dd>
+                </div>
+                {% endif %}
                 {% if budget.freight_cost %}
                 <div class="md:col-span-2">
-                    <dt class="text-sm font-medium text-gray-500">Total com Logística / Frete</dt>
+                    <dt class="text-sm font-medium text-gray-500">Total com Logística / Frete e Encargos</dt>
+                    <dd class="mt-1 text-2xl font-bold text-black">R$ {{ budget.total_with_freight|floatformat:2 }}</dd>
+                </div>
+                {% elif budget.extra_charges_total %}
+                <div class="md:col-span-2">
+                    <dt class="text-sm font-medium text-gray-500">Total Geral (Itens + Encargos)</dt>
                     <dd class="mt-1 text-2xl font-bold text-black">R$ {{ budget.total_with_freight|floatformat:2 }}</dd>
                 </div>
                 {% endif %}

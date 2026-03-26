@@ -29,7 +29,19 @@ class Event(BaseModel):
     event_date = models.DateField(
         'Data do Evento'
     )
-    
+
+    setup_date = models.DateField(
+        'Data de Montagem',
+        null=True,
+        blank=True
+    )
+
+    teardown_date = models.DateField(
+        'Data de Desmontagem',
+        null=True,
+        blank=True
+    )
+
     location = models.CharField(
         'Local',
         max_length=255
