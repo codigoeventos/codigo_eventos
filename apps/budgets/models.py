@@ -19,7 +19,7 @@ class Budget(BaseModel):
     """
     
     STATUS_CHOICES = [
-        ('draft', 'Rascunho'),
+        ('draft', 'Em andamento'),
         ('sent', 'Enviado'),
         ('approved', 'Aprovado'),
         ('rejected', 'Rejeitado'),
@@ -179,10 +179,20 @@ class Budget(BaseModel):
         return self.approval_status == 'pending'
 
     @property
+    def fiscal_charges_value(self):
+        """17% fiscal charges over item subtotal, when enabled."""
+        if self.include_fiscal_charges:
+            return self.total_value * Decimal('0.17')
+        return Decimal('0')
+
+    @property
     def total_with_freight(self):
-        """Budget total value plus freight cost and extra charges."""
+        """Budget total value (with fiscal charges if enabled) plus freight and extra charges."""
         freight = self.freight_cost or 0
-        return self.total_value + freight + self.extra_charges_total
+        base = self.total_value
+        if self.include_fiscal_charges:
+            base = base * Decimal('1.17')
+        return base + freight + self.extra_charges_total
 
     @property
     def total_weight(self):
@@ -381,6 +391,16 @@ class BudgetItem(models.Model):
         null=True,
         blank=True,
         help_text='Lista de subitens com medidas individuais quando cada unidade tem dimensões diferentes'
+    )
+
+    description_ref = models.ForeignKey(
+        'ItemDescription',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='budget_items',
+        verbose_name='Descrição da biblioteca',
+        help_text='Referência à descrição padrão usada (se aplicável)'
     )
 
     class Meta:

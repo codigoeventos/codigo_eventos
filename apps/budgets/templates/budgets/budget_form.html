@@ -247,6 +247,10 @@
                             <span>Subtotal dos itens</span>
                             <span id="grand-items-line">R$ 0,00</span>
                         </div>
+                        <div id="grand-fiscal-line" class="flex justify-between items-center text-orange-400 text-sm hidden">
+                            <span>Encargos Fiscais (17%)</span>
+                            <span id="grand-fiscal-value">R$ 0,00</span>
+                        </div>
                         <div id="grand-freight-line" class="flex justify-between items-center text-gray-400 text-sm hidden">
                             <span>Logística / Frete (<span id="grand-urgency-label">–</span>)</span>
                             <span id="grand-freight-value">R$ 0,00</span>
@@ -416,7 +420,7 @@
                         Subitens
                         <span class="subitems-count-badge text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full ml-1">0 de 0</span>
                     </span>
-                    <button type="button" class="add-subitem text-xs px-3 py-1 bg-gray-800 text-white rounded-lg hover:bg-gray-600 transition-all">
+                    <button type="button" class="add-subitem add-subitem-header text-xs px-3 py-1 bg-gray-800 text-white rounded-lg hover:bg-gray-600 transition-all">
                         + Subitem
                     </button>
                 </div>
@@ -424,6 +428,12 @@
                 <p class="subitems-warning mt-1.5 text-xs text-red-500 hidden">
                     ⚠️ A soma das quantidades dos subitens (<span class="subitems-sum-text">0</span>) deve ser igual à quantidade total do item (<span class="subitems-total-text">0</span>).
                 </p>
+                <div class="subitems-add-bottom mt-2 hidden flex justify-center">
+                    <button type="button" class="add-subitem add-subitem-bottom text-xs px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-600 transition-all flex items-center gap-1">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                        + Subitem
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -444,18 +454,16 @@
                     <input type="number" class="item-dim item-dim-height w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-sm" step="0.001" min="0" placeholder="0.000">
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1">Volume / Metragem</label>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">L × P × A (m²)</label>
                     <input type="number" class="item-measurement w-full px-3 py-2 bg-green-50 border border-green-300 rounded-lg focus:ring-2 focus:ring-green-400 focus:border-transparent text-sm" step="0.001" min="0" placeholder="automático">
-                    <p class="text-xs text-gray-400 mt-0.5">L × A × P calculado automático</p>
+                    <p class="text-xs text-gray-400 mt-0.5">Calculado automaticamente</p>
                 </div>
             </div>
             <div class="mt-3 grid grid-cols-1 md:grid-cols-3 gap-3">
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">Unidade do metro</label>
                     <select class="item-measurement-unit w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-sm">
-                        <option value="m">m (linear)</option>
-                        <option value="m2">m² (quadrado)</option>
-                        <option value="m3">m³ (cúbico)</option>
+                        <option value="m2">m²</option>
                     </select>
                 </div>
             </div>
@@ -550,9 +558,7 @@
         </div>
         <div class="mt-2 flex items-center gap-3 flex-wrap">
             <select class="subitem-measurement-unit px-2 py-1.5 border border-gray-300 rounded-md text-xs focus:ring-2 focus:ring-black">
-                <option value="m">m (linear)</option>
-                <option value="m2">m² (quadrado)</option>
-                <option value="m3">m³ (cúbico)</option>
+                <option value="m2">m²</option>
             </select>
             <span class="subitem-vol-display text-xs text-gray-500 flex-1"></span>
             <button type="button" class="remove-subitem text-xs text-red-500 hover:text-red-700 px-2 py-1 border border-red-200 rounded-md hover:bg-red-50 transition-all">
@@ -995,7 +1001,7 @@
         if (l > 0 && w > 0 && h > 0) {
             vol = l * w * h;
             if (measInput)  measInput.value  = vol.toFixed(3);
-            if (unitSelect) unitSelect.value = 'm3';
+            if (unitSelect) unitSelect.value = 'm2';
         } else if (w > 0 && h > 0) {
             vol = w * h;
             if (measInput)  measInput.value  = vol.toFixed(3);
@@ -1003,7 +1009,7 @@
         } else if (w > 0 || h > 0 || l > 0) {
             vol = w || h || l;
             if (measInput)  measInput.value  = vol.toFixed(3);
-            if (unitSelect && !unitSelect.value) unitSelect.value = 'm';
+            if (unitSelect) unitSelect.value = 'm2';
         } else {
             vol = num(measInput?.value);
         }
@@ -1051,13 +1057,23 @@
         row.querySelector('.remove-subitem')?.addEventListener('click', () => {
             row.remove();
             updateSubitemsCounter(itemNode);
+            updateSubitemsBtnPosition(itemNode);
             recalcAll();
         });
 
         itemNode.querySelector('.subitems-list').appendChild(row);
         calcSubitem(row);
         updateSubitemsCounter(itemNode);
+        updateSubitemsBtnPosition(itemNode);
         return row;
+    }
+
+    function updateSubitemsBtnPosition(itemNode) {
+        const hasRows = itemNode.querySelectorAll('.subitems-list .subitem-row').length > 0;
+        const headerBtn = itemNode.querySelector('.add-subitem-header');
+        const bottomWrap = itemNode.querySelector('.subitems-add-bottom');
+        if (headerBtn)   headerBtn.classList.toggle('hidden', hasRows);
+        if (bottomWrap)  bottomWrap.classList.toggle('hidden', !hasRows);
     }
 
     function addItem(sectionNode, data) {
@@ -1097,6 +1113,20 @@
 
         // Populate description select
         populateDescriptionSelect(node.querySelector('.item-description-select'));
+
+        // In edit mode: pre-select the description in the dropdown
+        if (data && (data.description_ref_id || data.description)) {
+            const sel = node.querySelector('.item-description-select');
+            const matchId = data.description_ref_id ? String(data.description_ref_id) : null;
+            const matchedByText = matchId
+                ? null
+                : ITEM_DESCRIPTIONS.find(d => (d.body || '').trim() === (data.description || '').trim());
+            const resolvedId = matchId || (matchedByText ? String(matchedByText.id) : null);
+            if (resolvedId && sel) {
+                sel.value = resolvedId;
+                node.querySelector('.edit-description-link')?.classList.remove('hidden');
+            }
+        }
 
         // When a description is selected, copy its body + show/hide edit pencil
         node.querySelector('.item-description-select').addEventListener('change', function () {
@@ -1144,10 +1174,14 @@
             recalcAll();
         });
 
-        // Add subitem button
-        node.querySelector('.add-subitem')?.addEventListener('click', () => {
-            addSubitem(node, null);
-            recalcAll();
+        // Add subitem buttons (header + bottom)
+        node.querySelectorAll('.add-subitem').forEach(btn => {
+            btn.addEventListener('click', () => {
+                addSubitem(node, null);
+                const lastSub = node.querySelector('.subitems-list .subitem-row:last-child');
+                if (lastSub) lastSub.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                recalcAll();
+            });
         });
 
         // Remove button
@@ -1206,20 +1240,20 @@
         const unitSelect = row.querySelector('.item-measurement-unit');
 
         if (l > 0 && w > 0 && h > 0) {
-            // All three dims → m³
+            // All three dims → m²
             vol = l * w * h;
             if (measInput)  measInput.value  = vol.toFixed(3);
-            if (unitSelect) unitSelect.value = 'm3';
+            if (unitSelect) unitSelect.value = 'm2';
         } else if (w > 0 && h > 0) {
             // Width + height → m²
             vol = w * h;
             if (measInput)  measInput.value  = vol.toFixed(3);
             if (unitSelect) unitSelect.value = 'm2';
         } else if (w > 0 || h > 0 || l > 0) {
-            // Single dim → m linear
+            // Single dim → m²
             vol = w || h || l;
             if (measInput)  measInput.value  = vol.toFixed(3);
-            if (unitSelect && unitSelect.value === '') unitSelect.value = 'm';
+            if (unitSelect) unitSelect.value = 'm2';
         } else {
             // Manual measurement
             vol = num(measInput?.value);
@@ -1304,8 +1338,20 @@
 
     function updateGrandTotal(itemsTotal, freight, extraGroups) {
         extraGroups = extraGroups || calcExtraChargesTotal();
-        const extraTotal = Object.values(extraGroups).reduce((a, v) => a + v, 0);
-        document.getElementById('budget-total').textContent = fmt(itemsTotal + freight + extraTotal);
+        const extraTotal    = Object.values(extraGroups).reduce((a, v) => a + v, 0);
+        const includeFiscal = document.getElementById('id_include_fiscal_charges')?.checked;
+        const fiscalValue   = includeFiscal ? itemsTotal * 0.17 : 0;
+
+        // Fiscal charges line
+        const fiscalLine  = document.getElementById('grand-fiscal-line');
+        const fiscalValEl = document.getElementById('grand-fiscal-value');
+        if (fiscalLine && fiscalValEl) {
+            fiscalLine.classList.toggle('hidden', fiscalValue <= 0);
+            fiscalValEl.textContent = fmt(fiscalValue);
+        }
+        document.getElementById('grand-items-line').textContent = fmt(itemsTotal);
+
+        document.getElementById('budget-total').textContent = fmt(itemsTotal + fiscalValue + freight + extraTotal);
         const freightLine = document.getElementById('grand-freight-line');
         if (freight > 0) {
             freightLine.classList.remove('hidden');
@@ -1407,6 +1453,7 @@
                     delete:           deleted,
                     name:             itemNode.querySelector('.item-name')?.value || '',
                     description:      itemNode.querySelector('.item-description')?.value || '',
+                    description_ref_id: itemNode.querySelector('.item-description-select')?.value || null,
                     quantity:         bType === 'meter' ? '1' : (itemNode.querySelector('.qty-panel .item-quantity')?.value || '1'),
                     dim_length:       itemNode.querySelector('.item-dim-length')?.value || '',
                     dim_width:        itemNode.querySelector('.item-dim-width')?.value || '',
@@ -1452,6 +1499,9 @@
 
     document.getElementById('freight-urgency')?.addEventListener('change', recalcAll);
     document.getElementById('freight-distance')?.addEventListener('input', recalcAll);
+
+    // Recalc when fiscal charges checkbox changes
+    document.getElementById('id_include_fiscal_charges')?.addEventListener('change', recalcAll);
 
     // Load existing sections (edit mode)
     if (INITIAL_SECTIONS && INITIAL_SECTIONS.length > 0) {
