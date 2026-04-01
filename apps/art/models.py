@@ -16,15 +16,15 @@ class ART(BaseModel):
     ART – Anotação de Responsabilidade Técnica.
 
     Document generated for the engineer in charge of the project.
-    Linked to a Project and requires at least one Budget.
+    Linked to a Budget.
     The quantity is auto-calculated as the sum of all budget items' measurement.
     """
 
-    project = models.OneToOneField(
-        'projects.Project',
+    budget = models.OneToOneField(
+        'budgets.Budget',
         on_delete=models.PROTECT,
         related_name='art',
-        verbose_name='Projeto',
+        verbose_name='Orçamento',
     )
 
     public_token = models.UUIDField(
@@ -123,7 +123,8 @@ class ART(BaseModel):
         ordering = ['-created_at']
 
     def __str__(self):
-        return f"ART {self.pk} – {self.project.title}"
+        budget_name = self.budget.name if self.budget_id else 'Sem orçamento'
+        return f"ART {self.pk} – {budget_name}"
 
     def get_public_url(self):
         """Return the public share URL for this ART."""
@@ -139,12 +140,19 @@ class ART(BaseModel):
         return f"ART-{self.pk:04d}"
 
     @classmethod
-    def calculate_quantity(cls, project):
-        """Return the sum of measurement of all items in the project's budgets."""
+    def calculate_quantity(cls, budget):
+        """Return the sum of measurement of all items in the budget."""
         from apps.budgets.models import BudgetItem
         result = (
             BudgetItem.objects
-            .filter(budget__proposal=project, measurement__isnull=False)
+            .filter(budget=budget, measurement__isnull=False)
             .aggregate(total=models.Sum('measurement'))['total']
         )
         return result or Decimal('0')
+
+    @property
+    def project(self):
+        """Compatibility accessor: project derived from linked budget."""
+        if not self.budget_id:
+            return None
+        return self.budget.proposal

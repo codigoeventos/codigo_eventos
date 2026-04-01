@@ -14,11 +14,15 @@ class ClientForm(forms.ModelForm):
     
     class Meta:
         model = Client
-        fields = ['name', 'document_type', 'document_number', 'email', 'phone']
+        fields = ['name', 'contact_name', 'document_type', 'document_number', 'email', 'phone']
         widgets = {
             'name': forms.TextInput(attrs={
                 'class': 'w-full px-4 py-2 rounded-lg border border-gray-300 focus:border-black focus:ring-2 focus:ring-black/10 transition-all',
                 'placeholder': 'Nome completo ou razão social'
+            }),
+            'contact_name': forms.TextInput(attrs={
+                'class': 'w-full px-4 py-2 rounded-lg border border-gray-300 focus:border-black focus:ring-2 focus:ring-black/10 transition-all',
+                'placeholder': 'Nome da pessoa de contato'
             }),
             'document_type': forms.Select(attrs={
                 'class': 'w-full px-4 py-2 rounded-lg border border-gray-300 focus:border-black focus:ring-2 focus:ring-black/10 transition-all'

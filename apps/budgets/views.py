@@ -281,12 +281,17 @@ class BudgetDetailView(LoginRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         """Add breadcrumbs and related data to context."""
         from apps.logistics.models import UrgencyMultiplier
+        from apps.art.models import ART
         context = super().get_context_data(**kwargs)
         context['breadcrumbs'] = [
             {'name': 'Orçamentos', 'url': reverse_lazy('budgets:list')},
             {'name': self.object.name, 'url': None}
         ]
         context['urgency_options'] = UrgencyMultiplier.objects.order_by('multiplier')
+        try:
+            context['budget_art'] = self.object.art
+        except ART.DoesNotExist:
+            context['budget_art'] = None
         return context
 
 

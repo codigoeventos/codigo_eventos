@@ -14,7 +14,7 @@
             <div class="flex justify-between items-start mb-6">
                 <div>
                     <h2 class="text-2xl font-bold text-gray-900">{{ art.art_number }}</h2>
-                    <p class="text-sm text-gray-500 mt-1">Projeto: {{ art.project.title }}</p>
+                    <p class="text-sm text-gray-500 mt-1">Orçamento: {{ art.budget.name }}</p>
                 </div>
                 <div class="flex gap-2">
                     <a href="{% url 'art:edit' art.pk %}"
@@ -156,23 +156,27 @@
             <h3 class="text-sm font-semibold text-gray-900 mb-3">Informações</h3>
             <dl class="space-y-3">
                 <div>
-                    <dt class="text-xs text-gray-500">Projeto</dt>
+                    <dt class="text-xs text-gray-500">Orçamento</dt>
                     <dd class="text-sm text-gray-900">
-                        <a href="{% url 'projects:detail' art.project.pk %}" class="text-blue-600 hover:underline">
-                            {{ art.project.title }}
+                        <a href="{% url 'budgets:detail' art.budget.pk %}" class="text-blue-600 hover:underline">
+                            {{ art.budget.name }}
                         </a>
                     </dd>
                 </div>
-                {% if art.project.event %}
+                <div>
+                    <dt class="text-xs text-gray-500">Projeto</dt>
+                    <dd class="text-sm text-gray-900">{{ art.budget.proposal.title }}</dd>
+                </div>
+                {% if art.budget.proposal.event %}
                 <div>
                     <dt class="text-xs text-gray-500">Evento</dt>
-                    <dd class="text-sm text-gray-900">{{ art.project.event.name }}</dd>
+                    <dd class="text-sm text-gray-900">{{ art.budget.proposal.event.name }}</dd>
                 </div>
                 {% endif %}
-                {% if art.project.event.client %}
+                {% if art.budget.proposal.event.client %}
                 <div>
                     <dt class="text-xs text-gray-500">Cliente</dt>
-                    <dd class="text-sm text-gray-900">{{ art.project.event.client.name }}</dd>
+                    <dd class="text-sm text-gray-900">{{ art.budget.proposal.event.client.name }}</dd>
                 </div>
                 {% endif %}
                 <div>

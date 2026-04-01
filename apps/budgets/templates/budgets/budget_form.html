@@ -344,6 +344,20 @@
     <div class="item-form bg-white border border-gray-200 rounded-lg p-4"
          data-item-id="" data-deleted="false" data-billing-type="qty">
 
+        <div class="item-header flex items-center justify-between gap-3 cursor-pointer select-none">
+            <div class="flex items-center gap-2 min-w-0 flex-1">
+                <button type="button" class="toggle-item text-gray-400 hover:text-gray-700 transition-colors flex-shrink-0" aria-label="Expandir/recolher item">
+                    <svg class="item-toggle-icon w-4 h-4 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                    </svg>
+                </button>
+                <span class="item-summary-name text-sm font-semibold text-gray-800 truncate">Novo item</span>
+            </div>
+            <span class="item-summary-total text-xs text-gray-500 font-mono">R$ 0,00</span>
+        </div>
+
+        <div class="item-body mt-3">
+
         <!-- Row 1: Name + Unidade -->
         <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
             <div class="md:col-span-8">
@@ -515,6 +529,7 @@
                 🗑️ Remover Item
             </button>
         </div>
+        </div>
     </div>
 </template>
 
@@ -547,11 +562,11 @@
                 <input type="number" class="subitem-qty w-full px-2 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-black focus:border-transparent" min="1" value="1">
             </div>
             <div class="md:col-span-5">
-                <label class="block text-xs font-medium text-gray-500 mb-1">Largura / Altura / Prof. / Vol.</label>
+                <label class="block text-xs font-medium text-gray-500 mb-1">Largura / Prof. / Altura / Vol.</label>
                 <div class="grid grid-cols-4 gap-1">
                     <input type="number" class="subitem-dim subitem-dim-width w-full px-2 py-1.5 border border-gray-300 rounded-md text-xs focus:ring-2 focus:ring-black" step="0.001" min="0" placeholder="Larg.">
-                    <input type="number" class="subitem-dim subitem-dim-height w-full px-2 py-1.5 border border-gray-300 rounded-md text-xs focus:ring-2 focus:ring-black" step="0.001" min="0" placeholder="Alt.">
                     <input type="number" class="subitem-dim subitem-dim-length w-full px-2 py-1.5 border border-gray-300 rounded-md text-xs focus:ring-2 focus:ring-black" step="0.001" min="0" placeholder="Prof.">
+                    <input type="number" class="subitem-dim subitem-dim-height w-full px-2 py-1.5 border border-gray-300 rounded-md text-xs focus:ring-2 focus:ring-black" step="0.001" min="0" placeholder="Alt.">
                     <input type="number" class="subitem-measurement w-full px-2 py-1.5 border border-green-300 bg-green-50 rounded-md text-xs focus:ring-2 focus:ring-green-400" step="0.001" min="0" placeholder="auto">
                 </div>
             </div>
@@ -593,13 +608,61 @@
         </div>
         <div class="mt-5 flex items-center justify-between">
             <button type="button" id="item-desc-modal-delete"
-                class="hidden px-4 py-2 text-sm border border-red-300 text-red-600 rounded-lg hover:bg-red-50 transition-all">
-                🗑️ Excluir
+                class="hidden inline-flex items-center gap-2 px-4 py-2 text-sm border border-red-300 bg-red-50 text-red-700 rounded-lg hover:bg-red-100 hover:border-red-400 transition-all font-medium">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3M4 7h16"/>
+                </svg>
+                Excluir
             </button>
             <div class="flex gap-3 ml-auto">
                 <button type="button" id="item-desc-modal-cancel" class="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">Cancelar</button>
                 <button type="button" id="item-desc-modal-save" class="px-4 py-2 text-sm bg-black text-white rounded-lg hover:bg-gray-800">Salvar</button>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── Modal: Confirmar exclusão de descrição ─────────────────────────────── -->
+<div id="item-desc-delete-confirm-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[60] flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="item-desc-delete-confirm-title">
+    <div class="bg-white rounded-lg shadow-xl max-w-lg w-full p-6 transform transition-all">
+        <div class="flex items-center justify-center mb-4">
+            <div class="rounded-full bg-red-100 p-3">
+                <svg class="h-10 w-10 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                </svg>
+            </div>
+        </div>
+
+        <h3 id="item-desc-delete-confirm-title" class="text-lg font-semibold text-gray-900 text-center mb-2">
+            Confirmar Exclusão
+        </h3>
+
+        <p class="text-sm text-gray-600 text-center mb-4" id="item-desc-delete-confirm-message">
+            Tem certeza que deseja excluir esta descrição?
+        </p>
+
+        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-6">
+            <div class="flex items-start">
+                <svg class="h-5 w-5 text-yellow-500 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                </svg>
+                <p class="text-sm text-yellow-700">Esta descrição será removida de todos os seletores de itens.</p>
+            </div>
+        </div>
+
+        <p class="text-xs text-gray-500 text-center mb-6">
+            Esta ação não pode ser desfeita.
+        </p>
+
+        <div class="flex justify-end gap-3">
+            <button type="button" id="item-desc-delete-confirm-cancel"
+                class="px-4 py-2 bg-white border w-full border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
+                Cancelar
+            </button>
+            <button type="button" id="item-desc-delete-confirm-btn"
+                class="px-4 py-2 bg-red-600 text-white w-full rounded-lg hover:bg-red-700 transition-all">
+                Sim, Excluir
+            </button>
         </div>
     </div>
 </div>
@@ -646,6 +709,10 @@
     const descErrorEl      = document.getElementById('item-desc-error');
     const descSaveBtn      = document.getElementById('item-desc-modal-save');
     const descDeleteBtn    = document.getElementById('item-desc-modal-delete');
+    const descDeleteConfirmModal = document.getElementById('item-desc-delete-confirm-modal');
+    const descDeleteConfirmMessage = document.getElementById('item-desc-delete-confirm-message');
+    const descDeleteConfirmCancelBtn = document.getElementById('item-desc-delete-confirm-cancel');
+    const descDeleteConfirmBtn = document.getElementById('item-desc-delete-confirm-btn');
 
     function openDescriptionModal(itemNode, descToEdit = null) {
         _activeDescItemNode  = itemNode;
@@ -666,8 +733,21 @@
 
     function closeDescriptionModal() {
         descModal.classList.add('hidden');
+        closeDeleteConfirmModal();
         _activeDescItemNode = null;
         _editingDescId      = null;
+    }
+
+    function openDeleteConfirmModal() {
+        const title = descTitleInput.value.trim();
+        descDeleteConfirmMessage.textContent = title
+            ? `Tem certeza que deseja excluir a descrição \"${title}\"?`
+            : 'Tem certeza que deseja excluir esta descrição?';
+        descDeleteConfirmModal.classList.remove('hidden');
+    }
+
+    function closeDeleteConfirmModal() {
+        descDeleteConfirmModal.classList.add('hidden');
     }
 
     document.getElementById('item-desc-modal-close').addEventListener('click',  closeDescriptionModal);
@@ -728,11 +808,24 @@
         }
     });
 
-    descDeleteBtn.addEventListener('click', async () => {
+    descDeleteBtn.addEventListener('click', () => {
         if (!_editingDescId) return;
-        if (!confirm('Excluir esta descrição? Ela será removida de todos os seletores.')) return;
+        openDeleteConfirmModal();
+    });
+
+    descDeleteConfirmCancelBtn.addEventListener('click', closeDeleteConfirmModal);
+
+    descDeleteConfirmModal.addEventListener('click', (e) => {
+        if (e.target === descDeleteConfirmModal) {
+            closeDeleteConfirmModal();
+        }
+    });
+
+    descDeleteConfirmBtn.addEventListener('click', async () => {
+        if (!_editingDescId) return;
         descDeleteBtn.disabled    = true;
-        descDeleteBtn.textContent = 'Excluindo…';
+        descDeleteConfirmBtn.disabled = true;
+        descDeleteConfirmBtn.textContent = 'Excluindo...';
         try {
             const res = await fetch(`${ITEM_DESC_URL}${_editingDescId}/`, {
                 method:  'DELETE',
@@ -753,15 +846,22 @@
         } catch (err) {
             descErrorEl.textContent = err.message;
             descErrorEl.classList.remove('hidden');
+            closeDeleteConfirmModal();
         } finally {
             descDeleteBtn.disabled    = false;
-            descDeleteBtn.textContent = '🗑️ Excluir';
+            descDeleteConfirmBtn.disabled = false;
+            descDeleteConfirmBtn.textContent = 'Sim, Excluir';
         }
     });
 
     // Allow Escape to close modal
     document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && !descModal.classList.contains('hidden')) closeDescriptionModal();
+        if (e.key !== 'Escape') return;
+        if (!descDeleteConfirmModal.classList.contains('hidden')) {
+            closeDeleteConfirmModal();
+            return;
+        }
+        if (!descModal.classList.contains('hidden')) closeDescriptionModal();
     });
 
     // ── DOM refs ───────────────────────────────────────────────────────────
@@ -800,8 +900,8 @@
         const toggleBtn  = node.querySelector('.toggle-section');
         const toggleIcon = node.querySelector('.toggle-icon');
         toggleBtn.addEventListener('click', () => {
-            const open = body.style.display !== 'none' && body.style.display !== '';
-            if (open) {
+            const isOpen = getComputedStyle(body).display !== 'none';
+            if (isOpen) {
                 body.style.display = 'none';
                 toggleIcon.style.transform = 'rotate(-90deg)';
             } else {
@@ -1076,6 +1176,20 @@
         if (bottomWrap)  bottomWrap.classList.toggle('hidden', !hasRows);
     }
 
+    function updateItemHeader(itemNode) {
+        const nameInput = itemNode.querySelector('.item-name');
+        const summaryNameEl = itemNode.querySelector('.item-summary-name');
+        if (summaryNameEl) {
+            const name = nameInput?.value?.trim();
+            summaryNameEl.textContent = name || 'Novo item';
+        }
+        const summaryTotalEl = itemNode.querySelector('.item-summary-total');
+        const totalInput = itemNode.querySelector('.item-total');
+        if (summaryTotalEl && totalInput) {
+            summaryTotalEl.textContent = totalInput.value || fmt(0);
+        }
+    }
+
     function addItem(sectionNode, data) {
         const node = itemTmpl.content.cloneNode(true).firstElementChild;
 
@@ -1192,6 +1306,29 @@
             recalcAll();
         });
 
+        const itemBody = node.querySelector('.item-body');
+        const itemToggleBtn = node.querySelector('.toggle-item');
+        const itemToggleIcon = node.querySelector('.item-toggle-icon');
+        itemToggleBtn?.addEventListener('click', (e) => {
+            e.preventDefault();
+            const isOpen = itemBody && getComputedStyle(itemBody).display !== 'none';
+            if (!itemBody) return;
+            if (isOpen) {
+                itemBody.style.display = 'none';
+                itemToggleIcon.style.transform = 'rotate(-90deg)';
+            } else {
+                itemBody.style.display = '';
+                itemToggleIcon.style.transform = '';
+            }
+        });
+
+        node.querySelector('.item-header')?.addEventListener('click', (e) => {
+            if (e.target.closest('.toggle-item')) return;
+            itemToggleBtn?.click();
+        });
+
+        node.querySelector('.item-name')?.addEventListener('input', () => updateItemHeader(node));
+
         // Live recalc on input; also update same-measures visibility when qty changes
         node.querySelectorAll('.item-quantity, .item-unit-price, .item-dim, .item-measurement, .item-weight')
             .forEach(el => el.addEventListener('input', recalcAll));
@@ -1204,6 +1341,7 @@
 
         // Recalc total for this item immediately
         calcItem(node);
+        updateItemHeader(node);
         return node;
     }
 
@@ -1282,6 +1420,7 @@
                 logSum.classList.add('hidden');
             }
         }
+        updateItemHeader(row);
         return { total, vol, weight, qty, unit: unitSelect?.value || '' };
     }
 

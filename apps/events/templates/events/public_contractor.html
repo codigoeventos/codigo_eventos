@@ -197,34 +197,6 @@
         </div>
     </div>
 
-    <!-- ── Contractor info ──────────────────────────────────────── -->
-    <table class="info-table">
-        <tr>
-            <td class="doc-section-bar" colspan="2" style="padding:3px 16px;border:none;">DADOS DA EMPREITEIRA</td>
-        </tr>
-        <tr>
-            <td style="width:50%"><span class="info-label">Razão Social: </span><span class="info-value">{{ assignment.contractor.name }}</span></td>
-            <td style="width:50%"><span class="info-label">Nome Fantasia: </span><span class="info-value">{{ assignment.contractor.trade_name|default:"—" }}</span></td>
-        </tr>
-        <tr>
-            <td><span class="info-label">CNPJ: </span><span class="info-value">{{ assignment.contractor.cnpj|default:"—" }}</span></td>
-            <td><span class="info-label">Insc. Estadual: </span><span class="info-value">{{ assignment.contractor.state_registration|default:"—" }}</span></td>
-        </tr>
-        <tr>
-            <td><span class="info-label">Responsável Legal: </span><span class="info-value">{{ assignment.contractor.legal_representative|default:"—" }}</span></td>
-            <td><span class="info-label">Telefone: </span><span class="info-value">{{ assignment.contractor.phone|default:"—" }}</span></td>
-        </tr>
-        <tr>
-            <td><span class="info-label">E-mail: </span><span class="info-value">{{ assignment.contractor.email|default:"—" }}</span></td>
-            <td><span class="info-label">Local do Evento: </span><span class="info-value">{{ assignment.event.location|default:"—" }}</span></td>
-        </tr>
-        {% if assignment.notes %}
-        <tr>
-            <td colspan="2"><span class="info-label">Observações: </span><span class="info-value">{{ assignment.notes }}</span></td>
-        </tr>
-        {% endif %}
-    </table>
-
     <!-- ── Members ──────────────────────────────────────────────── -->
     <div class="doc-section-title">Membros Selecionados</div>
 

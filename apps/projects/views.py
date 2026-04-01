@@ -92,9 +92,13 @@ class ProjectDetailView(LoginRequiredMixin, DetailView):
             {'name': self.object.title, 'url': None}
         ]
         # ART helpers
-        context['has_budget'] = self.object.budgets.exists()
+        art_budget = self.object.budgets.filter(is_selected=True).first()
+        if not art_budget:
+            art_budget = self.object.budgets.order_by('-created_at').first()
+        context['art_budget'] = art_budget
+        context['has_budget'] = art_budget is not None
         # Use manager directly so soft-deleted ARTs are excluded
-        context['project_art'] = ART.objects.filter(project=self.object).first()
+        context['project_art'] = ART.objects.filter(budget__proposal=self.object).select_related('budget').first()
         return context
 
 

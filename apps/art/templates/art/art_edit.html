@@ -9,7 +9,7 @@
 <div class="max-w-3xl mx-auto">
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <h2 class="text-xl font-bold text-gray-900 mb-1">{{ art.art_number }} – Editar</h2>
-        <p class="text-sm text-gray-500 mb-6">Projeto: {{ art.project.title }}</p>
+        <p class="text-sm text-gray-500 mb-6">Orçamento: {{ art.budget.name }}</p>
 
         <form method="post" novalidate>
             {% csrf_token %}

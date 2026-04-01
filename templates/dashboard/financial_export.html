@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatório Financeiro – Sistema de Gestão de Eventos</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 13px;
+            color: #000;
+            background: #d4d4d4;
+            line-height: 1.4;
+            padding: 32px 16px;
+            min-height: 100vh;
+        }
+
+        :root {
+            --dark: #3f3f3f;
+            --cream: #eeece1;
+            --white: #ffffff;
+            --black: #000000;
+            --border: #3f3f3f;
+        }
+
+        /* ── Document ─────────────────────────── */
+        .doc {
+            max-width: 900px;
+            margin: 0 auto;
+            background: var(--white);
+            border: 1px solid #999;
+            box-shadow: 0 4px 24px rgba(0,0,0,.25);
+        }
+
+        /* ── Header ───────────────────────────── */
+        .doc-header {
+            background: var(--white);
+            padding: 18px 22px 14px;
+            border-bottom: 2px solid var(--dark);
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+        }
+        .doc-title { font-size: 20px; font-weight: 700; color: var(--black); }
+        .doc-subtitle { font-size: 11px; color: #555; margin-top: 2px; }
+        .doc-meta {
+            text-align: right;
+            font-size: 12px;
+            color: var(--black);
+            flex-shrink: 0;
+        }
+        .doc-meta strong { font-weight: 700; }
+
+        /* ── Section bar ──────────────────────── */
+        .section-bar {
+            background: var(--dark);
+            color: var(--cream);
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            padding: 6px 16px;
+        }
+
+        /* ── Summary cards ────────────────────── */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            border-bottom: 1px solid var(--border);
+        }
+        .summary-card {
+            padding: 14px 16px;
+            border-right: 1px solid var(--border);
+        }
+        .summary-card:last-child { border-right: none; }
+        .summary-label {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #555;
+            margin-bottom: 4px;
+        }
+        .summary-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--black);
+        }
+        .summary-value.profit-pos { color: #166534; }
+        .summary-value.profit-neg { color: #991b1b; }
+
+        /* ── Table ────────────────────────────── */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .data-table th {
+            background: var(--white);
+            border: 1px solid var(--border);
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            padding: 6px 10px;
+            color: var(--black);
+            text-align: left;
+        }
+        .data-table th.num { text-align: right; }
+        .data-table td {
+            border: 1px solid #c0c0c0;
+            padding: 7px 10px;
+            font-size: 12px;
+            color: var(--black);
+            vertical-align: top;
+        }
+        .data-table td.num { text-align: right; }
+        .data-table tbody tr:nth-child(even) td { background: #f5f5f0; }
+        .data-table .row-num {
+            background: var(--dark) !important;
+            color: var(--white) !important;
+            font-weight: 700;
+            text-align: center;
+            width: 32px;
+        }
+        .data-table tfoot td {
+            border: 1px solid var(--border);
+            padding: 8px 10px;
+            font-size: 12px;
+            font-weight: 700;
+            background: #eeece1;
+        }
+        .profit-pos { color: #166534; font-weight: 700; }
+        .profit-neg { color: #991b1b; font-weight: 700; }
+
+        /* ── Footer ───────────────────────────── */
+        .doc-footer {
+            font-size: 10px;
+            font-weight: 700;
+            text-align: right;
+            padding: 6px 16px;
+            color: var(--black);
+            border-top: 1px solid var(--border);
+        }
+
+        /* ── Empty state ─────────────────────── */
+        .empty {
+            padding: 32px 16px;
+            text-align: center;
+            font-size: 13px;
+            color: #666;
+            border: 1px solid var(--border);
+            border-top: none;
+        }
+
+        /* ── Print bar ────────────────────────── */
+        .print-bar {
+            max-width: 900px;
+            margin: 0 auto 0;
+            padding: 12px 4px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+        }
+        .btn {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 10px 20px;
+            border: 2px solid var(--dark);
+            cursor: pointer;
+            transition: all 0.15s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn-print { background: var(--white); color: var(--dark); }
+        .btn-print:hover { background: var(--dark); color: var(--white); }
+        .btn-back { background: var(--dark); color: var(--white); }
+        .btn-back:hover { background: #000; }
+
+        /* ── Print ────────────────────────────── */
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white !important; padding: 0; }
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            .doc { box-shadow: none !important; border: none !important; margin: 0 !important; max-width: 100%; }
+        }
+
+        @media (max-width: 640px) {
+            body { background: #f0f0f0; padding: 0; }
+            .doc { border: none; box-shadow: none; }
+            .doc-header { flex-direction: column; gap: 8px; }
+            .doc-meta { text-align: left; }
+            .summary-grid { grid-template-columns: 1fr; }
+            .summary-card { border-right: none; border-bottom: 1px solid var(--border); }
+            .print-bar { flex-direction: column; }
+            .btn { text-align: center; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Action bar -->
+<div class="print-bar no-print">
+    <a href="{% url 'dashboard:home' %}" class="btn btn-back">← Voltar</a>
+    <button class="btn btn-print" onclick="window.print()">⬇ Imprimir / Salvar PDF</button>
+</div>
+
+<!-- Document -->
+<div class="doc">
+
+    <!-- Header -->
+    <div class="doc-header">
+        <div>
+            <div class="doc-title">Relatório Financeiro</div>
+            <div class="doc-subtitle">Sistema de Gestão de Eventos</div>
+        </div>
+        <div class="doc-meta">
+            <strong>
+                {% if selected_month or selected_year %}
+                Período:
+                {% if selected_month %}
+                {% for num, name in month_choices %}{% if num == selected_month %}{{ name }}{% endif %}{% endfor %}
+                {% endif %}
+                {% if selected_year %}{{ selected_year }}{% endif %}
+                {% else %}
+                Todos os períodos
+                {% endif %}
+            </strong><br>
+            Gerado em: {{ generated_at|date:"d/m/Y H:i" }}<br>
+            {{ rows|length }} projeto{{ rows|length|pluralize:"s" }}
+        </div>
+    </div>
+
+    <!-- Summary -->
+    <div class="section-bar">Resumo</div>
+    <div class="summary-grid">
+        <div class="summary-card">
+            <div class="summary-label">Valor Total dos Projetos</div>
+            <div class="summary-value">R$ {{ total_project_value|floatformat:2 }}</div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-label">Total Gasto c/ Empreiteiras</div>
+            <div class="summary-value">R$ {{ total_contractor_spend|floatformat:2 }}</div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-label">Lucro Total</div>
+            <div class="summary-value {% if total_profit >= 0 %}profit-pos{% else %}profit-neg{% endif %}">
+                R$ {{ total_profit|floatformat:2 }}
+            </div>
+        </div>
+    </div>
+
+    <!-- Projects -->
+    <div class="section-bar">Projetos</div>
+
+    {% if rows %}
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th style="width:32px">#</th>
+                <th>Projeto</th>
+                <th>Evento</th>
+                <th>Empreiteira</th>
+                <th class="num">Valor Total</th>
+                <th class="num">Gasto Empreiteira</th>
+                <th class="num">Lucro</th>
+                <th>Criado em</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in rows %}
+            <tr>
+                <td class="row-num">{{ forloop.counter }}</td>
+                <td>{{ row.project.title }}</td>
+                <td>{% if row.project.event %}{{ row.project.event.name }}{% else %}—{% endif %}</td>
+                <td>{% if row.project.contractor %}{{ row.project.contractor.name }}{% else %}—{% endif %}</td>
+                <td class="num">R$ {{ row.total_value|floatformat:2 }}</td>
+                <td class="num">R$ {{ row.contractor_spend|floatformat:2 }}</td>
+                <td class="num {% if row.profit >= 0 %}profit-pos{% else %}profit-neg{% endif %}">
+                    R$ {{ row.profit|floatformat:2 }}
+                </td>
+                <td>{{ row.project.created_at|date:"d/m/Y" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="4">Total ({{ rows|length }} projeto{{ rows|length|pluralize:"s" }})</td>
+                <td class="num">R$ {{ total_project_value|floatformat:2 }}</td>
+                <td class="num">R$ {{ total_contractor_spend|floatformat:2 }}</td>
+                <td class="num {% if total_profit >= 0 %}profit-pos{% else %}profit-neg{% endif %}">
+                    R$ {{ total_profit|floatformat:2 }}
+                </td>
+                <td></td>
+            </tr>
+        </tfoot>
+    </table>
+    {% else %}
+    <div class="empty">Nenhum projeto encontrado para o período selecionado.</div>
+    {% endif %}
+
+    <!-- Footer -->
+    <div class="doc-footer">
+        Relatório gerado em {{ generated_at|date:"d/m/Y \à\s H:i" }} · Sistema de Gestão de Eventos
+    </div>
+
+</div><!-- /doc -->
+
+</body>
+</html>

@@ -37,6 +37,16 @@
             class="px-5 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors text-sm font-medium">
             Limpar
         </a>
+        <a id="export-link"
+            href="{% url 'dashboard:financial_export' %}{% if selected_month or selected_year %}?{% if selected_month %}month={{ selected_month }}{% endif %}{% if selected_month and selected_year %}&{% endif %}{% if selected_year %}year={{ selected_year }}{% endif %}{% endif %}"
+            target="_blank"
+            class="px-5 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors text-sm font-medium flex items-center gap-1.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
+            </svg>
+            Exportar PDF
+        </a>
     </div>
 </form>
 
@@ -141,4 +151,25 @@
     </div>
     {% endif %}
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    const baseUrl = "{% url 'dashboard:financial_export' %}";
+    const monthSel = document.getElementById('id_month');
+    const yearSel  = document.getElementById('id_year');
+    const link     = document.getElementById('export-link');
+
+    function updateLink() {
+        const params = new URLSearchParams();
+        if (monthSel && monthSel.value) params.set('month', monthSel.value);
+        if (yearSel  && yearSel.value)  params.set('year',  yearSel.value);
+        link.href = baseUrl + (params.toString() ? '?' + params.toString() : '');
+    }
+
+    if (monthSel) monthSel.addEventListener('change', updateLink);
+    if (yearSel)  yearSel .addEventListener('change', updateLink);
+})();
+</script>
 {% endblock %}

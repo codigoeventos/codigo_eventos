@@ -154,6 +154,74 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         return context
 
 
+class FinancialExportView(LoginRequiredMixin, TemplateView):
+    """
+    Standalone print-ready export of the financial dashboard.
+    Accepts the same ?month=&year= filters as DashboardView.
+    """
+
+    template_name = 'dashboard/financial_export.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        from apps.projects.models import Project
+        from decimal import Decimal
+
+        today = timezone.now().date()
+
+        try:
+            month = int(self.request.GET.get('month', ''))
+        except (ValueError, TypeError):
+            month = None
+        try:
+            year = int(self.request.GET.get('year', ''))
+        except (ValueError, TypeError):
+            year = None
+
+        projects = Project.objects.select_related(
+            'event', 'contractor'
+        ).prefetch_related('budgets__items')
+
+        if month:
+            projects = projects.filter(created_at__month=month)
+        if year:
+            projects = projects.filter(created_at__year=year)
+
+        rows = []
+        total_project_value = Decimal('0')
+        total_contractor_spend = Decimal('0')
+        total_profit = Decimal('0')
+
+        for project in projects:
+            pv = Decimal(str(project.total_value))
+            cs = project.contractor_spend or Decimal('0')
+            profit = pv - cs
+            total_project_value += pv
+            total_contractor_spend += cs
+            total_profit += profit
+            rows.append({
+                'project': project,
+                'total_value': pv,
+                'contractor_spend': cs,
+                'profit': profit,
+            })
+
+        context['rows'] = rows
+        context['total_project_value'] = total_project_value
+        context['total_contractor_spend'] = total_contractor_spend
+        context['total_profit'] = total_profit
+        context['month_choices'] = [
+            (1, 'Janeiro'), (2, 'Fevereiro'), (3, 'Março'),
+            (4, 'Abril'), (5, 'Maio'), (6, 'Junho'),
+            (7, 'Julho'), (8, 'Agosto'), (9, 'Setembro'),
+            (10, 'Outubro'), (11, 'Novembro'), (12, 'Dezembro'),
+        ]
+        context['selected_month'] = month
+        context['selected_year'] = year
+        context['generated_at'] = timezone.now()
+        return context
+
+
 class ProjectTotalsView(LoginRequiredMixin, View):
     """
     AJAX endpoint returning summed budget values by status for a given month/year.

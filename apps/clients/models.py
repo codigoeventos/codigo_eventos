@@ -25,6 +25,14 @@ class Client(BaseModel):
         max_length=255,
         help_text='Nome completo ou razão social'
     )
+
+    contact_name = models.CharField(
+        'Nome do Contato',
+        max_length=255,
+        blank=True,
+        null=True,
+        help_text='Nome da pessoa de contato responsável'
+    )
     
     document_type = models.CharField(
         'Tipo de Documento',

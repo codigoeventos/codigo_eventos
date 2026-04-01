@@ -11,46 +11,41 @@ from django.urls import reverse_lazy
 from django.views import View
 from django.views.generic import DetailView, UpdateView
 
-from apps.projects.models import Project
+from apps.budgets.models import Budget
 from .models import ART
 from .forms import ARTEditForm
 
 
 class ARTGenerateView(LoginRequiredMixin, View):
     """
-    Generates an ART automatically from project + budget data.
+    Generates an ART automatically from budget data.
 
     GET  → confirmation page showing what will be generated.
     POST → creates the ART and redirects to the detail page.
 
     Rules:
-    - Project must have at least one budget.
-    - Only one ART per project (OneToOne). If one already exists, redirect to it.
+    - Only one ART per budget (OneToOne). If one already exists, redirect to it.
     - All data is derived automatically; no manual form required.
     """
 
-    def _get_project(self, pk):
+    def _get_budget(self, pk):
         return get_object_or_404(
-            Project.objects.select_related('event', 'event__client', 'contractor')
-                           .prefetch_related('budgets', 'budgets__items'),
+            Budget.objects.select_related('proposal', 'proposal__event', 'proposal__event__client'),
             pk=pk,
         )
 
-    def _guard(self, request, project):
+    def _guard(self, request, budget):
         """Return a redirect response if ART cannot be created, else None."""
-        if not project.budgets.exists():
-            messages.error(request, 'Não é possível gerar uma ART sem um orçamento vinculado ao projeto.')
-            return redirect('projects:detail', pk=project.pk)
-        # Use the SafeDelete-aware manager to check for an existing (non-deleted) ART
-        existing = ART.objects.filter(project=project).first()
+        existing = ART.objects.filter(budget=budget).first()
         if existing:
-            messages.info(request, 'Este projeto já possui uma ART.')
+            messages.info(request, 'Este orçamento já possui uma ART.')
             return redirect('art:detail', pk=existing.pk)
         return None
 
-    def _build_art_data(self, project):
-        """Derive all ART fields automatically from project / budget."""
-        quantity = ART.calculate_quantity(project)
+    def _build_art_data(self, budget):
+        """Derive all ART fields automatically from budget."""
+        project = budget.proposal
+        quantity = ART.calculate_quantity(budget)
         if not quantity:
             quantity = Decimal('0')
 
@@ -62,12 +57,14 @@ class ARTGenerateView(LoginRequiredMixin, View):
             end_date = project.event.event_date
 
         # Activity description: project title + description (if any)
-        activity_parts = [project.title]
+        activity_parts = [budget.name]
+        if project and project.title and project.title != budget.name:
+            activity_parts.append(project.title)
         if project.description:
             activity_parts.append(project.description)
         activity_description = '\n'.join(activity_parts)
 
-        contract_value = project.total_value or Decimal('0')
+        contract_value = budget.total_with_freight or Decimal('0')
 
         return {
             'quantity': quantity,
@@ -78,17 +75,17 @@ class ARTGenerateView(LoginRequiredMixin, View):
             'end_date': end_date,
         }
 
-    def post(self, request, project_pk):
-        project = self._get_project(project_pk)
-        guard = self._guard(request, project)
+    def post(self, request, budget_pk):
+        budget = self._get_budget(budget_pk)
+        guard = self._guard(request, budget)
         if guard:
             return guard
 
-        data = self._build_art_data(project)
+        data = self._build_art_data(budget)
 
-        # If a soft-deleted ART already exists for this project, restore and
+        # If a soft-deleted ART already exists for this budget, restore and
         # update it instead of creating a new one (avoids UniqueConstraint error).
-        deleted_art = ART.all_objects.filter(project=project).first()
+        deleted_art = ART.all_objects.filter(budget=budget).first()
         if deleted_art:
             deleted_art.undelete()
             deleted_art.activity_description = data['activity_description']
@@ -103,7 +100,7 @@ class ARTGenerateView(LoginRequiredMixin, View):
             art = deleted_art
         else:
             art = ART.objects.create(
-                project=project,
+                budget=budget,
                 activity_description=data['activity_description'],
                 location=data['location'],
                 quantity=data['quantity'],
@@ -128,9 +125,10 @@ class ARTDetailView(LoginRequiredMixin, DetailView):
 
     def get_queryset(self):
         return ART.objects.select_related(
-            'project',
-            'project__event',
-            'project__event__client',
+            'budget',
+            'budget__proposal',
+            'budget__proposal__event',
+            'budget__proposal__event__client',
             'created_by',
             'updated_by',
         )
@@ -138,8 +136,8 @@ class ARTDetailView(LoginRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['breadcrumbs'] = [
-            {'name': 'Projetos', 'url': reverse_lazy('projects:list')},
-            {'name': self.object.project.title, 'url': reverse_lazy('projects:detail', kwargs={'pk': self.object.project.pk})},
+            {'name': 'Orçamentos', 'url': reverse_lazy('budgets:list')},
+            {'name': self.object.budget.name, 'url': reverse_lazy('budgets:detail', kwargs={'pk': self.object.budget.pk})},
             {'name': self.object.art_number, 'url': None},
         ]
         return context
@@ -154,9 +152,10 @@ class PublicARTView(View):
     def get(self, request, token):
         art = get_object_or_404(
             ART.objects.select_related(
-                'project',
-                'project__event',
-                'project__event__client',
+                'budget',
+                'budget__proposal',
+                'budget__proposal__event',
+                'budget__proposal__event__client',
                 'created_by',
             ),
             public_token=token,
@@ -175,8 +174,8 @@ class ARTUpdateView(LoginRequiredMixin, UpdateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['breadcrumbs'] = [
-            {'name': 'Projetos', 'url': reverse_lazy('projects:list')},
-            {'name': self.object.project.title, 'url': reverse_lazy('projects:detail', kwargs={'pk': self.object.project.pk})},
+            {'name': 'Orçamentos', 'url': reverse_lazy('budgets:list')},
+            {'name': self.object.budget.name, 'url': reverse_lazy('budgets:detail', kwargs={'pk': self.object.budget.pk})},
             {'name': self.object.art_number, 'url': reverse_lazy('art:detail', kwargs={'pk': self.object.pk})},
             {'name': 'Editar', 'url': None},
         ]
@@ -192,11 +191,11 @@ class ARTUpdateView(LoginRequiredMixin, UpdateView):
 
 
 class ARTDeleteView(LoginRequiredMixin, View):
-    """Delete an ART (redirects back to project)."""
+    """Delete an ART (redirects back to budget)."""
 
     def post(self, request, pk):
         art = get_object_or_404(ART, pk=pk)
-        project_pk = art.project.pk
+        budget_pk = art.budget.pk
         art.delete()
         messages.success(request, 'ART excluída com sucesso.')
-        return redirect('projects:detail', pk=project_pk)
+        return redirect('budgets:detail', pk=budget_pk)

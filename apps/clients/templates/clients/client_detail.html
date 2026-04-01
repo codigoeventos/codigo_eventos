@@ -49,6 +49,13 @@
                     <dd class="mt-1 text-sm text-gray-900">{{ client.email }}</dd>
                 </div>
 
+                {% if client.contact_name %}
+                <div>
+                    <dt class="text-sm font-medium text-gray-500">Nome do Contato</dt>
+                    <dd class="mt-1 text-sm text-gray-900">{{ client.contact_name }}</dd>
+                </div>
+                {% endif %}
+
                 <div>
                     <dt class="text-sm font-medium text-gray-500">Telefone</dt>
                     <dd class="mt-1 text-sm text-gray-900">{{ client.phone|default:"-" }}</dd>

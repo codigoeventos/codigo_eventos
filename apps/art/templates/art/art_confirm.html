@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Gerar ART – {{ project.title }}{% endblock %}
+{% block title %}Gerar ART – {{ budget.name }}{% endblock %}
 {% block page_title %}Gerar ART{% endblock %}
 
 {% block content %}
@@ -12,7 +12,7 @@
         <div class="mb-6">
             <h2 class="text-xl font-bold text-gray-900 mb-1">Confirmar geração da ART</h2>
             <p class="text-sm text-gray-500">
-                Os dados abaixo serão gerados automaticamente a partir do projeto e orçamento.
+                Os dados abaixo serão gerados automaticamente a partir do orçamento.
             </p>
         </div>
 
@@ -20,21 +20,25 @@
         <div class="space-y-4 mb-6">
 
             <div class="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Projeto</h3>
+                <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Orçamento</h3>
                 <dl class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
                     <div>
-                        <dt class="text-xs text-gray-500">Título</dt>
-                        <dd class="font-medium text-gray-900">{{ project.title }}</dd>
+                        <dt class="text-xs text-gray-500">Nome</dt>
+                        <dd class="font-medium text-gray-900">{{ budget.name }}</dd>
                     </div>
-                    {% if project.event %}
+                    <div>
+                        <dt class="text-xs text-gray-500">Projeto</dt>
+                        <dd class="text-gray-900">{{ budget.proposal.title }}</dd>
+                    </div>
+                    {% if budget.proposal.event %}
                     <div>
                         <dt class="text-xs text-gray-500">Evento</dt>
-                        <dd class="text-gray-900">{{ project.event.name }}</dd>
+                        <dd class="text-gray-900">{{ budget.proposal.event.name }}</dd>
                     </div>
-                    {% if project.event.client %}
+                    {% if budget.proposal.event.client %}
                     <div>
                         <dt class="text-xs text-gray-500">Cliente</dt>
-                        <dd class="text-gray-900">{{ project.event.client.name }}</dd>
+                        <dd class="text-gray-900">{{ budget.proposal.event.client.name }}</dd>
                     </div>
                     {% endif %}
                     {% endif %}
@@ -82,7 +86,7 @@
 
         <!-- Ações -->
         <div class="flex justify-end gap-3 pt-4 border-t border-gray-200">
-            <a href="{% url 'projects:detail' project.pk %}"
+            <a href="{% url 'budgets:detail' budget.pk %}"
                 class="px-5 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all text-sm font-medium">
                 Cancelar
             </a>
