@@ -424,10 +424,23 @@ class BudgetDeleteView(LoginRequiredMixin, DeleteView):
     def post(self, request, *args, **kwargs):
         """Handle POST delete request - AJAX only."""
         self.object = self.get_object()
-        
+
+        # Delete protected dependents before deleting the budget
+        # ART (OneToOne with PROTECT, related_name='art')
+        try:
+            self.object.art.delete()
+        except Exception:
+            pass
+
+        # ServiceOrder (OneToOne with PROTECT, related_name='service_order')
+        try:
+            self.object.service_order.delete()
+        except Exception:
+            pass
+
         # Perform soft delete
         self.object.delete()
-        
+
         # Return JSON response
         return JsonResponse({
             'success': True,
