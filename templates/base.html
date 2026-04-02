@@ -36,41 +36,125 @@
         }
     </script>
 
-    <!-- Dark mode global CSS overrides -->
+    <!-- Dark mode global CSS overrides — palette: pure black / neutral gray / white -->
     <style>
-        html.dark body { background-color: #111827; color: #f9fafb; }
-        html.dark .bg-white { background-color: #1f2937 !important; }
-        html.dark .bg-gray-50 { background-color: #111827 !important; }
-        html.dark .bg-gray-100 { background-color: #0f172a !important; }
-        html.dark .text-gray-900 { color: #f9fafb !important; }
-        html.dark .text-gray-800 { color: #f3f4f6 !important; }
-        html.dark .text-gray-700 { color: #e5e7eb !important; }
-        html.dark .text-gray-600 { color: #d1d5db !important; }
-        html.dark .text-gray-500 { color: #9ca3af !important; }
-        html.dark .text-gray-400 { color: #6b7280 !important; }
-        html.dark .border-gray-200 { border-color: #374151 !important; }
-        html.dark .border-gray-300 { border-color: #4b5563 !important; }
-        html.dark .divide-gray-200 > :not([hidden]) ~ :not([hidden]) { border-color: #374151; }
-        html.dark .hover\:bg-gray-50:hover { background-color: #374151 !important; }
-        html.dark .hover\:bg-gray-100:hover { background-color: #374151 !important; }
+        /* ── Base ────────────────────────────────────── */
+        html.dark body                    { background-color: #111111; color: #f0f0f0; }
+
+        /* ── Backgrounds ─────────────────────────────── */
+        html.dark .bg-white               { background-color: #1c1c1c !important; }
+        html.dark .bg-gray-50             { background-color: #111111 !important; }
+        html.dark .bg-gray-100            { background-color: #0d0d0d !important; }
+        html.dark .bg-gray-700            { background-color: #2a2a2a !important; }
+        html.dark .bg-gray-800            { background-color: #1c1c1c !important; }
+        html.dark .bg-gray-900            { background-color: #111111 !important; }
+        html.dark .hover\:bg-gray-50:hover  { background-color: #2a2a2a !important; }
+        html.dark .hover\:bg-gray-100:hover { background-color: #2a2a2a !important; }
+        html.dark .hover\:bg-gray-700:hover { background-color: #333333 !important; }
+
+        /* ── Text ────────────────────────────────────── */
+        html.dark .text-gray-900          { color: #f0f0f0 !important; }
+        html.dark .text-gray-800          { color: #e8e8e8 !important; }
+        html.dark .text-gray-700          { color: #d4d4d4 !important; }
+        html.dark .text-gray-600          { color: #b0b0b0 !important; }
+        html.dark .text-gray-500          { color: #888888 !important; }
+        html.dark .text-gray-400          { color: #666666 !important; }
+        html.dark .text-black             { color: #f0f0f0 !important; }
+        html.dark .text-white             { color: #111111 !important; }  /* inverted on dark bg-black buttons */
+
+        /* ── Borders & dividers ──────────────────────── */
+        html.dark .border-gray-100        { border-color: #252525 !important; }
+        html.dark .border-gray-200        { border-color: #2e2e2e !important; }
+        html.dark .border-gray-300        { border-color: #3a3a3a !important; }
+        html.dark .border-gray-600        { border-color: #3a3a3a !important; }
+        html.dark .border-gray-700        { border-color: #2e2e2e !important; }
+        html.dark .divide-gray-200 > :not([hidden]) ~ :not([hidden]) { border-color: #2e2e2e; }
+        html.dark .divide-gray-700 > :not([hidden]) ~ :not([hidden]) { border-color: #2e2e2e; }
+
+        /* ── Form inputs ─────────────────────────────── */
         html.dark input:not([type="submit"]):not([type="button"]):not([type="checkbox"]):not([type="radio"]):not([type="range"]),
         html.dark select,
         html.dark textarea {
-            background-color: #374151 !important;
-            border-color: #4b5563 !important;
-            color: #f9fafb !important;
+            background-color: #252525 !important;
+            border-color: #3a3a3a !important;
+            color: #f0f0f0 !important;
         }
-        html.dark aside nav a:not([class*="bg-black"]) { color: #d1d5db !important; }
-        html.dark aside nav a:not([class*="bg-black"]):hover { background-color: #374151 !important; color: #ffffff !important; }
-        html.dark .bg-green-100 { background-color: #064e3b !important; }
-        html.dark .text-green-800 { color: #6ee7b7 !important; }
-        html.dark .bg-red-100 { background-color: #7f1d1d !important; }
-        html.dark .text-red-800 { color: #fca5a5 !important; }
-        html.dark .bg-blue-100 { background-color: #374151 !important; }
-        html.dark .text-blue-100 { color: #f3f4f6 !important; }
-        html.dark .text-blue-800 { color: #e5e7eb !important; }
-        html.dark .bg-yellow-100 { background-color: #713f12 !important; }
-        html.dark .text-yellow-800 { color: #fde68a !important; }
+        html.dark input::placeholder,
+        html.dark textarea::placeholder { color: #666666 !important; }
+
+        /* ── Sidebar nav links ───────────────────────── */
+        html.dark aside { background-color: #1c1c1c !important; border-color: #2e2e2e !important; }
+        html.dark aside nav a:not([class*="bg-black"]) { color: #d4d4d4 !important; }
+        html.dark aside nav a:not([class*="bg-black"]):hover { background-color: #2a2a2a !important; color: #ffffff !important; }
+
+        /* ── Black-background buttons/badges (keep white text) ─ */
+        html.dark .bg-black               { background-color: #000000 !important; }
+        html.dark .bg-black .text-white,
+        html.dark a.bg-black,
+        html.dark button.bg-black         { color: #ffffff !important; }
+        html.dark .hover\:bg-gray-800:hover { background-color: #1a1a1a !important; }
+
+        /* ── Status badges — all neutral in dark mode ─── */
+        html.dark .bg-green-50,
+        html.dark .bg-green-100           { background-color: #252525 !important; }
+        html.dark .text-green-700,
+        html.dark .text-green-800         { color: #c8c8c8 !important; }
+        html.dark .border-green-200,
+        html.dark .border-green-700       { border-color: #3a3a3a !important; }
+
+        html.dark .bg-red-50,
+        html.dark .bg-red-100             { background-color: #252525 !important; }
+        html.dark .text-red-700,
+        html.dark .text-red-800           { color: #c8c8c8 !important; }
+        html.dark .border-red-200,
+        html.dark .border-red-700         { border-color: #3a3a3a !important; }
+
+        html.dark .bg-yellow-50,
+        html.dark .bg-yellow-100          { background-color: #252525 !important; }
+        html.dark .text-yellow-700,
+        html.dark .text-yellow-800        { color: #c8c8c8 !important; }
+        html.dark .border-yellow-200,
+        html.dark .border-yellow-700      { border-color: #3a3a3a !important; }
+
+        html.dark .bg-blue-50,
+        html.dark .bg-blue-100            { background-color: #252525 !important; }
+        html.dark .text-blue-100,
+        html.dark .text-blue-600,
+        html.dark .text-blue-700,
+        html.dark .text-blue-800          { color: #c8c8c8 !important; }
+        html.dark .border-blue-200,
+        html.dark .border-blue-700        { border-color: #3a3a3a !important; }
+
+        html.dark .bg-purple-50,
+        html.dark .bg-purple-100          { background-color: #252525 !important; }
+        html.dark .text-purple-700,
+        html.dark .text-purple-800        { color: #c8c8c8 !important; }
+
+        html.dark .bg-orange-50,
+        html.dark .bg-orange-100          { background-color: #252525 !important; }
+        html.dark .text-orange-700,
+        html.dark .text-orange-800        { color: #c8c8c8 !important; }
+
+        /* ── Financial profit/loss ───────────────────── */
+        html.dark .text-green-700         { color: #a8a8a8 !important; }
+        html.dark .text-red-700           { color: #a8a8a8 !important; }
+
+        /* ── Alerts / flash messages ─────────────────── */
+        html.dark [class*="bg-green-900"],
+        html.dark [class*="bg-red-900"],
+        html.dark [class*="bg-blue-900"]  { background-color: #252525 !important; }
+        html.dark [class*="text-green-300"],
+        html.dark [class*="text-red-300"],
+        html.dark [class*="text-blue-300"] { color: #d4d4d4 !important; }
+        html.dark [class*="border-green-700"],
+        html.dark [class*="border-red-700"],
+        html.dark [class*="border-blue-700"] { border-color: #3a3a3a !important; }
+
+        /* ── Scrollbar ───────────────────────────────── */
+        html.dark ::-webkit-scrollbar             { width: 6px; height: 6px; }
+        html.dark ::-webkit-scrollbar-track       { background: #1c1c1c; }
+        html.dark ::-webkit-scrollbar-thumb       { background: #3a3a3a; border-radius: 3px; }
+        html.dark ::-webkit-scrollbar-thumb:hover { background: #555555; }
     </style>
 
 
