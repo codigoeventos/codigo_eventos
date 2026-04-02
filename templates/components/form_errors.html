@@ -25,10 +25,3 @@
 </div>
 {% endif %}
 
-{% for field in form %}
-{% if field.errors %}
-<div class="mb-2 text-sm text-red-600">
-    {{ field.errors }}
-</div>
-{% endif %}
-{% endfor %}

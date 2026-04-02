@@ -48,3 +48,9 @@ if settings.DEBUG:
 admin.site.site_header = "Sistema de Gestão de Eventos"
 admin.site.site_title = "Gestão de Eventos"
 admin.site.index_title = "Painel de Administração"
+
+# Custom error handlers (used when DEBUG=False)
+handler400 = 'django.views.defaults.bad_request'
+handler403 = 'django.views.defaults.permission_denied'
+handler404 = 'django.views.defaults.page_not_found'
+handler500 = 'django.views.defaults.server_error'

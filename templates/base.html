@@ -60,7 +60,6 @@
         html.dark .text-gray-500          { color: #888888 !important; }
         html.dark .text-gray-400          { color: #666666 !important; }
         html.dark .text-black             { color: #f0f0f0 !important; }
-        html.dark .text-white             { color: #111111 !important; }  /* inverted on dark bg-black buttons */
 
         /* ── Borders & dividers ──────────────────────── */
         html.dark .border-gray-100        { border-color: #252525 !important; }
@@ -155,6 +154,18 @@
         html.dark ::-webkit-scrollbar-track       { background: #1c1c1c; }
         html.dark ::-webkit-scrollbar-thumb       { background: #3a3a3a; border-radius: 3px; }
         html.dark ::-webkit-scrollbar-thumb:hover { background: #555555; }
+
+        /* ── Loading overlay card — always white bg with black text ── */
+        html.dark .loading-overlay-card                  { background-color: #ffffff !important; }
+        html.dark .loading-overlay-card p                { color: #111111 !important; }
+        html.dark .loading-overlay-card .border-black    { border-color: #111111 !important; }
+
+        /* ── How-it-works info block (blue-50 → dark neutral) ── */
+        html.dark .how-it-works-block                    { background-color: #1c1c1c !important; border-color: #3a3a3a !important; }
+        html.dark .how-it-works-block h4                  { color: #f0f0f0 !important; }
+        html.dark .how-it-works-block svg                 { color: #a0a0a0 !important; }
+        html.dark .how-it-works-block ol                  { color: #c0c0c0 !important; }
+        html.dark .how-it-works-block strong              { color: #e8e8e8 !important; }
 
         /* ── Approval link card — always dark bg, keep white controls ── */
         html.dark .approval-link-card input,
