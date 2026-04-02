@@ -155,6 +155,16 @@
         html.dark ::-webkit-scrollbar-track       { background: #1c1c1c; }
         html.dark ::-webkit-scrollbar-thumb       { background: #3a3a3a; border-radius: 3px; }
         html.dark ::-webkit-scrollbar-thumb:hover { background: #555555; }
+
+        /* ── Approval link card — always dark bg, keep white controls ── */
+        html.dark .approval-link-card input,
+        html.dark .approval-link-card button,
+        html.dark .approval-link-card a[class*="bg-white"] {
+            background-color: #ffffff !important;
+            color: #000000 !important;
+            border-color: #cccccc !important;
+        }
+        html.dark .approval-link-card input { color: #111111 !important; }
     </style>
 
 
