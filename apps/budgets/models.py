@@ -23,6 +23,7 @@ class Budget(BaseModel):
         ('sent', 'Enviado'),
         ('approved', 'Aprovado'),
         ('rejected', 'Rejeitado'),
+        ('confirmed', 'Confirmado'),
     ]
     
     proposal = models.ForeignKey(
@@ -150,7 +151,7 @@ class Budget(BaseModel):
 
     @property
     def extra_charges_total(self):
-        """Sum all extra charge entries from the JSON field."""
+        """Sum all extra charge entries from the JSON field (base values, no fiscal)."""
         total = Decimal('0')
         charges = self.extra_charges or {}
         for rows in charges.values():
@@ -163,11 +164,28 @@ class Budget(BaseModel):
         return total
 
     @property
+    def extra_charges_fiscal_total(self):
+        """17% fiscal charges from extra charge rows with fiscal=True."""
+        total = Decimal('0')
+        charges = self.extra_charges or {}
+        for rows in charges.values():
+            if isinstance(rows, list):
+                for row in rows:
+                    if row.get('fiscal'):
+                        try:
+                            total += Decimal(str(row.get('value') or 0)) * Decimal('0.17')
+                        except Exception:
+                            pass
+        return total
+
+    @property
     def approved_value(self):
-        """Calculate total value from approved items only (+ encargos + freight se incluídos)."""
-        total = self.items.filter(is_approved=True).aggregate(total=Sum('total_price'))['total'] or 0
-        if self.include_fiscal_charges:
-            total = total * Decimal('1.17')
+        """Calculate total value from approved items only (+ per-item fiscal + encargos + freight)."""
+        approved_qs = self.items.filter(is_approved=True)
+        total = approved_qs.aggregate(total=Sum('total_price'))['total'] or Decimal('0')
+        # Per-item fiscal for approved items
+        fiscal_base = approved_qs.filter(include_fiscal=True).aggregate(total=Sum('total_price'))['total'] or Decimal('0')
+        total += fiscal_base * Decimal('0.17') + self.extra_charges_fiscal_total
         if self.freight_included and self.freight_cost:
             total += self.freight_cost
         total += self.extra_charges_total
@@ -179,20 +197,21 @@ class Budget(BaseModel):
         return self.approval_status == 'pending'
 
     @property
+    def has_item_fiscal(self):
+        """True if at least one item has include_fiscal=True."""
+        return self.items.filter(include_fiscal=True).exists()
+
+    @property
     def fiscal_charges_value(self):
-        """17% fiscal charges over item subtotal, when enabled."""
-        if self.include_fiscal_charges:
-            return self.total_value * Decimal('0.17')
-        return Decimal('0')
+        """17% fiscal charges — summed per-item and per-extra-row."""
+        item_base = self.items.filter(include_fiscal=True).aggregate(total=Sum('total_price'))['total'] or Decimal('0')
+        return item_base * Decimal('0.17') + self.extra_charges_fiscal_total
 
     @property
     def total_with_freight(self):
-        """Budget total value (with fiscal charges if enabled) plus freight and extra charges."""
+        """Budget total value plus per-item/per-row fiscal charges, freight and extra charges."""
         freight = self.freight_cost or 0
-        base = self.total_value
-        if self.include_fiscal_charges:
-            base = base * Decimal('1.17')
-        return base + freight + self.extra_charges_total
+        return self.total_value + self.fiscal_charges_value + freight + self.extra_charges_total
 
     @property
     def total_weight(self):
@@ -391,6 +410,12 @@ class BudgetItem(models.Model):
         null=True,
         blank=True,
         help_text='Lista de subitens com medidas individuais quando cada unidade tem dimensões diferentes'
+    )
+
+    include_fiscal = models.BooleanField(
+        'Encargos Fiscais (17%)',
+        default=False,
+        help_text='Aplica 17% de encargos fiscais sobre o total deste item'
     )
 
     description_ref = models.ForeignKey(

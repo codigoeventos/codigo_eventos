@@ -140,6 +140,7 @@ class ARTDetailView(LoginRequiredMixin, DetailView):
             {'name': self.object.budget.name, 'url': reverse_lazy('budgets:detail', kwargs={'pk': self.object.budget.pk})},
             {'name': self.object.art_number, 'url': None},
         ]
+        context['calculated_quantity'] = ART.calculate_quantity(self.object.budget)
         return context
 
 
@@ -160,7 +161,11 @@ class PublicARTView(View):
             ),
             public_token=token,
         )
-        return render(request, 'art/public_art.html', {'art': art})
+        calculated_quantity = ART.calculate_quantity(art.budget)
+        return render(request, 'art/public_art.html', {
+            'art': art,
+            'calculated_quantity': calculated_quantity,
+        })
 
 
 class ARTUpdateView(LoginRequiredMixin, UpdateView):

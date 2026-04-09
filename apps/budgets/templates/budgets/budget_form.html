@@ -41,13 +41,7 @@
                     {% if form.status.errors %}<p class="mt-1 text-sm text-red-600">{{ form.status.errors.0 }}</p>{% endif %}
 
 
-                <!-- Encargos Fiscais -->
-                <div class="flex items-center gap-3 pt-1">
-                    {{ form.include_fiscal_charges }}
-                    <label for="{{ form.include_fiscal_charges.id_for_label }}" class="text-sm font-medium text-gray-700 cursor-pointer select-none">
-                        Incluir Encargos Fiscais <span class="text-gray-400 font-normal">(+17% sobre os itens)</span>
-                    </label>
-                </div>
+            <!-- Encargos Fiscais globais removidos — agora selecionáveis por item/encargo -->
 
             <!-- ── Sections ──────────────────────────────────────────── -->
             <div class="mt-8 border-t pt-6">
@@ -89,89 +83,21 @@
             <!-- ── Totals & Freight Panel ─────────────────────────────── -->
             <div class="mt-8 space-y-3">
 
-                <!-- Logistics summary bar -->
-                <div id="logistics-bar" class="bg-blue-50 border border-blue-200 rounded-lg px-5 py-3 flex flex-wrap gap-6 text-sm">
-                    <span class="text-blue-700">
-                        Peso total consolidado:
-                        <strong id="total-weight-display" class="text-blue-900">0,000 kg</strong>
-                    </span>
-                    <span class="text-blue-700">
-                        Volume total consolidado:
-                        <strong id="total-volume-display" class="text-blue-900">0,000 m³</strong>
-                    </span>
-                </div>
-
                 <!-- Items subtotal -->
                 <div class="bg-gray-100 rounded-lg px-5 py-3 flex justify-between items-center">
                     <span class="text-sm font-medium text-gray-600">Subtotal dos Itens</span>
                     <span id="items-subtotal" class="text-xl font-bold text-gray-900">R$ 0,00</span>
                 </div>
 
-                <!-- Freight preview -->
-                <div id="freight-panel" class="bg-white border-2 border-dashed border-gray-300 rounded-lg p-5">
-                    <div class="flex items-center justify-between mb-3">
-                        <h4 class="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                            <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                            </svg>
-                            Logística / Frete (prévia)
-                        </h4>
-                        <div class="flex items-center gap-3">
-                            <select id="freight-urgency"
-                                class="text-sm px-3 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent">
-                                <option value="">Urgência padrão</option>
-                                {% for um in urgency_options %}
-                                <option value="{{ um.pk }}" {% if um.is_default %}selected{% endif %}>
-                                    {{ um.label }} (×{{ um.multiplier }})
-                                </option>
-                                {% endfor %}
-                            </select>
-                            <input type="number" id="freight-distance" step="0.1" min="0" placeholder="km (opcional)"
-                                class="text-sm w-32 px-3 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent">
-                        </div>
+                <!-- Frete (opcional) -->
+                <div class="bg-white border border-gray-200 rounded-lg px-5 py-4 flex items-center gap-4">
+                    <span class="text-sm font-medium text-gray-700 flex-1">Frete <span class="text-gray-400 font-normal">(opcional, R$)</span></span>
+                    <div class="relative">
+                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-gray-500 pointer-events-none">R$</span>
+                        <input type="number" id="freight-cost-input" name="freight_cost" step="0.01" min="0" placeholder="0,00"
+                            class="w-44 pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-sm"
+                            value="{{ object.freight_cost|default:'' }}">
                     </div>
-                    <div id="freight-breakdown" class="hidden space-y-1.5 text-sm mb-3 border-t border-gray-100 pt-3">
-                        <div class="flex justify-between text-gray-500">
-                            <span>Base peso (<span class="freight-wt-total">0</span> kg)</span>
-                            <span class="freight-weight-cost">R$ 0,00</span>
-                        </div>
-                        <div class="flex justify-between text-gray-500">
-                            <span>Base volume (<span class="freight-vol-total">0</span> m³)</span>
-                            <span class="freight-volume-cost">R$ 0,00</span>
-                        </div>
-                        <div class="flex justify-between text-gray-500">
-                            <span>Frete base (modo: <span class="freight-mode-label">–</span>)</span>
-                            <span class="freight-base">R$ 0,00</span>
-                        </div>
-                        <div class="flex justify-between text-gray-400">
-                            <span>Taxa fixa</span><span class="freight-fixed">R$ 0,00</span>
-                        </div>
-                        <div class="flex justify-between text-gray-400">
-                            <span>Percentual</span><span class="freight-pct">R$ 0,00</span>
-                        </div>
-                        <div class="flex justify-between text-gray-400">
-                            <span>Distância</span><span class="freight-dist">R$ 0,00</span>
-                        </div>
-                        <div class="flex justify-between text-gray-500 border-t border-gray-200 pt-1.5">
-                            <span>Urgência (<span class="freight-urgency-label">–</span>)</span>
-                            <span class="freight-mult">×1</span>
-                        </div>
-                    </div>
-                    <div class="flex justify-between items-center">
-                        <div id="freight-loading" class="text-xs text-gray-400 hidden">Calculando…</div>
-                        <div id="freight-no-config" class="text-xs text-gray-400">
-                            <a href="{% url 'logistics:config' %}" target="_blank" class="text-blue-600 hover:underline">Configure as tabelas de frete</a>
-                            para ver a prévia aqui.
-                        </div>
-                        <div class="flex items-center gap-4">
-                            <span class="text-sm text-gray-600">Frete estimado:</span>
-                            <span id="freight-total-display" class="text-xl font-bold text-gray-800">R$ 0,00</span>
-                        </div>
-                    </div>
-                    <p class="text-xs text-gray-400 mt-2">
-                        ⚠️ Prévia calculada com as tabelas atuais. O valor final é salvo na tela de detalhes do orçamento.
-                    </p>
                 </div>
 
                 <!-- ── Encargos Adicionais ─────────────────────────── -->
@@ -252,7 +178,7 @@
                             <span id="grand-fiscal-value">R$ 0,00</span>
                         </div>
                         <div id="grand-freight-line" class="flex justify-between items-center text-gray-400 text-sm hidden">
-                            <span>Logística / Frete (<span id="grand-urgency-label">–</span>)</span>
+                            <span>Frete</span>
                             <span id="grand-freight-value">R$ 0,00</span>
                         </div>
                         <div id="grand-extra-apoio-line" class="flex justify-between items-center text-gray-400 text-sm hidden">
@@ -403,7 +329,7 @@
                     <input type="number" class="item-quantity w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-sm" min="1" value="1" placeholder="1">
                 </div>
                 <div>
-                    <label class="item-unit-price-label block text-xs font-medium text-gray-600 mb-1">Valor Unitário (R$) <span class="text-red-500">*</span></label>
+                    <label class="item-unit-price-label block text-xs font-medium text-gray-600 mb-1">Valores de Serviços (R$) <span class="text-red-500">*</span></label>
                     <input type="number" class="item-unit-price w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-sm" step="0.01" min="0" placeholder="0,00">
                 </div>
                 <div>
@@ -454,21 +380,17 @@
         <!-- Shared dimensions block (always visible) -->
         <div class="item-dimensions-block mt-3 pt-3 border-t border-gray-100">
             <p class="text-xs font-medium text-gray-500 mb-2">Dimensões (opcional)</p>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">Largura (m)</label>
                     <input type="number" class="item-dim item-dim-width w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-sm" step="0.001" min="0" placeholder="0.000">
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1">Profundidade (m)</label>
-                    <input type="number" class="item-dim item-dim-length w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-sm" step="0.001" min="0" placeholder="0.000">
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">Altura (m)</label>
                     <input type="number" class="item-dim item-dim-height w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-sm" step="0.001" min="0" placeholder="0.000">
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1">L × P × A (m²)</label>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">L × A (m²)</label>
                     <input type="number" class="item-measurement w-full px-3 py-2 bg-green-50 border border-green-300 rounded-lg focus:ring-2 focus:ring-green-400 focus:border-transparent text-sm" step="0.001" min="0" placeholder="automático">
                     <p class="text-xs text-gray-400 mt-0.5">Calculado automaticamente</p>
                 </div>
@@ -500,31 +422,13 @@
             <input type="hidden" class="item-quantity" value="1">
         </div>
 
-        <!-- Logistics (collapsible) -->
-        <div class="mt-3 pt-3 border-t border-gray-100">
-            <details class="group">
-                <summary class="text-xs text-gray-400 cursor-pointer hover:text-gray-600 select-none flex items-center gap-1">
-                    <svg class="w-3 h-3 transition-transform group-open:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                    </svg>
-                    📦 Logística (peso unitário, para cálculo de frete)
-                </summary>
-                <div class="mt-2 grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-xs font-medium text-gray-600 mb-1">Peso unitário (kg)</label>
-                        <input type="number" class="item-weight w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-sm" step="0.001" min="0" placeholder="0.000">
-                    </div>
-                    <div class="item-logistics-summary hidden flex items-end pb-2">
-                        <span class="text-xs text-blue-600">
-                            Vol. total: <strong class="item-vol-total">–</strong> m³ &nbsp;|&nbsp;
-                            Peso total: <strong class="item-wt-total">–</strong> kg
-                        </span>
-                    </div>
-                </div>
-            </details>
-        </div>
-
-        <div class="mt-3 pt-3 border-t border-gray-200 flex justify-end">
+        <div class="mt-3 pt-3 border-t border-gray-200 flex items-center justify-between gap-3">
+            <button type="button" class="item-fiscal-btn inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-semibold transition-all duration-150 border-gray-200 bg-gray-50 text-gray-400 hover:border-orange-300 hover:text-orange-500" aria-pressed="false">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l2 2 4-4"/>
+                </svg>
+                Encargos Fiscais (+17%)
+            </button>
             <button type="button" class="remove-item px-4 py-2 bg-white border border-red-300 text-red-600 text-sm rounded-lg hover:bg-red-50 transition-all">
                 🗑️ Remover Item
             </button>
@@ -541,6 +445,9 @@
             <span class="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-gray-500 pointer-events-none">R$</span>
             <input type="number" class="extra-row-value w-36 pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-sm" step="0.01" min="0" placeholder="0,00">
         </div>
+        <button type="button" class="extra-row-fiscal-btn inline-flex items-center px-2.5 py-1.5 rounded-full border text-xs font-semibold transition-all duration-150 whitespace-nowrap border-gray-200 bg-gray-50 text-gray-400 hover:border-orange-300 hover:text-orange-500 flex-shrink-0" aria-pressed="false" title="Aplicar Encargo Fiscal (+17%)">
+            +17%
+        </button>
         <button type="button" class="remove-extra-row text-gray-400 hover:text-red-500 transition-colors flex-shrink-0">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
@@ -562,10 +469,9 @@
                 <input type="number" class="subitem-qty w-full px-2 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-black focus:border-transparent" min="1" value="1">
             </div>
             <div class="md:col-span-5">
-                <label class="block text-xs font-medium text-gray-500 mb-1">Largura / Prof. / Altura / Vol.</label>
-                <div class="grid grid-cols-4 gap-1">
+                <label class="block text-xs font-medium text-gray-500 mb-1">Largura / Altura / L×A</label>
+                <div class="grid grid-cols-3 gap-1">
                     <input type="number" class="subitem-dim subitem-dim-width w-full px-2 py-1.5 border border-gray-300 rounded-md text-xs focus:ring-2 focus:ring-black" step="0.001" min="0" placeholder="Larg.">
-                    <input type="number" class="subitem-dim subitem-dim-length w-full px-2 py-1.5 border border-gray-300 rounded-md text-xs focus:ring-2 focus:ring-black" step="0.001" min="0" placeholder="Prof.">
                     <input type="number" class="subitem-dim subitem-dim-height w-full px-2 py-1.5 border border-gray-300 rounded-md text-xs focus:ring-2 focus:ring-black" step="0.001" min="0" placeholder="Alt.">
                     <input type="number" class="subitem-measurement w-full px-2 py-1.5 border border-green-300 bg-green-50 rounded-md text-xs focus:ring-2 focus:ring-green-400" step="0.001" min="0" placeholder="auto">
                 </div>
@@ -874,7 +780,6 @@
     const sectionsDataInput     = document.getElementById('sections-data');
     const extraChargesDataInput = document.getElementById('extra-charges-data');
     const extraChargeTmpl       = document.getElementById('extra-charge-row-template');
-    const freightURL        = "{% url 'budgets:freight-preview' %}";
     const csrfToken         = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
     // ── Helpers ────────────────────────────────────────────────────────────
@@ -883,8 +788,6 @@
     const num  = v => parseFloat(v) || 0;
 
     let _sectionCounter = 0;
-    let currentFreight  = 0;
-    let freightDebounce = null;
 
     // ── Section management ─────────────────────────────────────────────────
     function addSection(data) {
@@ -976,9 +879,26 @@
         if (data) {
             if (data.label) row.querySelector('.extra-row-label').value = data.label;
             if (data.value) row.querySelector('.extra-row-value').value = data.value;
+        if (data.fiscal) {
+                const btn = row.querySelector('.extra-row-fiscal-btn');
+                if (btn) { btn.ariaPressed = 'true'; btn.classList.add('border-orange-400','bg-orange-50','text-orange-600'); btn.classList.remove('border-gray-200','bg-gray-50','text-gray-400'); }
+            }
         }
         row.querySelector('.extra-row-label').addEventListener('input', recalcAll);
         row.querySelector('.extra-row-value').addEventListener('input', recalcAll);
+        const fiscalBtn = row.querySelector('.extra-row-fiscal-btn');
+        fiscalBtn?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const active = fiscalBtn.ariaPressed === 'true';
+            fiscalBtn.ariaPressed = active ? 'false' : 'true';
+            fiscalBtn.classList.toggle('border-orange-400', !active);
+            fiscalBtn.classList.toggle('bg-orange-50',      !active);
+            fiscalBtn.classList.toggle('text-orange-600',   !active);
+            fiscalBtn.classList.toggle('border-gray-200',    active);
+            fiscalBtn.classList.toggle('bg-gray-50',         active);
+            fiscalBtn.classList.toggle('text-gray-400',      active);
+            recalcAll();
+        });
         row.querySelector('.remove-extra-row').addEventListener('click', () => {
             row.remove();
             recalcAll();
@@ -990,17 +910,22 @@
 
     function calcExtraChargesTotal() {
         const groups = {};
+        let fiscalTotal = 0;
         document.querySelectorAll('.extra-charge-group').forEach(groupEl => {
             const groupKey = groupEl.dataset.group;
             let sub = 0;
             groupEl.querySelectorAll('.extra-charge-row').forEach(row => {
-                sub += num(row.querySelector('.extra-row-value')?.value);
+                const val = num(row.querySelector('.extra-row-value')?.value);
+                sub += val;
+                if (row.querySelector('.extra-row-fiscal-btn')?.ariaPressed === 'true') {
+                    fiscalTotal += val * 0.17;
+                }
             });
             groups[groupKey] = sub;
             const subtotalEl = groupEl.querySelector('.extra-group-subtotal');
             if (subtotalEl) subtotalEl.textContent = fmt(sub);
         });
-        return groups;
+        return { groups, fiscalTotal };
     }
 
     // Init extra charge "+ Adicionar" buttons
@@ -1091,23 +1016,18 @@
     }
 
     function calcSubitem(row) {
-        const l = num(row.querySelector('.subitem-dim-length')?.value);
         const w = num(row.querySelector('.subitem-dim-width')?.value);
         const h = num(row.querySelector('.subitem-dim-height')?.value);
         const measInput  = row.querySelector('.subitem-measurement');
         const unitSelect = row.querySelector('.subitem-measurement-unit');
         let vol = 0;
 
-        if (l > 0 && w > 0 && h > 0) {
-            vol = l * w * h;
-            if (measInput)  measInput.value  = vol.toFixed(3);
-            if (unitSelect) unitSelect.value = 'm2';
-        } else if (w > 0 && h > 0) {
+        if (w > 0 && h > 0) {
             vol = w * h;
             if (measInput)  measInput.value  = vol.toFixed(3);
             if (unitSelect) unitSelect.value = 'm2';
-        } else if (w > 0 || h > 0 || l > 0) {
-            vol = w || h || l;
+        } else if (w > 0 || h > 0) {
+            vol = w || h;
             if (measInput)  measInput.value  = vol.toFixed(3);
             if (unitSelect) unitSelect.value = 'm2';
         } else {
@@ -1130,7 +1050,6 @@
             if (data.qty)              row.querySelector('.subitem-qty').value             = data.qty;
             if (data.dim_width)        row.querySelector('.subitem-dim-width').value       = data.dim_width;
             if (data.dim_height)       row.querySelector('.subitem-dim-height').value      = data.dim_height;
-            if (data.dim_length)       row.querySelector('.subitem-dim-length').value      = data.dim_length;
             if (data.measurement)      row.querySelector('.subitem-measurement').value     = data.measurement;
             if (data.measurement_unit) {
                 row.querySelector('.subitem-measurement-unit').value = data.measurement_unit;
@@ -1200,7 +1119,6 @@
             // Set price on both panels so the active one is ready
             node.querySelectorAll('.item-unit-price').forEach(el => el.value = data.unit_price);
         }
-        if (data && data.dim_length)       node.querySelector('.item-dim-length').value    = data.dim_length;
         if (data && data.dim_width)        node.querySelector('.item-dim-width').value     = data.dim_width;
         if (data && data.dim_height)       node.querySelector('.item-dim-height').value    = data.dim_height;
         if (data && data.measurement)      node.querySelector('.item-measurement').value   = data.measurement;
@@ -1208,8 +1126,11 @@
             const sel = node.querySelector('.item-measurement-unit');
             sel.value = data.measurement_unit;
         }
-        if (data && data.weight)           node.querySelector('.item-weight').value        = data.weight;
         if (data && data.description)      node.querySelector('.item-description').value   = data.description;
+        if (data && data.include_fiscal) {
+            const btn = node.querySelector('.item-fiscal-btn');
+            if (btn) { btn.ariaPressed = 'true'; btn.classList.add('border-orange-400','bg-orange-50','text-orange-600'); btn.classList.remove('border-gray-200','bg-gray-50','text-gray-400'); }
+        }
 
         // Apply billing type (must be done after node is populated)
         applyBillingType(node, (data && data.billing_type) || 'qty');
@@ -1242,11 +1163,19 @@
             }
         }
 
-        // When a description is selected, copy its body + show/hide edit pencil
+        // When a description is selected, copy its title → item name, body → description textarea
         node.querySelector('.item-description-select').addEventListener('change', function () {
             const desc     = ITEM_DESCRIPTIONS.find(d => String(d.id) === this.value);
             const editLink = node.querySelector('.edit-description-link');
             if (desc) {
+                // Fill item name with the description title
+                const nameInput = node.querySelector('.item-name');
+                if (nameInput) {
+                    nameInput.value = desc.title;
+                    // Update the collapsed summary label too
+                    const summaryName = node.querySelector('.item-summary-name');
+                    if (summaryName) summaryName.textContent = desc.title;
+                }
                 node.querySelector('.item-description').value = desc.body;
                 editLink?.classList.remove('hidden');
             } else {
@@ -1329,10 +1258,26 @@
 
         node.querySelector('.item-name')?.addEventListener('input', () => updateItemHeader(node));
 
+        // Fiscal pill toggle (per-item)
+        node.querySelector('.item-fiscal-btn')?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const btn    = e.currentTarget;
+            const active = btn.ariaPressed === 'true';
+            btn.ariaPressed = active ? 'false' : 'true';
+            btn.classList.toggle('border-orange-400', !active);
+            btn.classList.toggle('bg-orange-50',      !active);
+            btn.classList.toggle('text-orange-600',   !active);
+            btn.classList.toggle('border-gray-200',    active);
+            btn.classList.toggle('bg-gray-50',         active);
+            btn.classList.toggle('text-gray-400',      active);
+            recalcAll();
+        });
+
         // Live recalc on input; also update same-measures visibility when qty changes
-        node.querySelectorAll('.item-quantity, .item-unit-price, .item-dim, .item-measurement, .item-weight')
+        node.querySelectorAll('.item-quantity, .item-unit-price, .item-dim, .item-measurement')
             .forEach(el => el.addEventListener('input', recalcAll));
         node.querySelector('.item-measurement-unit')?.addEventListener('change', recalcAll);
+        // (fiscal toggle handled separately above with stopPropagation)
         node.querySelector('.qty-panel .item-quantity')?.addEventListener('input', () => {
             checkSameMeasuresVisibility(node);
         });
@@ -1370,26 +1315,20 @@
         const qty          = billingType === 'meter' ? 1 : num(row.querySelector('.qty-panel .item-quantity')?.value);
         const price        = num(activePanel?.querySelector('.item-unit-price')?.value);
 
-        const l = num(row.querySelector('.item-dim-length')?.value);
         const w = num(row.querySelector('.item-dim-width')?.value);
         const h = num(row.querySelector('.item-dim-height')?.value);
         let vol = 0;
         const measInput  = row.querySelector('.item-measurement');
         const unitSelect = row.querySelector('.item-measurement-unit');
 
-        if (l > 0 && w > 0 && h > 0) {
-            // All three dims → m²
-            vol = l * w * h;
-            if (measInput)  measInput.value  = vol.toFixed(3);
-            if (unitSelect) unitSelect.value = 'm2';
-        } else if (w > 0 && h > 0) {
-            // Width + height → m²
+        if (w > 0 && h > 0) {
+            // Width × height → m²
             vol = w * h;
             if (measInput)  measInput.value  = vol.toFixed(3);
             if (unitSelect) unitSelect.value = 'm2';
-        } else if (w > 0 || h > 0 || l > 0) {
+        } else if (w > 0 || h > 0) {
             // Single dim → m²
-            vol = w || h || l;
+            vol = w || h;
             if (measInput)  measInput.value  = vol.toFixed(3);
             if (unitSelect) unitSelect.value = 'm2';
         } else {
@@ -1406,22 +1345,8 @@
         }
         row.querySelectorAll('.item-total').forEach(el => { el.value = fmt(total); });
 
-        const weight      = num(row.querySelector('.item-weight')?.value);
-        const volTotal    = vol * qty;
-        const weightTotal = weight * qty;
-
-        const logSum = row.querySelector('.item-logistics-summary');
-        if (logSum) {
-            if (volTotal > 0 || weightTotal > 0) {
-                logSum.classList.remove('hidden');
-                row.querySelector('.item-vol-total').textContent = fmtN(volTotal);
-                row.querySelector('.item-wt-total').textContent  = fmtN(weightTotal);
-            } else {
-                logSum.classList.add('hidden');
-            }
-        }
         updateItemHeader(row);
-        return { total, vol, weight, qty, unit: unitSelect?.value || '' };
+        return { total, vol, qty, unit: unitSelect?.value || '' };
     }
 
     // ── Section subtotal display ───────────────────────────────────────────
@@ -1436,50 +1361,36 @@
 
     // ── Aggregate all items across all sections ────────────────────────────
     function recalcAll() {
-        let grandTotal  = 0;
-        let totalWeight = 0;
-        let totalVolume = 0;
-        const itemsData = [];
+        let grandTotal = 0;
+        let itemFiscalTotal = 0;
 
         document.querySelectorAll('.section-card').forEach(secNode => {
             secNode.querySelectorAll('.item-form[data-deleted="false"]').forEach(row => {
-                const d = calcItem(row);
-                grandTotal  += d.total;
-                totalWeight += d.weight * d.qty;
-                totalVolume += (d.unit === 'm3') ? d.vol * d.qty : 0;
-                if (d.vol > 0 || d.weight > 0) {
-                    itemsData.push({
-                        quantity: d.qty,
-                        weight:   d.weight,
-                        volume:   d.vol,
-                        measurement_unit: d.unit,
-                    });
+                const { total } = calcItem(row);
+                grandTotal += total;
+                if (row.querySelector('.item-fiscal-btn')?.ariaPressed === 'true') {
+                    itemFiscalTotal += total * 0.17;
                 }
             });
             updateSectionSubtotal(secNode);
         });
 
-        document.getElementById('total-weight-display').textContent = fmtN(totalWeight) + ' kg';
-        document.getElementById('total-volume-display').textContent = fmtN(totalVolume) + ' m³';
         document.getElementById('items-subtotal').textContent  = fmt(grandTotal);
         document.getElementById('grand-items-line').textContent = fmt(grandTotal);
 
-        const extraGroups      = calcExtraChargesTotal();
-        const extraTotal       = Object.values(extraGroups).reduce((a, v) => a + v, 0);
-        const extraSubtotalEl  = document.getElementById('extra-charges-subtotal');
+        const { groups: extraGroups, fiscalTotal: extraFiscalTotal } = calcExtraChargesTotal();
+        const extraTotal      = Object.values(extraGroups).reduce((a, v) => a + v, 0);
+        const extraSubtotalEl = document.getElementById('extra-charges-subtotal');
         if (extraSubtotalEl) extraSubtotalEl.textContent = fmt(extraTotal);
 
-        updateGrandTotal(grandTotal, currentFreight, extraGroups);
-
-        clearTimeout(freightDebounce);
-        freightDebounce = setTimeout(() => fetchFreightPreview(itemsData, grandTotal), 400);
+        const freight = num(document.getElementById('freight-cost-input')?.value);
+        updateGrandTotal(grandTotal, freight, extraGroups, itemFiscalTotal + extraFiscalTotal);
     }
 
-    function updateGrandTotal(itemsTotal, freight, extraGroups) {
-        extraGroups = extraGroups || calcExtraChargesTotal();
-        const extraTotal    = Object.values(extraGroups).reduce((a, v) => a + v, 0);
-        const includeFiscal = document.getElementById('id_include_fiscal_charges')?.checked;
-        const fiscalValue   = includeFiscal ? itemsTotal * 0.17 : 0;
+    function updateGrandTotal(itemsTotal, freight, extraGroups, fiscalValue) {
+        extraGroups = extraGroups || calcExtraChargesTotal().groups;
+        fiscalValue = fiscalValue || 0;
+        const extraTotal = Object.values(extraGroups).reduce((a, v) => a + v, 0);
 
         // Fiscal charges line
         const fiscalLine  = document.getElementById('grand-fiscal-line');
@@ -1491,14 +1402,12 @@
         document.getElementById('grand-items-line').textContent = fmt(itemsTotal);
 
         document.getElementById('budget-total').textContent = fmt(itemsTotal + fiscalValue + freight + extraTotal);
+
         const freightLine = document.getElementById('grand-freight-line');
-        if (freight > 0) {
-            freightLine.classList.remove('hidden');
-            document.getElementById('grand-freight-value').textContent = fmt(freight);
-            document.getElementById('grand-urgency-label').textContent =
-                document.getElementById('freight-urgency')?.selectedOptions[0]?.text || '–';
-        } else {
-            freightLine.classList.add('hidden');
+        if (freightLine) {
+            freightLine.classList.toggle('hidden', freight <= 0);
+            const freightValEl = document.getElementById('grand-freight-value');
+            if (freightValEl) freightValEl.textContent = fmt(freight);
         }
         // Extra charge lines in grand total
         ['apoio', 'mao_de_obra', 'documentacao', 'taxa_feira'].forEach(key => {
@@ -1510,72 +1419,6 @@
                 valueEl.textContent = fmt(val);
             }
         });
-    }
-
-    // ── Freight preview AJAX ───────────────────────────────────────────────
-    function fetchFreightPreview(itemsData, budgetTotal) {
-        const urgencyId  = document.getElementById('freight-urgency')?.value  || '';
-        const distanceKm = document.getElementById('freight-distance')?.value || '';
-        const loadingEl  = document.getElementById('freight-loading');
-        const noConfigEl = document.getElementById('freight-no-config');
-        loadingEl?.classList.remove('hidden');
-        noConfigEl?.classList.add('hidden');
-
-        const body = new URLSearchParams({
-            csrfmiddlewaretoken: csrfToken,
-            items_json:   JSON.stringify(itemsData),
-            budget_total: budgetTotal,
-            urgency_id:   urgencyId,
-            distance_km:  distanceKm,
-        });
-
-        fetch(freightURL, {method:'POST', body, headers:{'X-Requested-With':'XMLHttpRequest'}})
-            .then(r => r.json())
-            .then(d => {
-                loadingEl?.classList.add('hidden');
-                renderFreightBreakdown(d, itemsData.length > 0 || budgetTotal > 0);
-                let itemsTotal = 0;
-                document.querySelectorAll('.section-card').forEach(secNode => {
-                    secNode.querySelectorAll('.item-form[data-deleted="false"]').forEach(row => {
-                        itemsTotal += calcItem(row).total;
-                    });
-                });
-                currentFreight = d.freight_total || 0;
-                updateGrandTotal(itemsTotal, currentFreight, null);
-            })
-            .catch(() => {
-                loadingEl?.classList.add('hidden');
-                noConfigEl?.classList.remove('hidden');
-            });
-    }
-
-    function renderFreightBreakdown(d, hasData) {
-        const breakdownEl = document.getElementById('freight-breakdown');
-        const totalEl     = document.getElementById('freight-total-display');
-        const noConfigEl  = document.getElementById('freight-no-config');
-
-        if (!hasData || d.freight_total === 0) {
-            breakdownEl?.classList.add('hidden');
-            totalEl.textContent = fmt(0);
-            noConfigEl?.classList.remove('hidden');
-            return;
-        }
-        noConfigEl?.classList.add('hidden');
-        breakdownEl?.classList.remove('hidden');
-
-        const set = (sel, val) => { const el = document.querySelector(sel); if (el) el.textContent = val; };
-        set('.freight-wt-total',    fmtN(d.weight_total));
-        set('.freight-vol-total',   fmtN(d.volume_total));
-        set('.freight-weight-cost', fmt(d.weight_cost));
-        set('.freight-volume-cost', fmt(d.volume_cost));
-        set('.freight-base',        fmt(d.base_freight));
-        set('.freight-fixed',       fmt(d.fixed_fee));
-        set('.freight-pct',         fmt(d.percentage_cost));
-        set('.freight-dist',        fmt(d.distance_cost));
-        set('.freight-urgency-label', d.urgency_label);
-        set('.freight-mult',        '×' + parseFloat(d.urgency_multiplier).toFixed(2));
-        set('.freight-mode-label',  d.weight_cost >= d.volume_cost ? 'peso' : 'volume');
-        totalEl.textContent = fmt(d.freight_total);
     }
 
     // ── Serialize to JSON before submit ───────────────────────────────────
@@ -1594,14 +1437,14 @@
                     description:      itemNode.querySelector('.item-description')?.value || '',
                     description_ref_id: itemNode.querySelector('.item-description-select')?.value || null,
                     quantity:         bType === 'meter' ? '1' : (itemNode.querySelector('.qty-panel .item-quantity')?.value || '1'),
-                    dim_length:       itemNode.querySelector('.item-dim-length')?.value || '',
+                    dim_length:       '',
                     dim_width:        itemNode.querySelector('.item-dim-width')?.value || '',
                     dim_height:       itemNode.querySelector('.item-dim-height')?.value || '',
                     measurement:      itemNode.querySelector('.item-measurement')?.value || '',
                     measurement_unit: itemNode.querySelector('.item-measurement-unit')?.value || '',
-                    weight:           itemNode.querySelector('.item-weight')?.value || '',
                     unit_price:       itemNode.querySelector(pricePanel + ' .item-unit-price')?.value || '0',
                     billing_type:     bType,
+                    include_fiscal:   itemNode.querySelector('.item-fiscal-btn')?.ariaPressed === 'true',
                 });
             });
             sections.push({
@@ -1618,9 +1461,10 @@
             const key  = groupEl.dataset.group;
             const rows = [];
             groupEl.querySelectorAll('.extra-charge-row').forEach(row => {
-                const label = row.querySelector('.extra-row-label')?.value || '';
-                const value = row.querySelector('.extra-row-value')?.value || '0';
-                if (label || num(value) > 0) rows.push({ label, value });
+                const label  = row.querySelector('.extra-row-label')?.value || '';
+                const value  = row.querySelector('.extra-row-value')?.value || '0';
+                const fiscal = row.querySelector('.extra-row-fiscal-btn')?.ariaPressed === 'true';
+                if (label || num(value) > 0) rows.push({ label, value, fiscal });
             });
             if (rows.length) extraCharges[key] = rows;
         });
@@ -1636,11 +1480,7 @@
     addSectionBtn.addEventListener('click', handleAddSection);
     document.getElementById('add-section-bottom')?.addEventListener('click', handleAddSection);
 
-    document.getElementById('freight-urgency')?.addEventListener('change', recalcAll);
-    document.getElementById('freight-distance')?.addEventListener('input', recalcAll);
-
-    // Recalc when fiscal charges checkbox changes
-    document.getElementById('id_include_fiscal_charges')?.addEventListener('change', recalcAll);
+    document.getElementById('freight-cost-input')?.addEventListener('input', recalcAll);
 
     // Load existing sections (edit mode)
     if (INITIAL_SECTIONS && INITIAL_SECTIONS.length > 0) {
@@ -1657,6 +1497,27 @@
             if (groupEl && Array.isArray(rows)) {
                 rows.forEach(r => addExtraChargeRow(groupEl, r));
             }
+        });
+    } else {
+        // Default rows for new budgets
+        const defaults = {
+            apoio: [
+                { label: 'Transporte de materiais', value: '' },
+                { label: 'Carregadores de apoio',   value: '' },
+            ],
+            mao_de_obra: [
+                { label: 'Desmontagem em horários especiais', value: '' },
+                { label: 'Montagem em horários especiais',    value: '' },
+            ],
+            documentacao: [
+                { label: 'Art de montagem + Atestados', value: '' },
+                { label: 'Ignofugação',                 value: '' },
+                { label: 'Seguro de responsabilidade Civil / Montagem',                 value: '' },
+            ],
+        };
+        Object.entries(defaults).forEach(([key, rows]) => {
+            const groupEl = document.querySelector(`.extra-charge-group[data-group="${key}"]`);
+            if (groupEl) rows.forEach(r => addExtraChargeRow(groupEl, r));
         });
     }
 

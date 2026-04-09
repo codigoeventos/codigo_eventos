@@ -247,6 +247,18 @@ class NRFileDeleteView(LoginRequiredMixin, View):
         return redirect('contractors:member_edit', pk=member_pk)
 
 
+class NRDeleteView(LoginRequiredMixin, View):
+    """Delete a single ContractorMemberNR directly (bypasses formset)."""
+
+    def post(self, request, pk):
+        from django.shortcuts import get_object_or_404, redirect
+        nr = get_object_or_404(ContractorMemberNR, pk=pk)
+        member_pk = nr.member_id
+        nr.delete()
+        messages.success(request, 'NR removida com sucesso.')
+        return redirect('contractors:member_edit', pk=member_pk)
+
+
 class MemberDeleteView(LoginRequiredMixin, DeleteView):
     """Delete a contractor member – via AJAX only."""
 

@@ -56,6 +56,7 @@
                     <dd class="mt-1">
                         <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
                             {% if budget.status == 'approved' %}bg-green-100 text-green-800
+                            {% elif budget.status == 'confirmed' %}bg-purple-100 text-purple-800
                             {% elif budget.status == 'rejected' %}bg-red-100 text-red-800
                             {% elif budget.status == 'sent' %}bg-blue-100 text-blue-800
                             {% else %}bg-gray-100 text-gray-800{% endif %}">
@@ -87,12 +88,12 @@
                 <div class="divide-y divide-gray-100">
                     <div class="flex justify-between items-center px-4 py-3">
                         <span class="text-sm text-gray-600">Subtotal dos itens</span>
-                        <span class="text-sm font-semibold text-gray-900">R$ {{ budget.total_value|floatformat:2 }}</span>
+                        <span class="text-sm font-semibold text-gray-900">R$ {{ budget.total_value|floatformat:"2g" }}</span>
                     </div>
                     {% if budget.include_fiscal_charges %}
                     <div class="flex justify-between items-center px-4 py-3 bg-orange-50">
                         <span class="text-sm text-orange-700">Encargos Fiscais <span class="text-xs font-normal">(17% sobre os itens)</span></span>
-                        <span class="text-sm font-semibold text-orange-700">+ R$ {{ budget.fiscal_charges_value|floatformat:2 }}</span>
+                        <span class="text-sm font-semibold text-orange-700">+ R$ {{ budget.fiscal_charges_value|floatformat:"2g" }}</span>
                     </div>
                     {% endif %}
                     {% if budget.freight_cost %}
@@ -101,7 +102,7 @@
                             Frete
                             {% if budget.freight_urgency %}<span class="text-xs text-gray-400 ml-1">— {{ budget.freight_urgency.label }}</span>{% endif %}
                         </span>
-                        <span class="text-sm font-semibold text-gray-900">+ R$ {{ budget.freight_cost|floatformat:2 }}</span>
+                        <span class="text-sm font-semibold text-gray-900">+ R$ {{ budget.freight_cost|floatformat:"2g" }}</span>
                     </div>
                     {% endif %}
                     {% if budget.extra_charges_total %}
@@ -111,17 +112,17 @@
                             <div class="mt-0.5 text-xs text-gray-400 space-y-0.5">
                                 {% for group_key, rows in budget.extra_charges.items %}
                                     {% for row in rows %}
-                                    <div>{{ row.label|default:"-" }}: R$ {{ row.value|floatformat:2 }}</div>
+                                    <div>{{ row.label|default:"-" }}: R$ {{ row.value|floatformat:"2g" }}</div>
                                     {% endfor %}
                                 {% endfor %}
                             </div>
                         </div>
-                        <span class="text-sm font-semibold text-gray-900 self-start">+ R$ {{ budget.extra_charges_total|floatformat:2 }}</span>
+                        <span class="text-sm font-semibold text-gray-900 self-start">+ R$ {{ budget.extra_charges_total|floatformat:"2g" }}</span>
                     </div>
                     {% endif %}
                     <div class="flex justify-between items-center px-4 py-4 bg-black">
                         <span class="text-base font-bold text-white">Total do Orçamento</span>
-                        <span class="text-2xl font-bold text-white">R$ {{ budget.total_with_freight|floatformat:2 }}</span>
+                        <span class="text-2xl font-bold text-white">R$ {{ budget.total_with_freight|floatformat:"2g" }}</span>
                     </div>
                 </div>
             </div>
@@ -167,7 +168,7 @@
                     {% if budget.approval_status == 'approved' %}
                     <div class="mt-3 p-3 bg-green-900 bg-opacity-30 border border-green-500 rounded-lg">
                         <p class="text-sm text-green-100">
-                            <strong>Valor Aprovado:</strong> R$ {{ budget.approved_value|floatformat:2 }}
+                            <strong>Valor Aprovado:</strong> R$ {{ budget.approved_value|floatformat:"2g" }}
                         </p>
                     </div>
                     {% endif %}
@@ -195,7 +196,7 @@
                     <!-- Section header bar -->
                     <div class="flex items-center justify-between bg-gray-900 text-white px-4 py-2 rounded-t-lg">
                         <span class="font-semibold text-sm">{{ section.title }}</span>
-                        <span class="text-xs text-gray-300 font-mono">R$ {{ section.subtotal|floatformat:2 }}</span>
+                        <span class="text-xs text-gray-300 font-mono">R$ {{ section.subtotal|floatformat:"2g" }}</span>
                     </div>
                     <div class="overflow-x-auto border border-t-0 border-gray-200 rounded-b-lg">
                         <table class="min-w-full divide-y divide-gray-200">
@@ -224,13 +225,13 @@
                                         {% else %}–{% endif %}
                                     </td>
                                     <td class="px-4 py-3 text-xs text-right {% if item.measurement and item.measurement_unit == 'm3' %}text-blue-600 font-medium{% else %}text-gray-400{% endif %}">
-                                        {% if item.measurement and item.measurement_unit == 'm3' %}{{ item.measurement|floatformat:3 }}{% else %}–{% endif %}
+                                        {% if item.measurement and item.measurement_unit == 'm3' %}{{ item.measurement|floatformat:"3g" }}{% else %}–{% endif %}
                                     </td>
                                     <td class="px-4 py-3 text-xs text-right {% if item.weight %}text-blue-600 font-medium{% else %}text-gray-400{% endif %}">
-                                        {% if item.weight %}{{ item.weight|floatformat:3 }}{% else %}–{% endif %}
+                                        {% if item.weight %}{{ item.weight|floatformat:"3g" }}{% else %}–{% endif %}
                                     </td>
-                                    <td class="px-4 py-3 text-sm text-gray-900 text-right">R$ {{ item.unit_price|floatformat:2 }}</td>
-                                    <td class="px-4 py-3 text-sm font-medium text-gray-900 text-right">R$ {{ item.total_price|floatformat:2 }}</td>
+                                    <td class="px-4 py-3 text-sm text-gray-900 text-right">R$ {{ item.unit_price|floatformat:"2g" }}</td>
+                                    <td class="px-4 py-3 text-sm font-medium text-gray-900 text-right">R$ {{ item.total_price|floatformat:"2g" }}</td>
                                 </tr>
                                 {% empty %}
                                 <tr><td colspan="7" class="px-4 py-3 text-sm text-gray-400 text-center">Nenhum item nesta seção</td></tr>
@@ -250,20 +251,20 @@
                             <tr class="border-t border-blue-100 bg-blue-50">
                                 <td colspan="7" class="px-4 py-2 text-xs text-blue-700">
                                     <span class="font-semibold">Totais consolidados para frete:</span>
-                                    {% if wt %}&nbsp;Peso total: <strong>{{ wt|floatformat:3 }} kg</strong>{% endif %}
-                                    {% if vl %}&nbsp;|&nbsp; Volume total: <strong>{{ vl|floatformat:3 }} m³</strong>{% endif %}
+                                    {% if wt %}&nbsp;Peso total: <strong>{{ wt|floatformat:"3g" }} kg</strong>{% endif %}
+                                    {% if vl %}&nbsp;|&nbsp; Volume total: <strong>{{ vl|floatformat:"3g" }} m³</strong>{% endif %}
                                 </td>
                             </tr>
                             {% endif %}
                             {% endwith %}
                             <tr>
                                 <td colspan="6" class="px-4 py-3 text-sm font-semibold text-gray-900 text-right">Subtotal dos Itens:</td>
-                                <td class="px-4 py-3 text-sm font-bold text-gray-900 text-right">R$ {{ budget.total_value|floatformat:2 }}</td>
+                                <td class="px-4 py-3 text-sm font-bold text-gray-900 text-right">R$ {{ budget.total_value|floatformat:"2g" }}</td>
                             </tr>
                             {% if budget.include_fiscal_charges %}
                             <tr class="border-t border-orange-100 bg-orange-50">
                                 <td colspan="6" class="px-4 py-3 text-sm text-orange-700 text-right">Encargos Fiscais (17%):</td>
-                                <td class="px-4 py-3 text-sm font-semibold text-orange-700 text-right">+ R$ {{ budget.fiscal_charges_value|floatformat:2 }}</td>
+                                <td class="px-4 py-3 text-sm font-semibold text-orange-700 text-right">+ R$ {{ budget.fiscal_charges_value|floatformat:"2g" }}</td>
                             </tr>
                             {% endif %}
                             {% if budget.freight_cost %}
@@ -273,13 +274,13 @@
                                     {% if budget.freight_urgency %}<span class="ml-1 px-1.5 py-0.5 text-xs bg-gray-100 rounded">{{ budget.freight_urgency.label }} ×{{ budget.freight_urgency.multiplier }}</span>{% endif %}
                                     {% if budget.freight_distance_km %}<span class="ml-1 text-xs text-gray-400">– {{ budget.freight_distance_km }} km</span>{% endif %}
                                 </td>
-                                <td class="px-4 py-3 text-sm text-gray-700 font-medium text-right">R$ {{ budget.freight_cost|floatformat:2 }}</td>
+                                <td class="px-4 py-3 text-sm text-gray-700 font-medium text-right">R$ {{ budget.freight_cost|floatformat:"2g" }}</td>
                             </tr>
                             {% endif %}
                             {% if budget.freight_cost or budget.include_fiscal_charges %}
                             <tr class="bg-black">
                                 <td colspan="6" class="px-4 py-3 text-sm font-bold text-white text-right">Total:</td>
-                                <td class="px-4 py-3 text-sm font-bold text-white text-right">R$ {{ budget.total_with_freight|floatformat:2 }}</td>
+                                <td class="px-4 py-3 text-sm font-bold text-white text-right">R$ {{ budget.total_with_freight|floatformat:"2g" }}</td>
                             </tr>
                             {% endif %}
                         </tfoot>
@@ -314,13 +315,13 @@
                                     {% if item.dim_length and item.dim_width and item.dim_height %}{{ item.dim_length }} × {{ item.dim_width }} × {{ item.dim_height }}{% else %}–{% endif %}
                                 </td>
                                 <td class="px-4 py-3 text-xs text-right {% if item.measurement and item.measurement_unit == 'm3' %}text-blue-600 font-medium{% else %}text-gray-400{% endif %}">
-                                    {% if item.measurement and item.measurement_unit == 'm3' %}{{ item.measurement|floatformat:3 }}{% else %}–{% endif %}
+                                    {% if item.measurement and item.measurement_unit == 'm3' %}{{ item.measurement|floatformat:"3g" }}{% else %}–{% endif %}
                                 </td>
                                 <td class="px-4 py-3 text-xs text-right {% if item.weight %}text-blue-600 font-medium{% else %}text-gray-400{% endif %}">
-                                    {% if item.weight %}{{ item.weight|floatformat:3 }}{% else %}–{% endif %}
+                                    {% if item.weight %}{{ item.weight|floatformat:"3g" }}{% else %}–{% endif %}
                                 </td>
-                                <td class="px-4 py-3 text-sm text-gray-900 text-right">R$ {{ item.unit_price|floatformat:2 }}</td>
-                                <td class="px-4 py-3 text-sm font-medium text-gray-900 text-right">R$ {{ item.total_price|floatformat:2 }}</td>
+                                <td class="px-4 py-3 text-sm text-gray-900 text-right">R$ {{ item.unit_price|floatformat:"2g" }}</td>
+                                <td class="px-4 py-3 text-sm font-medium text-gray-900 text-right">R$ {{ item.total_price|floatformat:"2g" }}</td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -330,8 +331,8 @@
                             <tr class="border-t border-blue-100 bg-blue-50">
                                 <td colspan="7" class="px-4 py-2 text-xs text-blue-700">
                                     <span class="font-semibold">Totais consolidados para frete:</span>
-                                    {% if wt %}&nbsp;Peso total: <strong>{{ wt|floatformat:3 }} kg</strong>{% endif %}
-                                    {% if vl %}&nbsp;|&nbsp; Volume total: <strong>{{ vl|floatformat:3 }} m³</strong>{% endif %}
+                                    {% if wt %}&nbsp;Peso total: <strong>{{ wt|floatformat:"3g" }} kg</strong>{% endif %}
+                                    {% if vl %}&nbsp;|&nbsp; Volume total: <strong>{{ vl|floatformat:"3g" }} m³</strong>{% endif %}
                                     <span class="text-blue-400 ml-2">(faixas aplicadas ao total consolidado de todos os itens)</span>
                                 </td>
                             </tr>
@@ -339,12 +340,12 @@
                             {% endwith %}
                             <tr>
                                 <td colspan="6" class="px-4 py-3 text-sm font-semibold text-gray-900 text-right">Subtotal dos Itens:</td>
-                                <td class="px-4 py-3 text-sm font-bold text-gray-900 text-right">R$ {{ budget.total_value|floatformat:2 }}</td>
+                                <td class="px-4 py-3 text-sm font-bold text-gray-900 text-right">R$ {{ budget.total_value|floatformat:"2g" }}</td>
                             </tr>
                             {% if budget.include_fiscal_charges %}
                             <tr class="border-t border-orange-100 bg-orange-50">
                                 <td colspan="6" class="px-4 py-3 text-sm text-orange-700 text-right">Encargos Fiscais (17%):</td>
-                                <td class="px-4 py-3 text-sm font-semibold text-orange-700 text-right">+ R$ {{ budget.fiscal_charges_value|floatformat:2 }}</td>
+                                <td class="px-4 py-3 text-sm font-semibold text-orange-700 text-right">+ R$ {{ budget.fiscal_charges_value|floatformat:"2g" }}</td>
                             </tr>
                             {% endif %}
                             {% if budget.freight_cost %}
@@ -354,13 +355,13 @@
                                     {% if budget.freight_urgency %}<span class="ml-1 px-1.5 py-0.5 text-xs bg-gray-100 rounded">{{ budget.freight_urgency.label }} ×{{ budget.freight_urgency.multiplier }}</span>{% endif %}
                                     {% if budget.freight_distance_km %}<span class="ml-1 text-xs text-gray-400">– {{ budget.freight_distance_km }} km</span>{% endif %}
                                 </td>
-                                <td class="px-4 py-3 text-sm text-gray-700 font-medium text-right">R$ {{ budget.freight_cost|floatformat:2 }}</td>
+                                <td class="px-4 py-3 text-sm text-gray-700 font-medium text-right">R$ {{ budget.freight_cost|floatformat:"2g" }}</td>
                             </tr>
                             {% endif %}
                             {% if budget.freight_cost or budget.include_fiscal_charges %}
                             <tr class="bg-black">
                                 <td colspan="6" class="px-4 py-3 text-sm font-bold text-white text-right">Total:</td>
-                                <td class="px-4 py-3 text-sm font-bold text-white text-right">R$ {{ budget.total_with_freight|floatformat:2 }}</td>
+                                <td class="px-4 py-3 text-sm font-bold text-white text-right">R$ {{ budget.total_with_freight|floatformat:"2g" }}</td>
                             </tr>
                             {% endif %}
                         </tfoot>
@@ -389,7 +390,7 @@
             <div class="mt-3 p-3 bg-gray-50 rounded-lg border border-gray-200 text-sm space-y-1">
                 <div class="flex justify-between">
                     <span class="text-gray-500">Custo de frete</span>
-                    <span class="font-medium text-gray-900">R$ {{ budget.freight_cost|floatformat:2 }}</span>
+                    <span class="font-medium text-gray-900">R$ {{ budget.freight_cost|floatformat:"2g" }}</span>
                 </div>
                 <div class="flex justify-between">
                     <span class="text-gray-500">Urgência</span>
@@ -403,7 +404,7 @@
                 {% endif %}
                 <div class="flex justify-between border-t border-gray-200 pt-1 mt-1">
                     <span class="font-semibold text-gray-900">Total c/ frete</span>
-                    <span class="font-bold text-gray-900">R$ {{ budget.total_with_freight|floatformat:2 }}</span>
+                    <span class="font-bold text-gray-900">R$ {{ budget.total_with_freight|floatformat:"2g" }}</span>
                 </div>
             </div>
             {% endif %}

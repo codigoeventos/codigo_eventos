@@ -129,6 +129,7 @@ def _save_sections_from_json(budget, sections_data_json):
                 'billing_type': billing_type,
                 'subitems_data': subitems or None,
                 'is_approved': True,
+                'include_fiscal': bool(item_data.get('include_fiscal', False)),
             }
 
             item_id = item_data.get('id')
@@ -178,6 +179,7 @@ def _sections_to_json(budget):
                 'unit_price': str(item.unit_price),
                 'billing_type': item.billing_type or 'qty',
                 'subitems': item.subitems_data or [],
+                'include_fiscal': item.include_fiscal,
             })
         data.append({
             'id': section.pk,
@@ -205,6 +207,7 @@ def _sections_to_json(budget):
                 'unit_price': str(item.unit_price),
                 'billing_type': item.billing_type or 'qty',
                 'subitems': item.subitems_data or [],
+                'include_fiscal': item.include_fiscal,
             })
         data.insert(0, {
             'id': None,
@@ -325,9 +328,6 @@ class BudgetCreateView(LoginRequiredMixin, AuditMixin, SuccessMessageMixin, Crea
         context['form_title'] = 'Novo Orçamento'
         context['submit_text'] = 'Criar Orçamento'
 
-        from apps.logistics.models import UrgencyMultiplier
-        context['urgency_options'] = UrgencyMultiplier.objects.order_by('multiplier')
-
         # Pass existing sections JSON (empty for new budget)
         context['sections_json'] = '[]'
         context['extra_charges_json'] = '{}'
@@ -352,7 +352,13 @@ class BudgetCreateView(LoginRequiredMixin, AuditMixin, SuccessMessageMixin, Crea
         except (json.JSONDecodeError, ValueError):
             extra_charges = {}
         self.object.extra_charges = extra_charges
-        self.object.save(update_fields=['extra_charges'])
+        # Save freight cost from the simple input field
+        from decimal import Decimal, InvalidOperation
+        try:
+            self.object.freight_cost = Decimal(self.request.POST.get('freight_cost') or 0)
+        except (InvalidOperation, ValueError):
+            self.object.freight_cost = Decimal('0')
+        self.object.save(update_fields=['extra_charges', 'freight_cost'])
         # Mirror items to Service Order (without financial values)
         from apps.budgets.signals import sync_service_order_items
         sync_service_order_items(self.object)
@@ -361,7 +367,7 @@ class BudgetCreateView(LoginRequiredMixin, AuditMixin, SuccessMessageMixin, Crea
 
 class BudgetUpdateView(LoginRequiredMixin, AuditMixin, SuccessMessageMixin, UpdateView):
     """Update an existing budget."""
-    
+
     model = Budget
     form_class = BudgetForm
     template_name = 'budgets/budget_form.html'
@@ -382,9 +388,6 @@ class BudgetUpdateView(LoginRequiredMixin, AuditMixin, SuccessMessageMixin, Upda
         context['form_title'] = f'Editar Orçamento: {self.object.name}'
         context['submit_text'] = 'Salvar Alterações'
 
-        from apps.logistics.models import UrgencyMultiplier
-        context['urgency_options'] = UrgencyMultiplier.objects.order_by('multiplier')
-
         # Serialize existing sections + items as JSON for the JS UI
         context['sections_json'] = _sections_to_json(self.object)
         context['extra_charges_json'] = json.dumps(self.object.extra_charges or {})
@@ -398,6 +401,9 @@ class BudgetUpdateView(LoginRequiredMixin, AuditMixin, SuccessMessageMixin, Upda
 
     def form_valid(self, form):
         """Save budget then process sections + items from JSON."""
+        # Check if budget was approved before saving so we can reset it afterwards
+        was_approved = self.object.approval_status == 'approved'
+
         response = super().form_valid(form)
         sections_data_json = self.request.POST.get('sections_data', '')
         _save_sections_from_json(self.object, sections_data_json)
@@ -407,7 +413,34 @@ class BudgetUpdateView(LoginRequiredMixin, AuditMixin, SuccessMessageMixin, Upda
         except (json.JSONDecodeError, ValueError):
             extra_charges = {}
         self.object.extra_charges = extra_charges
-        self.object.save(update_fields=['extra_charges'])
+        # Save freight cost from the simple input field
+        from decimal import Decimal, InvalidOperation
+        try:
+            self.object.freight_cost = Decimal(self.request.POST.get('freight_cost') or 0)
+        except (InvalidOperation, ValueError):
+            self.object.freight_cost = Decimal('0')
+        self.object.save(update_fields=['extra_charges', 'freight_cost'])
+
+        # If the budget was previously approved, reset approval so the client
+        # can review and re-approve the updated version.
+        if was_approved:
+            self.object.approval_status = 'pending'
+            self.object.approved_at = None
+            self.object.client_notes = ''
+            if self.object.status == 'approved':
+                self.object.status = 'sent'
+            self.object.save(update_fields=['approval_status', 'approved_at', 'client_notes', 'status'])
+            # Reset per-item approval so the selection panel reopens for the client
+            self.object.items.all().update(is_approved=False)
+            # Reset linked Service Order back to pending
+            try:
+                so = self.object.service_order
+                if so and so.status == 'approved':
+                    so.status = 'pending'
+                    so.save(update_fields=['status'])
+            except Exception:
+                pass
+
         # Re-sync items to Service Order after edit (without financial values)
         from apps.budgets.signals import sync_service_order_items
         sync_service_order_items(self.object)
@@ -509,9 +542,22 @@ class PublicBudgetApprovalView(View):
             budget.client_notes = request.POST.get('notes', '')
             budget.status = 'approved'
             budget.save()
-            
+
+            # Advance linked Service Order to "approved"
+            try:
+                so = budget.service_order
+                if so and so.status == 'pending':
+                    so.status = 'approved'
+                    so.save(update_fields=['status'])
+            except Exception:
+                pass
+
+            # Sync SO items to reflect only the client-selected items
+            from apps.budgets.signals import sync_service_order_items
+            sync_service_order_items(budget)
+
             messages.success(request, 'Orçamento aprovado com sucesso!')
-            
+
         elif action == 'reject':
             # Mark budget as rejected
             budget.approval_status = 'rejected'
@@ -519,7 +565,16 @@ class PublicBudgetApprovalView(View):
             budget.client_notes = request.POST.get('notes', '')
             budget.status = 'rejected'
             budget.save()
-            
+
+            # Reset linked Service Order back to pending
+            try:
+                so = budget.service_order
+                if so and so.status == 'approved':
+                    so.status = 'pending'
+                    so.save(update_fields=['status'])
+            except Exception:
+                pass
+
             messages.info(request, 'Orçamento rejeitado.')
         
         return redirect('budgets:public_approval', token=token)

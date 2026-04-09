@@ -241,16 +241,16 @@
     <div class="summary-grid">
         <div class="summary-card">
             <div class="summary-label">Valor Total dos Projetos</div>
-            <div class="summary-value">R$ {{ total_project_value|floatformat:2 }}</div>
+            <div class="summary-value">R$ {{ total_project_value|floatformat:"2g" }}</div>
         </div>
         <div class="summary-card">
             <div class="summary-label">Total Gasto c/ Empreiteiras</div>
-            <div class="summary-value">R$ {{ total_contractor_spend|floatformat:2 }}</div>
+            <div class="summary-value">R$ {{ total_contractor_spend|floatformat:"2g" }}</div>
         </div>
         <div class="summary-card">
             <div class="summary-label">Lucro Total</div>
             <div class="summary-value {% if total_profit >= 0 %}profit-pos{% else %}profit-neg{% endif %}">
-                R$ {{ total_profit|floatformat:2 }}
+                R$ {{ total_profit|floatformat:"2g" }}
             </div>
         </div>
     </div>
@@ -279,10 +279,10 @@
                 <td>{{ row.project.title }}</td>
                 <td>{% if row.project.event %}{{ row.project.event.name }}{% else %}—{% endif %}</td>
                 <td>{% if row.project.contractor %}{{ row.project.contractor.name }}{% else %}—{% endif %}</td>
-                <td class="num">R$ {{ row.total_value|floatformat:2 }}</td>
-                <td class="num">R$ {{ row.contractor_spend|floatformat:2 }}</td>
+                <td class="num">R$ {{ row.total_value|floatformat:"2g" }}</td>
+                <td class="num">R$ {{ row.contractor_spend|floatformat:"2g" }}</td>
                 <td class="num {% if row.profit >= 0 %}profit-pos{% else %}profit-neg{% endif %}">
-                    R$ {{ row.profit|floatformat:2 }}
+                    R$ {{ row.profit|floatformat:"2g" }}
                 </td>
                 <td>{{ row.project.created_at|date:"d/m/Y" }}</td>
             </tr>
@@ -291,10 +291,10 @@
         <tfoot>
             <tr>
                 <td colspan="4">Total ({{ rows|length }} projeto{{ rows|length|pluralize:"s" }})</td>
-                <td class="num">R$ {{ total_project_value|floatformat:2 }}</td>
-                <td class="num">R$ {{ total_contractor_spend|floatformat:2 }}</td>
+                <td class="num">R$ {{ total_project_value|floatformat:"2g" }}</td>
+                <td class="num">R$ {{ total_contractor_spend|floatformat:"2g" }}</td>
                 <td class="num {% if total_profit >= 0 %}profit-pos{% else %}profit-neg{% endif %}">
-                    R$ {{ total_profit|floatformat:2 }}
+                    R$ {{ total_profit|floatformat:"2g" }}
                 </td>
                 <td></td>
             </tr>

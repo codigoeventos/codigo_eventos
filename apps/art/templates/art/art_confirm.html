@@ -59,12 +59,12 @@
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <dt class="text-xs text-gray-500">Quantidade Total (metragem)</dt>
-                            <dd class="font-medium text-gray-900">{{ art_data.quantity|floatformat:3 }} m³</dd>
+                            <dd class="font-medium text-gray-900">{{ art_data.quantity|floatformat:"3g" }} m³</dd>
                         </div>
                         {% if art_data.contract_value %}
                         <div>
                             <dt class="text-xs text-gray-500">Valor do Contrato</dt>
-                            <dd class="font-medium text-gray-900">R$ {{ art_data.contract_value|floatformat:2 }}</dd>
+                            <dd class="font-medium text-gray-900">R$ {{ art_data.contract_value|floatformat:"2g" }}</dd>
                         </div>
                         {% endif %}
                     </div>

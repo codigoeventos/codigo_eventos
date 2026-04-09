@@ -40,7 +40,15 @@ def sync_service_order_items(budget):
 
     current_budget_item_ids = set()
 
-    for budget_item in budget.items.select_related('section').all():
+    # When the budget has been approved by the client, only keep items that
+    # the client explicitly selected (is_approved=True).  For any other state
+    # (draft, sent, editing…) mirror every item so the SO stays complete.
+    if budget.approval_status == 'approved':
+        items_qs = budget.items.select_related('section').filter(is_approved=True)
+    else:
+        items_qs = budget.items.select_related('section').all()
+
+    for budget_item in items_qs:
         current_budget_item_ids.add(budget_item.pk)
 
         section_name = budget_item.section.title if budget_item.section else None

@@ -54,16 +54,16 @@
 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
     <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
         <p class="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Valor Total dos Projetos</p>
-        <p class="text-2xl font-bold text-black dark:text-white">R$ {{ total_project_value|floatformat:2 }}</p>
+        <p class="text-2xl font-bold text-black dark:text-white">R$ {{ total_project_value|floatformat:"2g" }}</p>
     </div>
     <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
         <p class="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Total Gasto c/ Empreiteiras</p>
-        <p class="text-2xl font-bold text-black dark:text-white">R$ {{ total_contractor_spend|floatformat:2 }}</p>
+        <p class="text-2xl font-bold text-black dark:text-white">R$ {{ total_contractor_spend|floatformat:"2g" }}</p>
     </div>
     <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
         <p class="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Lucro Total</p>
         <p class="text-2xl font-bold {% if total_profit >= 0 %}text-green-700{% else %}text-red-700{% endif %}">
-            R$ {{ total_profit|floatformat:2 }}
+            R$ {{ total_profit|floatformat:"2g" }}
         </p>
     </div>
 </div>
@@ -122,10 +122,10 @@
                         <span class="text-gray-400 dark:text-gray-500">—</span>
                         {% endif %}
                     </td>
-                    <td class="px-6 py-4 text-right text-gray-900 dark:text-gray-100">R$ {{ row.total_value|floatformat:2 }}</td>
-                    <td class="px-6 py-4 text-right text-gray-900 dark:text-gray-100">R$ {{ row.contractor_spend|floatformat:2 }}</td>
+                    <td class="px-6 py-4 text-right text-gray-900 dark:text-gray-100">R$ {{ row.total_value|floatformat:"2g" }}</td>
+                    <td class="px-6 py-4 text-right text-gray-900 dark:text-gray-100">R$ {{ row.contractor_spend|floatformat:"2g" }}</td>
                     <td class="px-6 py-4 text-right font-semibold {% if row.profit >= 0 %}text-green-700{% else %}text-red-700{% endif %}">
-                        R$ {{ row.profit|floatformat:2 }}
+                        R$ {{ row.profit|floatformat:"2g" }}
                     </td>
                     <td class="px-6 py-4 text-gray-500 dark:text-gray-400">{{ row.project.created_at|date:"d/m/Y" }}</td>
                 </tr>
@@ -135,10 +135,10 @@
             <tfoot class="bg-gray-50 dark:bg-gray-700 border-t-2 border-gray-300 dark:border-gray-600">
                 <tr class="font-semibold text-gray-900 dark:text-white">
                     <td class="px-6 py-4" colspan="3">Total ({{ rows|length }} projeto{{ rows|length|pluralize:"s" }})</td>
-                    <td class="px-6 py-4 text-right">R$ {{ total_project_value|floatformat:2 }}</td>
-                    <td class="px-6 py-4 text-right">R$ {{ total_contractor_spend|floatformat:2 }}</td>
+                    <td class="px-6 py-4 text-right">R$ {{ total_project_value|floatformat:"2g" }}</td>
+                    <td class="px-6 py-4 text-right">R$ {{ total_contractor_spend|floatformat:"2g" }}</td>
                     <td class="px-6 py-4 text-right {% if total_profit >= 0 %}text-green-700{% else %}text-red-700{% endif %}">
-                        R$ {{ total_profit|floatformat:2 }}
+                        R$ {{ total_profit|floatformat:"2g" }}
                     </td>
                     <td class="px-6 py-4"></td>
                 </tr>

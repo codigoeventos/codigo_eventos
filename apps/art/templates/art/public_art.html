@@ -259,7 +259,7 @@
             </div>
             <div class="art-header-right">
                 <strong>{{ art.art_number }}</strong><br>
-                Data: {{ art.created_at|date:"d/m/Y" }}<br>
+                Celebrando em: {{ art.created_at|date:"d/m/Y" }}<br>
                 {% if art.budget.proposal.event %}
                 Evento: {{ art.budget.proposal.event.name }}
                 {% endif %}
@@ -336,16 +336,14 @@
             <tr>
                 <th style="width:36px">#</th>
                 <th>Descrição</th>
-                <th style="width:140px">Quantidade</th>
-                <th style="width:120px">Unidade</th>
+                <th style="width:200px">Metragem</th>
             </tr>
         </thead>
         <tbody>
             <tr>
                 <td class="art-num">1</td>
                 <td>{{ art.activity_description|truncatechars:120 }}</td>
-                <td>{{ art.quantity|floatformat:3 }}</td>
-                <td>{{ art.get_measurement_unit_display }}</td>
+                <td>{{ calculated_quantity|floatformat:"3g" }} {{ art.get_measurement_unit_display }}</td>
             </tr>
         </tbody>
     </table>

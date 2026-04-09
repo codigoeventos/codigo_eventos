@@ -296,11 +296,27 @@ if (addBtn) {
     });
 }
 
-// Fade row on DELETE checkbox
+// Fade row on DELETE checkbox — se for novo (sem pk), remove do DOM e decrementa TOTAL_FORMS
 container && container.addEventListener('change', (e) => {
     if (e.target.type === 'checkbox' && e.target.name && e.target.name.endsWith('-DELETE')) {
         const row = e.target.closest('.nr-form-row');
-        if (row) row.classList.toggle('opacity-40', e.target.checked);
+        if (!row) return;
+        const idInput = row.querySelector('input[type="hidden"][name$="-id"]');
+        const isNew = !idInput || !idInput.value;
+        if (isNew) {
+            // Novo row não salvo: remove do DOM e decrementa o contador de forms
+            row.remove();
+            totalForms.value = Math.max(0, parseInt(totalForms.value) - 1);
+            // Renumera todos os forms restantes para não ter gaps
+            container.querySelectorAll('.nr-form-row').forEach((r, i) => {
+                r.querySelectorAll('input, select, textarea').forEach(el => {
+                    if (el.name) el.name = el.name.replace(/nrs-\d+-/, `nrs-${i}-`);
+                    if (el.id)   el.id   = el.id.replace(/id_nrs-\d+-/, `id_nrs-${i}-`);
+                });
+            });
+        } else {
+            row.classList.toggle('opacity-40', e.target.checked);
+        }
     }
 });
 </script>

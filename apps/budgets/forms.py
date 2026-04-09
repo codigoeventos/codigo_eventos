@@ -12,7 +12,7 @@ class BudgetForm(forms.ModelForm):
     
     class Meta:
         model = Budget
-        fields = ['proposal', 'name', 'status', 'include_fiscal_charges']
+        fields = ['proposal', 'name', 'status', 'include_fiscal_charges', 'freight_cost']
         widgets = {
             'proposal': forms.Select(attrs={
                 'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent'

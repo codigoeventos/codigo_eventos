@@ -17,6 +17,7 @@ class ServiceOrder(BaseModel):
     
     STATUS_CHOICES = [
         ('pending', 'Pendente'),
+        ('approved', 'Aprovado'),
         ('in_progress', 'Em Andamento'),
         ('completed', 'Concluída'),
         ('cancelled', 'Cancelada'),
