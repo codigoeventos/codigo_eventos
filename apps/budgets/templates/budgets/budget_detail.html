@@ -120,6 +120,17 @@
                         <span class="text-sm font-semibold text-gray-900 self-start">+ R$ {{ budget.extra_charges_total|floatformat:"2g" }}</span>
                     </div>
                     {% endif %}
+                    {% if budget.discount_amount %}
+                    <div class="flex justify-between items-center px-4 py-3 bg-red-50">
+                        <span class="text-sm text-red-700">
+                            Desconto
+                            {% if budget.discount_type == 'percent' %}
+                                <span class="text-xs font-normal">({{ budget.discount_value|floatformat:"2g" }}%)</span>
+                            {% endif %}
+                        </span>
+                        <span class="text-sm font-semibold text-red-700">- R$ {{ budget.discount_amount|floatformat:"2g" }}</span>
+                    </div>
+                    {% endif %}
                     <div class="flex justify-between items-center px-4 py-4 bg-black">
                         <span class="text-base font-bold text-white">Total do Orçamento</span>
                         <span class="text-2xl font-bold text-white">R$ {{ budget.total_with_freight|floatformat:"2g" }}</span>
@@ -163,6 +174,20 @@
                             Processado em {{ budget.approved_at|date:"d/m/Y H:i" }}
                         </span>
                         {% endif %}
+                    </div>
+
+                    <div class="mt-4 p-3 bg-white/10 border border-white/20 rounded-lg">
+                        <div class="flex items-center justify-between gap-3">
+                            <div>
+                                <p class="text-sm font-medium text-white">🔔 Notificação por e-mail</p>
+                                <p class="text-xs text-gray-300">Avisar quando o orçamento for aprovado</p>
+                            </div>
+                            <label for="approval-email-notification-toggle" class="inline-flex items-center cursor-pointer">
+                                <input id="approval-email-notification-toggle" type="checkbox" class="sr-only peer">
+                                <div class="relative w-11 h-6 bg-gray-600 rounded-full peer peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-white/60 peer-checked:bg-green-500 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:border-gray-300 after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full peer-checked:after:border-white"></div>
+                            </label>
+                        </div>
+                        <p id="approval-email-notification-status" class="mt-2 text-xs text-gray-300">🔕 Notificação desativada</p>
                     </div>
                     
                     {% if budget.approval_status == 'approved' %}
@@ -277,6 +302,14 @@
                                 <td class="px-4 py-3 text-sm text-gray-700 font-medium text-right">R$ {{ budget.freight_cost|floatformat:"2g" }}</td>
                             </tr>
                             {% endif %}
+                            {% if budget.discount_amount %}
+                            <tr class="border-t border-red-100 bg-red-50">
+                                <td colspan="6" class="px-4 py-3 text-sm text-red-700 text-right">
+                                    Desconto{% if budget.discount_type == 'percent' %} ({{ budget.discount_value|floatformat:"2g" }}%){% endif %}
+                                </td>
+                                <td class="px-4 py-3 text-sm font-semibold text-red-700 text-right">- R$ {{ budget.discount_amount|floatformat:"2g" }}</td>
+                            </tr>
+                            {% endif %}
                             {% if budget.freight_cost or budget.include_fiscal_charges %}
                             <tr class="bg-black">
                                 <td colspan="6" class="px-4 py-3 text-sm font-bold text-white text-right">Total:</td>
@@ -356,6 +389,14 @@
                                     {% if budget.freight_distance_km %}<span class="ml-1 text-xs text-gray-400">– {{ budget.freight_distance_km }} km</span>{% endif %}
                                 </td>
                                 <td class="px-4 py-3 text-sm text-gray-700 font-medium text-right">R$ {{ budget.freight_cost|floatformat:"2g" }}</td>
+                            </tr>
+                            {% endif %}
+                            {% if budget.discount_amount %}
+                            <tr class="border-t border-red-100 bg-red-50">
+                                <td colspan="6" class="px-4 py-3 text-sm text-red-700 text-right">
+                                    Desconto{% if budget.discount_type == 'percent' %} ({{ budget.discount_value|floatformat:"2g" }}%){% endif %}
+                                </td>
+                                <td class="px-4 py-3 text-sm font-semibold text-red-700 text-right">- R$ {{ budget.discount_amount|floatformat:"2g" }}</td>
                             </tr>
                             {% endif %}
                             {% if budget.freight_cost or budget.include_fiscal_charges %}
@@ -529,6 +570,43 @@
                         </a>
                     </div>
                 </div>
+
+                <div class="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                    <form method="post" action="{% url 'art:file_upload' budget_art.pk %}" enctype="multipart/form-data" class="space-y-2">
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                        <label class="block text-xs font-medium text-gray-700">Arquivos vinculados à ART</label>
+                        <input type="file" name="files" multiple
+                            accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.zip,.rar"
+                            class="w-full text-xs text-gray-700 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-medium file:bg-gray-200 file:text-gray-700 hover:file:bg-gray-300">
+                        <div class="flex justify-end">
+                            <button type="submit" class="px-3 py-1.5 text-xs bg-black text-white rounded-lg hover:bg-gray-800 transition-all">
+                                Enviar Arquivo(s)
+                            </button>
+                        </div>
+                    </form>
+
+                    {% if budget_art.files.all %}
+                    <div class="mt-3 space-y-2">
+                        {% for afile in budget_art.files.all %}
+                        <div class="flex items-center justify-between p-2 bg-white border border-gray-200 rounded-lg">
+                            <a href="{{ afile.file.url }}" target="_blank" class="text-xs text-blue-600 hover:underline truncate max-w-xs" title="{{ afile.name|default:afile.filename }}">
+                                {{ afile.name|default:afile.filename }}
+                            </a>
+                            <button type="button"
+                                onclick="openArtFileDeleteModal('{% url 'art:file_delete' afile.pk %}', '{{ afile.name|default:afile.filename|escapejs }}')"
+                                class="p-1 text-gray-400 hover:text-red-600 transition-colors" title="Remover">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                            </button>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="mt-2 text-xs text-gray-400">Nenhum arquivo vinculado à ART.</p>
+                    {% endif %}
+                </div>
             </div>
             {% else %}
             <p class="text-sm text-gray-500 text-center py-4">Nenhuma ART emitida para este orçamento</p>
@@ -584,5 +662,44 @@ function copyApprovalLink() {
         alert('Erro ao copiar o link. Por favor, copie manualmente.');
     });
 }
+
+function openArtFileDeleteModal(deleteUrl, fileName) {
+    const details = `
+        <div class="space-y-2">
+            <p class="text-sm font-medium text-gray-900 truncate">${fileName}</p>
+            <p class="text-sm text-gray-500">Arquivo vinculado à ART</p>
+        </div>
+    `;
+    openDeleteModal(deleteUrl, `o arquivo "${fileName}"`, details, null, window.location.pathname + window.location.search);
+}
+
+function initApprovalEmailNotificationToggle() {
+    const toggle = document.getElementById('approval-email-notification-toggle');
+    const status = document.getElementById('approval-email-notification-status');
+    if (!toggle || !status) return;
+
+    const storageKey = 'budget-{{ budget.pk }}-approval-email-notification';
+    const saved = localStorage.getItem(storageKey);
+    const enabled = saved === '1';
+
+    toggle.checked = enabled;
+    updateApprovalEmailNotificationStatus(enabled, status);
+
+    toggle.addEventListener('change', function() {
+        const isEnabled = toggle.checked;
+        localStorage.setItem(storageKey, isEnabled ? '1' : '0');
+        updateApprovalEmailNotificationStatus(isEnabled, status);
+    });
+}
+
+function updateApprovalEmailNotificationStatus(enabled, statusElement) {
+    statusElement.textContent = enabled
+        ? '🔔 Notificação ativada'
+        : '🔕 Notificação desativada';
+    statusElement.classList.toggle('text-green-300', enabled);
+    statusElement.classList.toggle('text-gray-300', !enabled);
+}
+
+initApprovalEmailNotificationToggle();
 </script>
 {% endblock %}

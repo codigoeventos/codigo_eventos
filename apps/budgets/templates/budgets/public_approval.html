@@ -534,14 +534,15 @@
                     <img src="{% static 'assets/logo_black.png' %}" alt="Código Eventos"
                          style="height:80px;width:auto;object-fit:contain;display:block;">
                 </div>
-                <!-- Status – right -->
-                <div style="text-align:right;flex:1;">
+                <!-- Status + QR code – right -->
+                <div style="text-align:right;flex:1;display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
                     <span class="os-badge
                         {% if budget.approval_status == 'approved' %}os-badge-approved
                         {% elif budget.approval_status == 'rejected' %}os-badge-rejected
                         {% else %}os-badge-pending{% endif %}">
                         {{ budget.get_approval_status_display }}
                     </span>
+                    <img src="{% static 'assets/qr_code_codigo_eventos.png' %}" alt="QR Code" style="display:block;width:80px;height:80px;object-fit:contain;">
                 </div>
             </div>
         </div>
@@ -742,6 +743,19 @@
                     </tr>
                     {% endif %}
 
+                    {% if budget.discount_type != 'none' and budget.discount_value > 0 %}
+                    <tr class="os-total-row" style="font-size:10px;font-weight:400;opacity:.85;" id="discount-row-main">
+                        {% if is_editable %}<td class="no-print"></td>{% endif %}
+                        <td></td>
+                        <td colspan="{% if budget.has_item_fiscal %}3{% else %}2{% endif %}" style="text-align:right;font-weight:600;white-space:nowrap;">
+                            Desconto {% if budget.discount_type == 'percent' %}({{ budget.discount_value|floatformat:"2g" }}%){% else %}(R$){% endif %}
+                        </td>
+                        {% if budget.has_item_fiscal %}<td></td>{% endif %}
+                        <td class="text-right" id="discount-value-main" style="white-space:nowrap;font-size:11px;font-weight:400;opacity:.8;">-R$ {{ budget.discount_amount|floatformat:"2g" }}</td>
+                        {% if not is_editable %}<td></td>{% endif %}
+                    </tr>
+                    {% endif %}
+
                     {% if budget.has_item_fiscal %}
                     <tr class="os-total-row">
                         {% if is_editable %}<td class="no-print"></td>{% endif %}
@@ -855,6 +869,18 @@
                         {% if not is_editable %}<td></td>{% endif %}
                     </tr>
                     {% endif %}
+                    {% if budget.discount_type != 'none' and budget.discount_value > 0 %}
+                    <tr class="os-total-row" style="font-size:11px;font-weight:400;opacity:.85;">
+                        {% if is_editable %}<td class="no-print"></td>{% endif %}
+                        <td></td>
+                        <td colspan="{% if budget.has_item_fiscal %}3{% else %}2{% endif %}" style="text-align:right;white-space:nowrap;">
+                            Desconto {% if budget.discount_type == 'percent' %}({{ budget.discount_value|floatformat:"2g" }}%){% else %}(R$){% endif %}
+                        </td>
+                        {% if budget.has_item_fiscal %}<td></td>{% endif %}
+                        <td class="text-right" id="discount-value-grand" style="white-space:nowrap;font-size:11px;font-weight:400;opacity:.8;">-R$ {{ budget.discount_amount|floatformat:"2g" }}</td>
+                        {% if not is_editable %}<td></td>{% endif %}
+                    </tr>
+                    {% endif %}
                     <tr class="os-total-row">
                         {% if is_editable %}<td class="no-print"></td>{% endif %}
                         <td></td>
@@ -960,6 +986,29 @@
         const freightCost = {{ budget.freight_cost|default:0 }};
         const extraChargesTotal = {{ budget.extra_charges_total|default:0 }};
         const extraChargesFiscalTotal = {{ budget.extra_charges_fiscal_total|default:0 }};
+        const discountType = '{{ budget.discount_type|default:"none" }}';
+        const discountValue = {{ budget.discount_value|default:0 }};
+
+        function calcDiscount(baseTotal) {
+            const base = parseFloat(baseTotal) || 0;
+            const raw = parseFloat(discountValue) || 0;
+            if (base <= 0 || raw <= 0 || discountType === 'none') return 0;
+            let amount = 0;
+            if (discountType === 'percent') {
+                amount = base * (raw / 100);
+            } else {
+                amount = raw;
+            }
+            if (amount < 0) amount = 0;
+            return Math.min(amount, base);
+        }
+
+        function updateDiscountDisplay(discount) {
+            const main = document.getElementById('discount-value-main');
+            const grand = document.getElementById('discount-value-grand');
+            if (main) main.textContent = `-${fmt(discount)}`;
+            if (grand) grand.textContent = `-${fmt(discount)}`;
+        }
 
         function updateTotal() {
             let subtotal = 0;
@@ -982,6 +1031,8 @@
                 }
             }
             total += extraChargesTotal + extraChargesFiscalTotal;
+            const discount = calcDiscount(total);
+            total -= discount;
             const el = document.getElementById('total-value');
             const bar = document.getElementById('total-bar');
             const subtotalEl = document.getElementById('subtotal-value');
@@ -992,6 +1043,7 @@
             if (subtotalEl) subtotalEl.textContent = fmt(subtotal);
             if (fiscalEl) fiscalEl.textContent = fmt(fiscalTotal + extraChargesFiscalTotal);
             if (itemsEl) itemsEl.textContent = fmt(subtotal + fiscalTotal);
+            updateDiscountDisplay(discount);
         }
 
         /* ── Grand total for non-editable (no checkboxes) ───────────────── */
@@ -1015,6 +1067,8 @@
             if (freightRowRO) freightRowRO.style.opacity = '0.35';
             {% endif %}
             sum += extraChargesTotal;
+            const discountRO = calcDiscount(sum);
+            sum -= discountRO;
             const el = document.getElementById('total-value');
             if (el) el.textContent = fmt(sum);
             const subtotalEl = document.getElementById('subtotal-value');
@@ -1023,6 +1077,7 @@
             if (subtotalEl) subtotalEl.textContent = fmt(subtotalRO);
             if (fiscalEl) fiscalEl.textContent = fmt(fiscalRO + extraChargesFiscalTotal);
             if (itemsElRO) itemsElRO.textContent = fmt(subtotalRO + fiscalRO);
+            updateDiscountDisplay(discountRO);
         }
 
         /* ── Select all ─────────────────────────────────────────────────── */

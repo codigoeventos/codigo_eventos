@@ -130,6 +130,28 @@ class Budget(BaseModel):
         help_text='Apoio, mão de obra extra, documentação e taxas da feira'
     )
 
+    DISCOUNT_TYPE_CHOICES = [
+        ('none', 'Sem desconto'),
+        ('percent', 'Percentual (%)'),
+        ('value', 'Valor (R$)'),
+    ]
+
+    discount_type = models.CharField(
+        'Tipo de Desconto',
+        max_length=10,
+        choices=DISCOUNT_TYPE_CHOICES,
+        default='none',
+        help_text='Define se o desconto será em percentual ou valor fixo',
+    )
+
+    discount_value = models.DecimalField(
+        'Valor do Desconto',
+        max_digits=10,
+        decimal_places=2,
+        default=Decimal('0'),
+        help_text='Percentual (%) ou valor fixo (R$), conforme o tipo selecionado',
+    )
+
     class Meta:
         verbose_name = 'Orçamento'
         verbose_name_plural = 'Orçamentos'
@@ -189,7 +211,7 @@ class Budget(BaseModel):
         if self.freight_included and self.freight_cost:
             total += self.freight_cost
         total += self.extra_charges_total
-        return total
+        return total - self.calculate_discount(total)
 
     @property
     def is_editable(self):
@@ -207,11 +229,37 @@ class Budget(BaseModel):
         item_base = self.items.filter(include_fiscal=True).aggregate(total=Sum('total_price'))['total'] or Decimal('0')
         return item_base * Decimal('0.17') + self.extra_charges_fiscal_total
 
+    def calculate_discount(self, base_total):
+        """Calculate discount amount over a given base total."""
+        base = Decimal(str(base_total or 0))
+        if base <= 0:
+            return Decimal('0')
+
+        raw = Decimal(str(self.discount_value or 0))
+        if raw <= 0 or self.discount_type == 'none':
+            return Decimal('0')
+
+        if self.discount_type == 'percent':
+            discount = (base * raw) / Decimal('100')
+        else:  # 'value'
+            discount = raw
+
+        if discount < 0:
+            return Decimal('0')
+        return min(discount, base)
+
+    @property
+    def discount_amount(self):
+        """Discount amount over the full budget total (before discount)."""
+        base_total = self.total_value + self.fiscal_charges_value + (self.freight_cost or 0) + self.extra_charges_total
+        return self.calculate_discount(base_total)
+
     @property
     def total_with_freight(self):
         """Budget total value plus per-item/per-row fiscal charges, freight and extra charges."""
         freight = self.freight_cost or 0
-        return self.total_value + self.fiscal_charges_value + freight + self.extra_charges_total
+        base_total = self.total_value + self.fiscal_charges_value + freight + self.extra_charges_total
+        return base_total - self.calculate_discount(base_total)
 
     @property
     def total_weight(self):

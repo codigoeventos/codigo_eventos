@@ -3,12 +3,20 @@ ART (Anotação de Responsabilidade Técnica) model.
 """
 
 import uuid
+import os
 from decimal import Decimal
 
 from django.db import models
 from django.urls import reverse
+from django.conf import settings
 
 from apps.common.models import BaseModel
+from apps.common.utils import get_upload_path
+
+
+def art_file_upload_path(instance, filename):
+    """Dynamic upload path for ART files."""
+    return get_upload_path(instance, filename, subfolder='art_files')
 
 
 class ART(BaseModel):
@@ -156,3 +164,49 @@ class ART(BaseModel):
         if not self.budget_id:
             return None
         return self.budget.proposal
+
+
+class ARTFile(models.Model):
+    """Additional files attached to an ART."""
+
+    art = models.ForeignKey(
+        ART,
+        on_delete=models.CASCADE,
+        related_name='files',
+        verbose_name='ART'
+    )
+
+    name = models.CharField(
+        'Nome do Arquivo',
+        max_length=255,
+        blank=True,
+        null=True,
+    )
+
+    file = models.FileField(
+        'Arquivo',
+        upload_to=art_file_upload_path,
+        max_length=500,
+    )
+
+    uploaded_at = models.DateTimeField(auto_now_add=True, verbose_name='Enviado em')
+    uploaded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name='Enviado por',
+    )
+
+    class Meta:
+        verbose_name = 'Arquivo de ART'
+        verbose_name_plural = 'Arquivos de ART'
+        ordering = ['-uploaded_at']
+
+    def __str__(self):
+        label = self.name or self.filename
+        return f"{label} — {self.art.art_number}"
+
+    @property
+    def filename(self):
+        return os.path.basename(self.file.name) if self.file else ''

@@ -12,5 +12,7 @@ urlpatterns = [
     path('<int:pk>/', views.ARTDetailView.as_view(), name='detail'),
     path('<int:pk>/edit/', views.ARTUpdateView.as_view(), name='edit'),
     path('<int:pk>/delete/', views.ARTDeleteView.as_view(), name='delete'),
+    path('<int:art_pk>/files/upload/', views.ARTFileUploadView.as_view(), name='file_upload'),
+    path('files/<int:pk>/delete/', views.ARTFileDeleteView.as_view(), name='file_delete'),
     path('public/<uuid:token>/', views.PublicARTView.as_view(), name='public'),
 ]

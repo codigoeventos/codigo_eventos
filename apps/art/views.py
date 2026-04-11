@@ -12,7 +12,7 @@ from django.views import View
 from django.views.generic import DetailView, UpdateView
 
 from apps.budgets.models import Budget
-from .models import ART
+from .models import ART, ARTFile
 from .forms import ARTEditForm
 
 
@@ -203,4 +203,48 @@ class ARTDeleteView(LoginRequiredMixin, View):
         budget_pk = art.budget.pk
         art.delete()
         messages.success(request, 'ART excluída com sucesso.')
+        return redirect('budgets:detail', pk=budget_pk)
+
+
+class ARTFileUploadView(LoginRequiredMixin, View):
+    """Upload one or more files linked to an ART."""
+
+    def post(self, request, art_pk):
+        art = get_object_or_404(ART, pk=art_pk)
+        files = request.FILES.getlist('files')
+        next_url = request.POST.get('next')
+
+        if not files:
+            messages.warning(request, 'Selecione ao menos um arquivo para enviar.')
+            if next_url:
+                return redirect(next_url)
+            return redirect('budgets:detail', pk=art.budget.pk)
+
+        created_count = 0
+        for uploaded in files:
+            ARTFile.objects.create(
+                art=art,
+                name=uploaded.name,
+                file=uploaded,
+                uploaded_by=request.user,
+            )
+            created_count += 1
+
+        messages.success(request, f'{created_count} arquivo(s) enviado(s) para a ART com sucesso.')
+        if next_url:
+            return redirect(next_url)
+        return redirect('budgets:detail', pk=art.budget.pk)
+
+
+class ARTFileDeleteView(LoginRequiredMixin, View):
+    """Delete a file linked to an ART."""
+
+    def post(self, request, pk):
+        art_file = get_object_or_404(ARTFile, pk=pk)
+        budget_pk = art_file.art.budget.pk
+        next_url = request.POST.get('next')
+        art_file.delete()
+        messages.success(request, 'Arquivo da ART removido com sucesso.')
+        if next_url:
+            return redirect(next_url)
         return redirect('budgets:detail', pk=budget_pk)

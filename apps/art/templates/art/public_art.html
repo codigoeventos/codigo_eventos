@@ -320,7 +320,13 @@
         <tr>
             <td colspan="2">
                 <span class="art-info-label">Local da Obra / Endereço</span>
-                <span class="art-info-value">{{ art.location }}</span>
+                <span class="art-info-value">
+                    {% if art.budget.proposal.event and art.budget.proposal.event.location %}
+                        {{ art.budget.proposal.event.location }}
+                    {% else %}
+                        —
+                    {% endif %}
+                </span>
             </td>
         </tr>
     </table>

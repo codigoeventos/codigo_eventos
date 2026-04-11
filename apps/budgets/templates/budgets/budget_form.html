@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load l10n %}
 
 {% block title %}{{ form_title }} - Orçamentos{% endblock %}
 {% block page_title %}{{ form_title }}{% endblock %}
@@ -96,7 +97,7 @@
                         <span class="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-gray-500 pointer-events-none">R$</span>
                         <input type="number" id="freight-cost-input" name="freight_cost" step="0.01" min="0" placeholder="0,00"
                             class="w-44 pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-sm"
-                            value="{{ object.freight_cost|default:'' }}">
+                            value="{{ object.freight_cost|unlocalize|default:'' }}">
                     </div>
                 </div>
 
@@ -166,6 +167,30 @@
                     </div>
                 </div>
 
+                <!-- Desconto sobre o total -->
+                <div class="bg-white border border-gray-200 rounded-lg px-5 py-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div>
+                            <label for="discount-type-input" class="block text-xs font-medium text-gray-600 mb-1">Tipo de desconto</label>
+                            <select id="discount-type-input" name="discount_type"
+                                class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent">
+                                <option value="none" {% if not object.discount_type or object.discount_type == 'none' %}selected{% endif %}>Sem desconto</option>
+                                <option value="percent" {% if object.discount_type == 'percent' %}selected{% endif %}>Percentual (%)</option>
+                                <option value="value" {% if object.discount_type == 'value' %}selected{% endif %}>Valor fixo (R$)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="discount-value-input" class="block text-xs font-medium text-gray-600 mb-1">Valor</label>
+                            <div class="relative">
+                                <span id="discount-prefix" class="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-gray-500 pointer-events-none">R$</span>
+                                <input type="number" id="discount-value-input" name="discount_value" step="0.01" min="0"
+                                    class="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-sm"
+                                    value="{{ object.discount_value|unlocalize }}">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Grand total -->
                 <div class="bg-black rounded-lg p-5 shadow-sm">
                     <div class="space-y-2">
@@ -196,6 +221,10 @@
                         <div id="grand-extra-taxa_feira-line" class="flex justify-between items-center text-gray-400 text-sm hidden">
                             <span>🏛️ Taxa feira</span>
                             <span id="grand-extra-taxa_feira-value">R$ 0,00</span>
+                        </div>
+                        <div id="grand-discount-line" class="flex justify-between items-center text-red-300 text-sm hidden">
+                            <span id="grand-discount-label">Desconto</span>
+                            <span id="grand-discount-value">- R$ 0,00</span>
                         </div>
                         <div class="flex justify-between items-center border-t border-gray-700 pt-2 mt-2">
                             <span class="text-lg font-medium text-gray-300">Total do Orçamento</span>
@@ -1401,7 +1430,31 @@
         }
         document.getElementById('grand-items-line').textContent = fmt(itemsTotal);
 
-        document.getElementById('budget-total').textContent = fmt(itemsTotal + fiscalValue + freight + extraTotal);
+        const subtotalBeforeDiscount = itemsTotal + fiscalValue + freight + extraTotal;
+        const discountType = document.getElementById('discount-type-input')?.value || 'none';
+        const rawDiscount = num(document.getElementById('discount-value-input')?.value);
+        let discountAmount = 0;
+
+        if (discountType === 'percent' && rawDiscount > 0) {
+            discountAmount = subtotalBeforeDiscount * (rawDiscount / 100);
+        } else if (discountType === 'value' && rawDiscount > 0) {
+            discountAmount = rawDiscount;
+        }
+        if (discountAmount > subtotalBeforeDiscount) discountAmount = subtotalBeforeDiscount;
+        if (discountAmount < 0) discountAmount = 0;
+
+        const discountLine = document.getElementById('grand-discount-line');
+        const discountLbl  = document.getElementById('grand-discount-label');
+        const discountVal  = document.getElementById('grand-discount-value');
+        if (discountLine && discountLbl && discountVal) {
+            discountLine.classList.toggle('hidden', discountAmount <= 0);
+            discountLbl.textContent = discountType === 'percent'
+                ? `Desconto (${rawDiscount.toFixed(2).replace('.', ',')}%)`
+                : 'Desconto (R$)';
+            discountVal.textContent = `- ${fmt(discountAmount)}`;
+        }
+
+        document.getElementById('budget-total').textContent = fmt(subtotalBeforeDiscount - discountAmount);
 
         const freightLine = document.getElementById('grand-freight-line');
         if (freightLine) {
@@ -1481,6 +1534,23 @@
     document.getElementById('add-section-bottom')?.addEventListener('click', handleAddSection);
 
     document.getElementById('freight-cost-input')?.addEventListener('input', recalcAll);
+    document.getElementById('discount-value-input')?.addEventListener('input', recalcAll);
+    document.getElementById('discount-type-input')?.addEventListener('change', () => {
+        const type = document.getElementById('discount-type-input')?.value || 'none';
+        const prefix = document.getElementById('discount-prefix');
+        const valueInput = document.getElementById('discount-value-input');
+        if (prefix) prefix.textContent = type === 'percent' ? '%' : 'R$';
+        if (valueInput) {
+            valueInput.setAttribute('max', type === 'percent' ? '100' : '999999999');
+            if (type === 'none') valueInput.value = '0';
+        }
+        recalcAll();
+    });
+
+    // Adjust prefix on first render
+    const initialDiscountType = document.getElementById('discount-type-input')?.value || 'none';
+    const discountPrefix = document.getElementById('discount-prefix');
+    if (discountPrefix) discountPrefix.textContent = initialDiscountType === 'percent' ? '%' : 'R$';
 
     // Load existing sections (edit mode)
     if (INITIAL_SECTIONS && INITIAL_SECTIONS.length > 0) {
