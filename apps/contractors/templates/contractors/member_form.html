@@ -5,7 +5,24 @@
 
 {% block content %}
 {% include 'components/breadcrumbs.html' %}
-{% include 'components/form_errors.html' %}
+
+{% if form.errors or nr_formset.errors or nr_formset.non_form_errors %}
+<div class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+    <h3 class="text-sm font-semibold text-red-800 mb-2">Corrija os erros abaixo para salvar:</h3>
+    {% for error in form.non_field_errors %}
+    <p class="text-sm text-red-700">{{ error }}</p>
+    {% endfor %}
+    {% for field in form %}{% if field.errors %}
+    <p class="text-sm text-red-700"><strong>{{ field.label }}:</strong> {{ field.errors|join:', ' }}</p>
+    {% endif %}{% endfor %}
+    {% for nr_form in nr_formset %}{% for field_errors in nr_form.errors.values %}
+    <p class="text-sm text-red-700"><strong>NR:</strong> {{ field_errors|join:', ' }}</p>
+    {% endfor %}{% endfor %}
+    {% for error in nr_formset.non_form_errors %}
+    <p class="text-sm text-red-700">{{ error }}</p>
+    {% endfor %}
+</div>
+{% endif %}
 
 <form method="post" enctype="multipart/form-data" class="space-y-6">
     {% csrf_token %}
@@ -77,7 +94,7 @@
         <div id="nr-formset-container" class="space-y-4">
             {% for nr_form in nr_formset %}
             <div class="nr-form-row border border-gray-200 rounded-lg p-4 relative{% if nr_form.instance.pk and nr_form.DELETE.value %} hidden{% endif %}">
-                {{ nr_form.id }}
+                {% for hidden in nr_form.hidden_fields %}{{ hidden }}{% endfor %}
                 {% if nr_formset.can_delete %}
                 <div class="absolute top-3 right-3">
                     <label class="flex items-center gap-1 text-xs text-red-500 cursor-pointer">
@@ -109,14 +126,19 @@
                             {% for nrf in nr_files %}
                             <div class="flex items-center justify-between p-2 bg-white border border-gray-200 rounded-lg">
                                 <a href="{{ nrf.file.url }}" target="_blank" class="text-xs text-blue-600 hover:underline truncate max-w-xs">{{ nrf.file.name|slice:"50" }}</a>
-                                <form method="post" action="{% url 'contractors:nr_file_delete' nrf.pk %}" onsubmit="return confirm('Remover este arquivo?')" class="ml-2">
-                                    {% csrf_token %}
-                                    <button type="submit" class="p-1 text-gray-400 hover:text-red-600 transition-colors" title="Remover">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                        </svg>
-                                    </button>
-                                </form>
+                                <button
+                                    type="submit"
+                                    formmethod="post"
+                                    formaction="{% url 'contractors:nr_file_delete' nrf.pk %}"
+                                    formnovalidate
+                                    onclick="return confirm('Remover este arquivo?')"
+                                    class="ml-2 p-1 text-gray-400 hover:text-red-600 transition-colors"
+                                    title="Remover"
+                                >
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                </button>
                             </div>
                             {% endfor %}
                         </div>

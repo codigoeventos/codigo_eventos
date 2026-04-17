@@ -14,10 +14,13 @@ from django.http import HttpResponseRedirect, JsonResponse, HttpResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 
+import logging
 from apps.common.mixins import AuditMixin
 from .models import Contractor, ContractorMember, ContractorMemberNR, ContractorMemberNRFile, ContractorVehicle
 from .forms import ContractorForm, ContractorSearchForm, ContractorMemberForm, NRInlineFormSet, ContractorVehicleForm
 from django.contrib import messages
+
+logger = logging.getLogger(__name__)
 
 
 class ContractorListView(LoginRequiredMixin, ListView):
@@ -166,6 +169,8 @@ class MemberCreateView(LoginRequiredMixin, CreateView):
                     ContractorMemberNRFile.objects.create(nr=nr_form.instance, file=f)
             messages.success(request, f'Membro {self.object.name} adicionado com sucesso!')
             return HttpResponseRedirect(self.get_success_url())
+        logger.error('MemberCreateView form errors: %s | nr_formset errors: %s | non_form: %s',
+                     form.errors, nr_formset.errors if nr_formset.is_bound else 'not validated', nr_formset.non_form_errors())
         return self.render_to_response(self.get_context_data(form=form, nr_formset=nr_formset))
 
     def get_success_url(self):
@@ -228,6 +233,8 @@ class MemberUpdateView(LoginRequiredMixin, UpdateView):
                     ContractorMemberNRFile.objects.create(nr=nr_form.instance, file=f)
             messages.success(request, f'Membro {self.object.name} atualizado com sucesso!')
             return HttpResponseRedirect(self.get_success_url())
+        logger.error('MemberUpdateView form errors: %s | nr_formset errors: %s | non_form: %s',
+                     form.errors, nr_formset.errors, nr_formset.non_form_errors())
         return self.render_to_response(self.get_context_data(form=form, nr_formset=nr_formset))
 
     def get_success_url(self):

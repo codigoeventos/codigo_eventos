@@ -124,11 +124,10 @@ class ContractorMemberNRForm(forms.ModelForm):
 
     class Meta:
         model = ContractorMemberNR
-        fields = ['nr_number', 'nr_certificate_expiry', 'nr_certificate_file']
+        fields = ['nr_number', 'nr_certificate_expiry']
         widgets = {
             'nr_number': forms.TextInput(attrs={'class': CSS_INPUT, 'placeholder': 'Ex: NR-10, NR-35'}),
             'nr_certificate_expiry': forms.DateInput(attrs={'class': CSS_INPUT, 'type': 'date'}, format='%Y-%m-%d'),
-            'nr_certificate_file': forms.FileInput(attrs={'class': CSS_FILE}),
         }
 
 
@@ -136,7 +135,7 @@ NRInlineFormSet = inlineformset_factory(
     ContractorMember,
     ContractorMemberNR,
     form=ContractorMemberNRForm,
-    extra=1,
+    extra=0,
     can_delete=True,
     min_num=0,
 )

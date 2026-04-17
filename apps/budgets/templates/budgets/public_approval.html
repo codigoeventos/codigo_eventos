@@ -10,10 +10,10 @@
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         body {
             font-family: Arial, Helvetica, sans-serif;
-            font-size: 15px;
+            font-size: 11px;
             color: #000;
             background: #d4d4d4;
-            line-height: 1.4;
+            line-height: 1.3;
             padding: 32px 16px;
             min-height: 100vh;
         }
@@ -39,47 +39,36 @@
         /* ── Header strip ─────────────────────────── */
         .os-header {
             background: var(--os-white);
-            padding: 2rem 0.5rem;
-            border-bottom: 2px solid var(--os-dark);
+            padding: 8px 10px 6px;
         }
-        .os-header-title {
-            font-size: 22px;
-            font-weight: 700;
-            color: var(--os-black);
+        .os-header-meta {
+            font-size: 9px;
+            font-weight: 400;
+            color: #000;
+            line-height: 1.5;
         }
-        .os-header-sub {
-            font-size: 13px;
-            font-weight: 700;
-            color: var(--os-black);
-            margin-top: 2px;
-        }
-        .os-header-right {
-            text-align: right;
-            font-size: 13px;
-            color: var(--os-black);
-        }
-        .os-header-right strong { font-weight: 700; }
+        .os-header-meta strong { font-weight: 700; }
 
         /* ── Section headers (dark gray bar) ──────── */
         .os-section-bar {
             background: var(--os-dark);
             color: var(--os-white);
-            font-size: 12px;
+            font-size: 9px;
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.1em;
-            padding: 5px 16px;
+            letter-spacing: 0.05em;
+            padding: 3px 8px;
         }
 
         /* ── Big section title (cream text on dark) ── */
         .os-section-title {
             background: var(--os-dark);
-            color: var(--os-cream);
-            font-size: 18px;
+            color: var(--os-white);
+            font-size: 11px;
             font-weight: 700;
             text-transform: uppercase;
             text-align: center;
-            padding: 8px 16px;
+            padding: 5px 10px;
         }
 
         /* ── Info grid ─────────────────────────────── */
@@ -88,29 +77,29 @@
             border-collapse: collapse;
         }
         .os-info-table td {
-            border: 1px solid var(--os-border);
-            padding: 5px 10px;
+            border: 1px solid #000;
+            padding: 3px 6px;
             vertical-align: top;
-            font-size: 13px;
+            font-size: 9px;
         }
         .os-info-label {
             font-weight: 700;
-            font-size: 12px;
+            font-size: 9px;
             color: var(--os-black);
         }
         .os-info-value {
             font-weight: 400;
-            font-size: 13px;
+            font-size: 9px;
             color: var(--os-black);
-            min-height: 18px;
+            min-height: 12px;
         }
 
         /* ── Italic description line ─────────────── */
         .os-description {
             font-style: italic;
-            font-size: 13px;
+            font-size: 9px;
             text-align: center;
-            padding: 10px 16px;
+            padding: 6px 10px;
             color: var(--os-black);
         }
 
@@ -127,46 +116,47 @@
         }
         .os-items-table thead th {
             background: var(--os-white);
-            border: 1px solid var(--os-border);
-            font-size: 12px;
+            border: 1px solid #000;
+            font-size: 9px;
             font-weight: 700;
             text-transform: uppercase;
-            padding: 7px 10px;
+            padding: 4px 6px;
             color: var(--os-black);
+            text-align: center;
         }
+        .os-items-table thead th.th-left { text-align: left; }
         .os-items-table tbody td {
-            border: 1px solid #c0c0c0;
-            padding: 7px 10px;
-            font-size: 13px;
+            border: 1px solid #000;
+            padding: 5px 6px;
+            font-size: 9px;
             color: var(--os-black);
             vertical-align: top;
-        }
-        .os-items-table tbody tr:nth-child(even) td {
-            background: #f5f5f0;
         }
         .os-items-table tbody td.os-item-num {
             background: var(--os-dark) !important;
             color: var(--os-white) !important;
             font-weight: 700;
             text-align: center;
-            width: 40px;
+            width: 36px;
+            font-size: 9px;
         }
         .os-items-table tbody td.os-item-name {
             font-weight: 700;
-            background: var(--os-dark) !important;
-            color: var(--os-white) !important;
-            width: 22%;
+            font-size: 9px;
+            width: 14%;
+            text-align: center;
+            vertical-align: middle;
         }
-        .os-items-table tbody td.os-item-desc { color: #444; font-size: 11px; width: 32%; }
+        .os-items-table tbody td.os-item-desc { color: #000; font-size: 9px; }
 
         /* ── Total row ────────────────────────────── */
         .os-total-row td {
             background: var(--os-dark) !important;
-            color: var(--os-cream) !important;
+            color: var(--os-white) !important;
             font-weight: 700;
-            font-size: 16px;
-            padding: 8px 10px;
-            border: 1px solid var(--os-dark) !important;
+            font-size: 9px;
+            padding: 4px 6px;
+            border: 1px solid #000 !important;
         }
 
         /* ── Footer / pagination ──────────────────── */
@@ -174,19 +164,28 @@
             font-size: 8px;
             font-weight: 700;
             text-align: right;
-            padding: 4px 16px;
+            padding: 3px 10px;
             color: var(--os-black);
-            border-top: 1px solid var(--os-border);
+            border-top: 1px solid #000;
         }
+
+        /* ── Payment conditions ─────────────────────── */
+        .os-payment {
+            border: 1px solid #000;
+            padding: 5px 8px;
+            margin: 8px 10px;
+            font-size: 9px;
+        }
+        .os-payment strong { font-weight: 700; }
 
         /* ── Status badge ─────────────────────────── */
         .os-badge {
             display: inline-block;
-            font-size: 9px;
+            font-size: 8px;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.05em;
-            padding: 2px 8px;
+            padding: 2px 6px;
             border: 1px solid;
         }
         .os-badge-pending  { color: var(--os-dark); border-color: var(--os-dark); background: var(--os-white); }
@@ -195,7 +194,7 @@
 
         /* ── Checkbox ─────────────────────────────── */
         .os-check {
-            width: 16px; height: 16px;
+            width: 14px; height: 14px;
             accent-color: var(--os-dark);
             cursor: pointer;
         }
@@ -287,37 +286,6 @@
             color: #333;
         }
 
-        /* ── Footer ─────────────────────────────────── */
-        .os-footer {
-            font-size: 11px;
-            font-weight: 700;
-            text-align: right;
-            padding: 6px 16px;
-            color: var(--os-black);
-            border-top: 1px solid var(--os-border);
-        }
-
-        /* ── Status badge ───────────────────────────── */
-        .os-badge {
-            display: inline-block;
-            font-size: 12px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            padding: 3px 10px;
-            border: 1px solid;
-        }
-        .os-badge-pending  { color: var(--os-dark); border-color: var(--os-dark); background: var(--os-white); }
-        .os-badge-approved { color: var(--os-white); border-color: #2e7d32; background: #2e7d32; }
-        .os-badge-rejected { color: var(--os-white); border-color: #c62828; background: #c62828; }
-
-        /* ── Checkbox ───────────────────────────────── */
-        .os-check {
-            width: 18px; height: 18px;
-            accent-color: var(--os-dark);
-            cursor: pointer;
-        }
-
         /* ── Action bar (floating, no print) ───────── */
         .os-action-bar {
             position: fixed;
@@ -326,7 +294,7 @@
             background: var(--os-white);
             border-top: 2px solid var(--os-dark);
             box-shadow: 0 -4px 16px rgba(0,0,0,.15);
-            padding: 10px 16px;
+            padding: 8px 16px;
         }
         .os-action-inner {
             max-width: 810px;
@@ -337,15 +305,15 @@
             gap: 12px;
             flex-wrap: wrap;
         }
-        .os-action-total { font-size: 14px; color: #555; }
-        .os-action-total strong { font-size: 20px; color: var(--os-black); }
+        .os-action-total { font-size: 11px; color: #555; }
+        .os-action-total strong { font-size: 15px; color: var(--os-black); }
         .os-btn {
             font-family: Arial, Helvetica, sans-serif;
-            font-size: 13px;
+            font-size: 10px;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.05em;
-            padding: 10px 20px;
+            padding: 7px 14px;
             border: 2px solid var(--os-dark);
             cursor: pointer;
             transition: all 0.15s;
@@ -356,29 +324,29 @@
         .os-btn-filled:hover { background: #2a2a2a; }
 
         /* ── Notes Section ──────────────────────────── */
-        .os-notes-section { padding: 14px 16px; border-top: 1px solid #c0c0c0; }
+        .os-notes-section { padding: 8px 10px; border-top: 1px solid #c0c0c0; }
         .os-notes-label {
-            font-size: 12px;
+            font-size: 9px;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.1em;
             color: var(--os-dark);
-            margin-bottom: 6px;
+            margin-bottom: 4px;
         }
         .os-notes-textarea {
             width: 100%;
             font-family: Arial, Helvetica, sans-serif;
-            font-size: 13px;
+            font-size: 9px;
             border: 1px solid #c0c0c0;
-            padding: 6px 8px;
+            padding: 4px 6px;
             resize: vertical;
             outline: none;
         }
         .os-notes-textarea:focus { border-color: var(--os-dark); }
         .os-notes-display {
             border-left: 3px solid var(--os-dark);
-            padding: 4px 10px;
-            font-size: 13px;
+            padding: 3px 8px;
+            font-size: 9px;
             color: #333;
         }
 
@@ -521,28 +489,29 @@
 
         <!-- ── Header ─────────────────────────────────────────────────── -->
         <div class="os-header">
-            <div style="display:flex;align-items:center;justify-content:space-between;gap:20px;" class="os-header-flex">
-                <!-- Info – left -->
-                <div style="text-align:left;flex:1;">
-                    <div class="os-header-title">Orçamento</div>
-                    <div class="os-header-sub" style="margin-top:4px;">{{ budget.name }}</div>
-                    <div style="margin-top:2px;font-size:14px;"><strong>Data:</strong> {{ budget.created_at|date:"d/m/Y" }}</div>
-                    <div style="margin-top:2px;font-size:14px;"><strong>Orçamento nº</strong> {{ budget.id|stringformat:"05d" }}</div>
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;" class="os-header-flex">
+                <!-- Meta – left -->
+                <div class="os-header-meta" style="flex:0 0 auto;min-width:140px;">
+                    <div><strong>Data Proposta:</strong> {{ budget.created_at|date:"d/m/Y" }}</div>
+                    <div><strong>Proposta nº</strong> {{ budget.id }}</div>
                 </div>
                 <!-- Logo – center -->
-                <div class="os-header-logo" style="flex-shrink:0;">
+                <div class="os-header-logo" style="flex:1;text-align:center;">
                     <img src="{% static 'assets/logo_black.png' %}" alt="Código Eventos"
-                         style="height:80px;width:auto;object-fit:contain;display:block;">
+                         style="height:120px;width:auto;object-fit:contain;display:inline-block;">
                 </div>
-                <!-- Status + QR code – right -->
-                <div style="text-align:right;flex:1;display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
-                    <span class="os-badge
-                        {% if budget.approval_status == 'approved' %}os-badge-approved
-                        {% elif budget.approval_status == 'rejected' %}os-badge-rejected
-                        {% else %}os-badge-pending{% endif %}">
-                        {{ budget.get_approval_status_display }}
-                    </span>
-                    <img src="{% static 'assets/qr_code_codigo_eventos.png' %}" alt="QR Code" style="display:block;width:80px;height:80px;object-fit:contain;">
+                <!-- QR code – right -->
+                <div style="flex:0 0 auto;text-align:right;">
+                    <img src="{% static 'assets/qr_code_codigo_eventos.png' %}" alt="QR Code" style="display:block;width:70px;height:70px;object-fit:contain;">
+                    {% if budget.approval_status != 'pending' %}
+                    <div style="margin-top:4px;">
+                        <span class="os-badge
+                            {% if budget.approval_status == 'approved' %}os-badge-approved
+                            {% else %}os-badge-rejected{% endif %}">
+                            {{ budget.get_approval_status_display }}
+                        </span>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -550,8 +519,8 @@
         <!-- ── Client + Event info ────────────────────────────────────── -->
         <table class="os-info-table">
             <tr>
-                <td class="os-section-bar" style="padding:3px 16px;border:none;">DADOS CLIENTE</td>
-                <td class="os-section-bar" style="padding:3px 16px;border:none;">DADOS DO EVENTO</td>
+                <td class="os-section-bar" style="width:50%;text-align:center;border:1px solid #000;">DADOS CLIENTE</td>
+                <td class="os-section-bar" style="width:50%;text-align:center;border:1px solid #000;">DADOS DO EVENTO</td>
             </tr>
             <tr>
                 <td style="width:50%"><span class="os-info-label">Cliente: </span><span class="os-info-value">{% if budget.proposal.event.client %}{{ budget.proposal.event.client.name }}{% else %}—{% endif %}</span></td>
@@ -573,7 +542,7 @@
 
         <!-- ── Description line ───────────────────────────────────────── -->
         <div class="os-description">
-            Conforme solicitação, segue abaixo descritivo e custos de locação, das seguintes estruturas:
+            <em>Conforme solicitação, segue abaixo descritivo e custos de locação, das seguintes estruturas:</em>
         </div>
 
         <!-- ── Section title ──────────────────────────────────────────── -->
@@ -600,15 +569,15 @@
                         {% if is_editable %}
                         <th style="width:40px;" class="no-print">Sel.</th>
                         {% endif %}
-                        <th style="width:40px;">Nº</th>
-                        <th style="text-align:left;width:16%;">Item</th>
-                        <th style="text-align:left;width:65%;">Descritivo</th>
+                        <th style="width:36px;">Nº</th>
+                        <th class="th-left" style="width:14%;">Item</th>
+                        <th class="th-left">Descritivo</th>
                         {% if budget.has_item_fiscal %}
-                        <th style="width:90px;text-align:right;">Valor (Qtd.)</th>
-                        <th style="width:90px;text-align:right;">Encargos Fiscais</th>
-                        <th style="width:100px;text-align:right;">Total</th>
+                        <th style="width:80px;">Valor dos Serviços</th>
+                        <th style="width:80px;">Encargos Fiscais</th>
+                        <th style="width:80px;">Valor Total</th>
                         {% else %}
-                        <th style="text-align:right;">Valor (Qtd.)</th>
+                        <th style="width:80px;">Valor dos Serviços</th>
                         {% endif %}
                         {% if not is_editable %}
                         <th style="width:80px;text-align:center;">Status</th>
@@ -928,25 +897,24 @@
         </form>
 
         <!-- ── Footer ─────────────────────────────────────────────────── -->
-        <!-- ── Observações fixas ──────────────────────────────────────── -->
-        <div style="padding:12px 16px;border-top:1px solid #c0c0c0;font-size:9px;color:#333;line-height:1.6;">
-            <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#3f3f3f;margin-bottom:6px;">Observações</div>
-            <p style="margin-bottom:6px;"><strong>1)</strong> Os valores indicados acima <strong>não contemplam</strong> os seguintes itens:</p>
-            <ul style="margin:0 0 8px 16px;padding:0;list-style:none;">
-                <li style="margin-bottom:2px;">&#10033; Equipamentos eletrônicos e computadores;</li>
-                <li style="margin-bottom:2px;">&#10033; Cálculo Estrutural;</li>
-                <li style="margin-bottom:2px;">&#10033; Laudo e Ignifugação dos materiais;</li>
-            </ul>
-            <p style="margin-bottom:6px;"><strong>2)</strong> O cliente deverá fornecer os seguintes itens:</p>
-            <ul style="margin:0 0 0 16px;padding:0;list-style:none;">
-                <li style="margin-bottom:2px;">&#10033; Ponto de AC, para interligação dos equipamentos de luz e elétrica;</li>
-                <li style="margin-bottom:2px;">&#10033; Artes em alta definição para confecção dos itens de comunicação.</li>
-            </ul>
+        <!-- ── Condições de Pagamento ──────────────────────────────────── -->
+        <div class="os-payment">
+            <strong>Condições de Pagamento:</strong> 50% na confirmação e saldo na entrega dos serviços.
         </div>
 
-        <div class="os-footer">
-            Código Eventos · Documento confidencial
+        <!-- ── Observações fixas ──────────────────────────────────────── -->
+        <div style="padding:8px 10px;border-top:1px solid #c0c0c0;font-size:9px;color:#333;line-height:1.6;">
+            <div style="font-size:9px;font-weight:700;text-align:center;text-transform:uppercase;letter-spacing:0.05em;color:#000;margin-bottom:4px;">Observações:</div>
+            <p style="margin-bottom:4px;"><strong>1)</strong> Os valores indicados acima <em>não contemplam</em> os seguintes itens:</p>
+            <p style="margin-left:12px;margin-bottom:2px;">*Equipamentos eletrônicos e computadores;</p>
+            <p style="margin-left:12px;margin-bottom:2px;">*Cálculo Estrutural;</p>
+            <p style="margin-left:12px;margin-bottom:6px;">*Laudo e Ignifugação dos materiais;</p>
+            <p style="margin-bottom:4px;"><strong>2)</strong> O cliente deverá fornecer os seguintes itens:</p>
+            <p style="margin-left:12px;margin-bottom:2px;">* Ponto de AC, para interligação dos equipamentos de luz e elétrica;</p>
+            <p style="margin-left:12px;">*Artes em alta definição para confecção dos itens de comunicação.</p>
         </div>
+
+        <div class="os-footer">Pagina 1/1</div>
     </div>
 
     <!-- ══ CONFIRMATION MODAL ═══════════════════════════════════════════════ -->
