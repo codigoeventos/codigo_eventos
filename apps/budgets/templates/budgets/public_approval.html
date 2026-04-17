@@ -149,6 +149,42 @@
         }
         .os-items-table tbody td.os-item-desc { color: #000; font-size: 9px; }
 
+        /* ── Extra charges table (design bloco) ───────────────────── */
+        .os-extra-table thead th {
+            text-align: center;
+        }
+        .os-extra-table td.os-extra-group {
+            background: var(--os-dark) !important;
+            color: var(--os-white) !important;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .02em;
+            text-align: center;
+            vertical-align: middle;
+            width: 170px;
+        }
+        .os-extra-table td.os-extra-desc {
+            text-align: center;
+            vertical-align: middle;
+            font-size: 11px;
+        }
+        .os-extra-money {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 6px;
+            white-space: nowrap;
+            font-size: 11px;
+        }
+        .os-extra-money .cur {
+            font-weight: 700;
+            min-width: 18px;
+        }
+        .os-extra-money .val {
+            text-align: right;
+            width: 100%;
+        }
+
         /* ── Total row ────────────────────────────── */
         .os-total-row td {
             background: var(--os-dark) !important;
@@ -404,7 +440,7 @@
 
             /* Header */
             .os-header { padding: 12px; }
-            .os-header-flex { flex-direction: column !important; gap: 8px !important; }
+            .os-header-flex { grid-template-columns: 1fr !important; gap: 8px !important; }
             .os-header-logo img { height: 50px !important; margin: 0 !important; }
             .os-header-title { font-size: 17px; }
             .os-header-right { text-align: left; }
@@ -489,19 +525,19 @@
 
         <!-- ── Header ─────────────────────────────────────────────────── -->
         <div class="os-header">
-            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;" class="os-header-flex">
+            <div style="display:grid;grid-template-columns:1fr auto 1fr;align-items:start;gap:10px;" class="os-header-flex">
                 <!-- Meta – left -->
-                <div class="os-header-meta" style="flex:0 0 auto;min-width:140px;">
+                <div class="os-header-meta" style="align-self:start;">
                     <div><strong>Data Proposta:</strong> {{ budget.created_at|date:"d/m/Y" }}</div>
                     <div><strong>Proposta nº</strong> {{ budget.id }}</div>
                 </div>
                 <!-- Logo – center -->
-                <div class="os-header-logo" style="flex:1;text-align:center;">
+                <div class="os-header-logo" style="text-align:center;align-self:center;">
                     <img src="{% static 'assets/logo_black.png' %}" alt="Código Eventos"
                          style="height:120px;width:auto;object-fit:contain;display:inline-block;">
                 </div>
                 <!-- QR code – right -->
-                <div style="flex:0 0 auto;text-align:right;">
+                <div style="text-align:right;align-self:start;justify-self: end;">
                     <img src="{% static 'assets/qr_code_codigo_eventos.png' %}" alt="QR Code" style="display:block;width:70px;height:70px;object-fit:contain;">
                     {% if budget.approval_status != 'pending' %}
                     <div style="margin-top:4px;">
@@ -597,12 +633,12 @@
                             </td>
                         </tr>
                         {% for item in section.section_items.all %}
-                        <tr class="item-row" data-unit-total="{{ item.total_price }}" data-approved="{% if item.is_approved %}1{% else %}0{% endif %}" data-fiscal="{% if item.include_fiscal %}1{% else %}0{% endif %}">
+                        <tr class="item-row" data-unit-total="{{ item.total_price|stringformat:'.2f' }}" data-approved="{% if item.is_approved %}1{% else %}0{% endif %}" data-fiscal="{% if item.include_fiscal %}1{% else %}0{% endif %}">
                             {% if is_editable %}
                             <td class="os-item-sel text-center no-print" style="padding:4px;">
                                 <input type="checkbox" name="items" value="{{ item.id }}"
                                     class="item-checkbox os-check"
-                                    data-price="{{ item.total_price }}"
+                                    data-price="{{ item.total_price|stringformat:'.2f' }}"
                                     data-name="{{ item.name|escapejs }}"
                                     {% if item.is_approved %}checked{% endif %}>
                             </td>
@@ -638,12 +674,12 @@
                     {% else %}
                         {# Fallback: no sections – flat list (legacy/unsectioned items) #}
                         {% for item in unsectioned_items %}
-                        <tr class="item-row" data-unit-total="{{ item.total_price }}" data-approved="{% if item.is_approved %}1{% else %}0{% endif %}" data-fiscal="{% if item.include_fiscal %}1{% else %}0{% endif %}">
+                        <tr class="item-row" data-unit-total="{{ item.total_price|stringformat:'.2f' }}" data-approved="{% if item.is_approved %}1{% else %}0{% endif %}" data-fiscal="{% if item.include_fiscal %}1{% else %}0{% endif %}">
                             {% if is_editable %}
                             <td class="os-item-sel text-center no-print" style="padding:4px;">
                                 <input type="checkbox" name="items" value="{{ item.id }}"
                                     class="item-checkbox os-check"
-                                    data-price="{{ item.total_price }}"
+                                    data-price="{{ item.total_price|stringformat:'.2f' }}"
                                     data-name="{{ item.name|escapejs }}"
                                     {% if item.is_approved %}checked{% endif %}>
                             </td>
@@ -761,42 +797,120 @@
                 <span>Encargos Adicionais</span>
             </div>
             <div class="os-items-table-wrap">
-            <table class="os-items-table">
+            <table class="os-items-table os-extra-table">
                 <thead>
                     <tr>
-                        <th style="width:40px;">Nº</th>
-                        <th style="text-align:left;">Item</th>
-                        <th style="text-align:left;">Descritivo</th>
-                        <th style="text-align:right;">Valor</th>
+                        <th style="width:170px;">Grupo</th>
+                        <th style="text-align:center;">Descritivo</th>
+                        <th style="width:130px;">Valor dos Serviços</th>
+                        <th style="width:130px;">Encargos Fiscais</th>
+                        <th style="width:130px;">Valor Total</th>
                     </tr>
                 </thead>
                 <tbody>
-                {% with counter=0 %}
-                {% for group_key, rows in budget.extra_charges.items %}
+                {% with rows=budget.extra_charges.logistica %}
                 {% if rows %}
                 {% for row in rows %}
                 <tr>
-                    <td class="os-item-num" data-label="Nº">{{ forloop.parentloop.counter }}.{{ forloop.counter }}</td>
-                    <td class="os-item-name" data-label="Item">
-                        {% if group_key == "apoio" %}Apoio
-                        {% elif group_key == "mao_de_obra" %}Extra mão de obra
-                        {% elif group_key == "documentacao" %}Documentação legal
-                        {% elif group_key == "taxa_feira" %}Taxa feira
-                        {% else %}{{ group_key }}{% endif %}
-                    </td>
-                    <td class="os-item-desc" data-label="Descritivo">{{ row.label|default:"—" }}</td>
-                    <td class="text-right" data-label="Valor" style="font-weight:600;">R$ {{ row.value|floatformat:"2g" }}</td>
+                    {% if forloop.first %}
+                    <td class="os-extra-group" rowspan="{{ rows|length }}">Logística</td>
+                    {% endif %}
+                    <td class="os-extra-desc" data-label="Descritivo">{{ row.label|default:"—" }}</td>
+                    <td data-label="Valor dos Serviços"><div class="os-extra-money"><span class="cur">R$</span><span class="val">{{ row.value|floatformat:"2g" }}</span></div></td>
+                    <td data-label="Encargos Fiscais"><div class="os-extra-money"><span class="cur">R$</span><span class="val">-</span></div></td>
+                    <td data-label="Valor Total"><div class="os-extra-money"><span class="cur">R$</span><span class="val">-</span></div></td>
                 </tr>
                 {% endfor %}
                 {% endif %}
+                {% endwith %}
+
+                {% with rows=budget.extra_charges.apoio %}
+                {% if rows %}
+                {% for row in rows %}
+                <tr>
+                    {% if forloop.first %}
+                    <td class="os-extra-group" rowspan="{{ rows|length }}">Apoio</td>
+                    {% endif %}
+                    <td class="os-extra-desc" data-label="Descritivo">{{ row.label|default:"—" }}</td>
+                    <td data-label="Valor dos Serviços"><div class="os-extra-money"><span class="cur">R$</span><span class="val">{{ row.value|floatformat:"2g" }}</span></div></td>
+                    <td data-label="Encargos Fiscais"><div class="os-extra-money"><span class="cur">R$</span><span class="val">-</span></div></td>
+                    <td data-label="Valor Total"><div class="os-extra-money"><span class="cur">R$</span><span class="val">-</span></div></td>
+                </tr>
                 {% endfor %}
+                {% endif %}
+                {% endwith %}
+
+                {% with rows=budget.extra_charges.mao_de_obra %}
+                {% if rows %}
+                {% for row in rows|dictsortreversed:"label" %}
+                <tr>
+                    {% if forloop.first %}
+                    <td class="os-extra-group" rowspan="{{ rows|length }}">Extra Mão de Obra</td>
+                    {% endif %}
+                    <td class="os-extra-desc" data-label="Descritivo">{{ row.label|default:"—" }}</td>
+                    <td data-label="Valor dos Serviços"><div class="os-extra-money"><span class="cur">R$</span><span class="val">{{ row.value|floatformat:"2g" }}</span></div></td>
+                    <td data-label="Encargos Fiscais"><div class="os-extra-money"><span class="cur">R$</span><span class="val">-</span></div></td>
+                    <td data-label="Valor Total"><div class="os-extra-money"><span class="cur">R$</span><span class="val">-</span></div></td>
+                </tr>
+                {% endfor %}
+                {% endif %}
+                {% endwith %}
+
+                {% with rows=budget.extra_charges.documentacao %}
+                {% if rows %}
+                {% for row in rows %}
+                <tr>
+                    {% if forloop.first %}
+                    <td class="os-extra-group" rowspan="{{ rows|length }}">Documentação Legal</td>
+                    {% endif %}
+                    <td class="os-extra-desc" data-label="Descritivo">{{ row.label|default:"—" }}</td>
+                    <td data-label="Valor dos Serviços"><div class="os-extra-money"><span class="cur">R$</span><span class="val">{{ row.value|floatformat:"2g" }}</span></div></td>
+                    <td data-label="Encargos Fiscais"><div class="os-extra-money"><span class="cur">R$</span><span class="val">-</span></div></td>
+                    <td data-label="Valor Total"><div class="os-extra-money"><span class="cur">R$</span><span class="val">-</span></div></td>
+                </tr>
+                {% endfor %}
+                {% endif %}
+                {% endwith %}
+
+                {% with rows=budget.extra_charges.taxa_feira %}
+                {% if rows %}
+                {% for row in rows %}
+                <tr>
+                    {% if forloop.first %}
+                    <td class="os-extra-group" rowspan="{{ rows|length }}">Taxa Feira</td>
+                    {% endif %}
+                    <td class="os-extra-desc" data-label="Descritivo">{{ row.label|default:"—" }}</td>
+                    <td data-label="Valor dos Serviços"><div class="os-extra-money"><span class="cur">R$</span><span class="val">{{ row.value|floatformat:"2g" }}</span></div></td>
+                    <td data-label="Encargos Fiscais"><div class="os-extra-money"><span class="cur">R$</span><span class="val">-</span></div></td>
+                    <td data-label="Valor Total"><div class="os-extra-money"><span class="cur">R$</span><span class="val">-</span></div></td>
+                </tr>
+                {% endfor %}
+                {% endif %}
+                {% endwith %}
+
+                {% with rows=budget.extra_charges.outros %}
+                {% if rows %}
+                {% for row in rows %}
+                <tr>
+                    {% if forloop.first %}
+                    <td class="os-extra-group" rowspan="{{ rows|length }}">Outros</td>
+                    {% endif %}
+                    <td class="os-extra-desc" data-label="Descritivo">{{ row.label|default:"—" }}</td>
+                    <td data-label="Valor dos Serviços"><div class="os-extra-money"><span class="cur">R$</span><span class="val">{{ row.value|floatformat:"2g" }}</span></div></td>
+                    <td data-label="Encargos Fiscais"><div class="os-extra-money"><span class="cur">R$</span><span class="val">-</span></div></td>
+                    <td data-label="Valor Total"><div class="os-extra-money"><span class="cur">R$</span><span class="val">-</span></div></td>
+                </tr>
+                {% endfor %}
+                {% endif %}
                 {% endwith %}
                 </tbody>
                 <tfoot>
                     <tr class="os-total-row">
                         <td></td>
-                        <td colspan="2" style="text-align:right;">TOTAL ENCARGOS ADICIONAIS</td>
-                        <td class="text-right" style="font-size:14px;">R$ {{ budget.extra_charges_total|floatformat:"2g" }}</td>
+                        <td style="text-align:right;">TOTAL ENCARGOS ADICIONAIS</td>
+                        <td class="text-right" style="font-size:12px;">R$ {{ budget.extra_charges_total|floatformat:"2g" }}</td>
+                        <td class="text-right" style="font-size:12px;">R$ {{ budget.extra_charges_fiscal_total|floatformat:"2g" }}</td>
+                        <td class="text-right" style="font-size:14px;">R$ {{ budget.extra_charges_total|add:budget.extra_charges_fiscal_total|floatformat:"2g" }}</td>
                     </tr>
                 </tfoot>
             </table>
@@ -951,11 +1065,11 @@
         {% if budget.has_item_fiscal %}populateEncargos();{% endif %}
 
         /* ── Total update (editable mode) ────────────────────── */
-        const freightCost = {{ budget.freight_cost|default:0 }};
-        const extraChargesTotal = {{ budget.extra_charges_total|default:0 }};
-        const extraChargesFiscalTotal = {{ budget.extra_charges_fiscal_total|default:0 }};
+        const freightCost = {{ budget.freight_cost|default:0|stringformat:".2f" }};
+        const extraChargesTotal = {{ budget.extra_charges_total|default:0|stringformat:".2f" }};
+        const extraChargesFiscalTotal = {{ budget.extra_charges_fiscal_total|default:0|stringformat:".2f" }};
         const discountType = '{{ budget.discount_type|default:"none" }}';
-        const discountValue = {{ budget.discount_value|default:0 }};
+        const discountValue = {{ budget.discount_value|default:0|stringformat:".2f" }};
 
         function calcDiscount(baseTotal) {
             const base = parseFloat(baseTotal) || 0;

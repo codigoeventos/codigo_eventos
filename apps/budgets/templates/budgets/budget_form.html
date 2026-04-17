@@ -1552,6 +1552,17 @@
     const discountPrefix = document.getElementById('discount-prefix');
     if (discountPrefix) discountPrefix.textContent = initialDiscountType === 'percent' ? '%' : 'R$';
 
+    function sortMaoDeObraRows(rows) {
+        if (!Array.isArray(rows)) return [];
+        const score = (label) => {
+            const text = String(label || '').toLowerCase();
+            if (text.includes('desmontagem')) return 1;
+            if (text.includes('montagem')) return 0;
+            return 2;
+        };
+        return [...rows].sort((a, b) => score(a?.label) - score(b?.label));
+    }
+
     // Load existing sections (edit mode)
     if (INITIAL_SECTIONS && INITIAL_SECTIONS.length > 0) {
         INITIAL_SECTIONS.forEach(s => addSection(s));
@@ -1565,7 +1576,8 @@
         Object.entries(INITIAL_EXTRA_CHARGES).forEach(([key, rows]) => {
             const groupEl = document.querySelector(`.extra-charge-group[data-group="${key}"]`);
             if (groupEl && Array.isArray(rows)) {
-                rows.forEach(r => addExtraChargeRow(groupEl, r));
+                const orderedRows = key === 'mao_de_obra' ? sortMaoDeObraRows(rows) : rows;
+                orderedRows.forEach(r => addExtraChargeRow(groupEl, r));
             }
         });
     } else {
@@ -1576,8 +1588,8 @@
                 { label: 'Carregadores de apoio',   value: '' },
             ],
             mao_de_obra: [
-                { label: 'Desmontagem em horários especiais', value: '' },
                 { label: 'Montagem em horários especiais',    value: '' },
+                { label: 'Desmontagem em horários especiais', value: '' },
             ],
             documentacao: [
                 { label: 'Art de montagem + Atestados', value: '' },
