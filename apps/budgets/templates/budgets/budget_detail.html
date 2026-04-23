@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
-{% block title %}{{ budget.name }} - Orçamentos{% endblock %}
-{% block page_title %}Detalhes do Orçamento{% endblock %}
+{% block title %}{{ budget.name }} - Propostas{% endblock %}
+{% block page_title %}Detalhes do Proposta{% endblock %}
 
 {% block content %}
 {% include 'components/breadcrumbs.html' %}
@@ -132,7 +132,7 @@
                     </div>
                     {% endif %}
                     <div class="flex justify-between items-center px-4 py-4 bg-black">
-                        <span class="text-base font-bold text-white">Total do Orçamento</span>
+                        <span class="text-base font-bold text-white">Total do Proposta</span>
                         <span class="text-2xl font-bold text-white">R$ {{ budget.total_with_freight|floatformat:"2g" }}</span>
                     </div>
                 </div>
@@ -144,7 +144,7 @@
             <div class="flex items-start justify-between">
                 <div class="flex-1">
                     <h3 class="text-lg font-semibold text-white mb-2">🔗 Link de Aprovação do Cliente</h3>
-                    <p class="text-gray-300 text-sm mb-4">Compartilhe este link com o cliente para aprovação do orçamento</p>
+                    <p class="text-gray-300 text-sm mb-4">Compartilhe este link com o cliente para aprovação do proposta</p>
                     
                     <div class="flex items-center gap-2 mb-3">
                         <input type="text" readonly 
@@ -180,7 +180,7 @@
                         <div class="flex items-center justify-between gap-3">
                             <div>
                                 <p class="text-sm font-medium text-white">🔔 Notificação por e-mail</p>
-                                <p class="text-xs text-gray-300">Avisar quando o orçamento for aprovado</p>
+                                <p class="text-xs text-gray-300">Avisar quando o proposta for aprovado</p>
                             </div>
                             <label for="approval-email-notification-toggle" class="inline-flex items-center cursor-pointer">
                                 <input id="approval-email-notification-toggle" type="checkbox" class="sr-only peer">
@@ -211,7 +211,7 @@
         <!-- Budget Items Section -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mt-6">
             <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-semibold text-gray-900">Itens do Orçamento</h3>
+                <h3 class="text-lg font-semibold text-gray-900">Itens do Proposta</h3>
             </div>
 
             {% with sections=budget.sections.all %}
@@ -609,7 +609,7 @@
                 </div>
             </div>
             {% else %}
-            <p class="text-sm text-gray-500 text-center py-4">Nenhuma ART emitida para este orçamento</p>
+            <p class="text-sm text-gray-500 text-center py-4">Nenhuma ART emitida para este proposta</p>
             {% endif %}
         </div>
     </div>
@@ -633,10 +633,10 @@ function openBudgetDeleteModal(budgetId, budgetName, proposalTitle, itemsCount) 
     `;
     
     const warning = itemsCount > 0 
-        ? `Este orçamento possui ${itemsCount} item${itemsCount > 1 ? 'ns' : ''} associado${itemsCount > 1 ? 's' : ''}.`
+        ? `Este proposta possui ${itemsCount} item${itemsCount > 1 ? 'ns' : ''} associado${itemsCount > 1 ? 's' : ''}.`
         : null;
     
-    openDeleteModal(deleteUrl, `o orçamento "${budgetName}"`, itemDetails, warning, redirectUrl);
+    openDeleteModal(deleteUrl, `o proposta "${budgetName}"`, itemDetails, warning, redirectUrl);
 }
 
 function copyApprovalLink() {

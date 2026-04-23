@@ -12,7 +12,7 @@ class BudgetForm(forms.ModelForm):
     
     class Meta:
         model = Budget
-        fields = ['proposal', 'name', 'status', 'include_fiscal_charges', 'freight_cost', 'discount_type', 'discount_value']
+        fields = ['proposal', 'name', 'status', 'payment_info', 'include_fiscal_charges', 'freight_cost', 'discount_type', 'discount_value']
         widgets = {
             'proposal': forms.Select(attrs={
                 'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent'
@@ -36,11 +36,17 @@ class BudgetForm(forms.ModelForm):
                 'min': '0',
                 'placeholder': '0,00'
             }),
+            'payment_info': forms.Textarea(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-sm',
+                'rows': 5,
+                'placeholder': 'Informe condições de pagamento e dados bancários...'
+            }),
         }
         labels = {
             'proposal': 'Projeto',
             'name': 'Nome',
             'status': 'Status',
+            'payment_info': 'Informações de Pagamento',
             'include_fiscal_charges': 'Incluir Encargos Fiscais (17%)',
             'discount_type': 'Tipo de desconto',
             'discount_value': 'Valor do desconto',

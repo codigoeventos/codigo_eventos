@@ -1,19 +1,20 @@
 {% load static %}
+{% load budget_filters %}
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Orçamento - {{ budget.name }}</title>
+    <title>Proposta - {{ budget.name }}</title>
     <style>
         /* ── Reset & Base ─────────────────────────── */
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         body {
             font-family: Arial, Helvetica, sans-serif;
-            font-size: 11px;
+            font-size: 15px;
             color: #000;
             background: #d4d4d4;
-            line-height: 1.3;
+            line-height: 1.4;
             padding: 32px 16px;
             min-height: 100vh;
         }
@@ -42,7 +43,7 @@
             padding: 8px 10px 6px;
         }
         .os-header-meta {
-            font-size: 9px;
+            font-size: 13px;
             font-weight: 400;
             color: #000;
             line-height: 1.5;
@@ -53,22 +54,22 @@
         .os-section-bar {
             background: var(--os-dark);
             color: var(--os-white);
-            font-size: 9px;
+            font-size: 12px;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.05em;
-            padding: 3px 8px;
+            padding: 5px 16px;
         }
 
         /* ── Big section title (cream text on dark) ── */
         .os-section-title {
             background: var(--os-dark);
             color: var(--os-white);
-            font-size: 11px;
+            font-size: 18px;
             font-weight: 700;
             text-transform: uppercase;
             text-align: center;
-            padding: 5px 10px;
+            padding: 8px 16px;
         }
 
         /* ── Info grid ─────────────────────────────── */
@@ -78,28 +79,28 @@
         }
         .os-info-table td {
             border: 1px solid #000;
-            padding: 3px 6px;
+            padding: 5px 10px;
             vertical-align: top;
-            font-size: 9px;
+            font-size: 13px;
         }
         .os-info-label {
             font-weight: 700;
-            font-size: 9px;
+            font-size: 12px;
             color: var(--os-black);
         }
         .os-info-value {
             font-weight: 400;
-            font-size: 9px;
+            font-size: 13px;
             color: var(--os-black);
-            min-height: 12px;
+            min-height: 18px;
         }
 
         /* ── Italic description line ─────────────── */
         .os-description {
             font-style: italic;
-            font-size: 9px;
+            font-size: 13px;
             text-align: center;
-            padding: 6px 10px;
+            padding: 10px 16px;
             color: var(--os-black);
         }
 
@@ -117,18 +118,18 @@
         .os-items-table thead th {
             background: var(--os-white);
             border: 1px solid #000;
-            font-size: 9px;
+            font-size: 12px;
             font-weight: 700;
             text-transform: uppercase;
-            padding: 4px 6px;
+            padding: 7px 10px;
             color: var(--os-black);
             text-align: center;
         }
         .os-items-table thead th.th-left { text-align: left; }
         .os-items-table tbody td {
             border: 1px solid #000;
-            padding: 5px 6px;
-            font-size: 9px;
+            padding: 7px 10px;
+            font-size: 13px;
             color: var(--os-black);
             vertical-align: top;
         }
@@ -137,17 +138,34 @@
             color: var(--os-white) !important;
             font-weight: 700;
             text-align: center;
-            width: 36px;
-            font-size: 9px;
+            width: 40px;
+            font-size: 13px;
         }
         .os-items-table tbody td.os-item-name {
+            background: var(--os-dark) !important;
+            color: var(--os-white) !important;
             font-weight: 700;
-            font-size: 9px;
+            font-size: 13px;
             width: 14%;
             text-align: center;
             vertical-align: middle;
         }
-        .os-items-table tbody td.os-item-desc { color: #000; font-size: 9px; }
+        .os-items-table tbody td.os-item-desc { color: #000; font-size: 12px; }
+        .os-items-table tbody tr.item-row td {
+            border-top: 1px solid #000;
+            border-bottom: 1px solid #000;
+        }
+        .os-item-desc-main {
+            display: block;
+        }
+        .os-item-dimensions {
+            margin-top: 6px;
+            display: block;
+        }
+        .os-item-dimension-line {
+            display: block;
+            margin-top: 4px;
+        }
 
         /* ── Extra charges table (design bloco) ───────────────────── */
         .os-extra-table thead th {
@@ -190,19 +208,19 @@
             background: var(--os-dark) !important;
             color: var(--os-white) !important;
             font-weight: 700;
-            font-size: 9px;
-            padding: 4px 6px;
+            font-size: 13px;
+            padding: 7px 10px;
             border: 1px solid #000 !important;
         }
 
         /* ── Footer / pagination ──────────────────── */
         .os-footer {
-            font-size: 8px;
+            font-size: 11px;
             font-weight: 700;
             text-align: right;
-            padding: 3px 10px;
+            padding: 6px 16px;
             color: var(--os-black);
-            border-top: 1px solid #000;
+            border-top: 1px solid var(--os-border);
         }
 
         /* ── Payment conditions ─────────────────────── */
@@ -210,18 +228,18 @@
             border: 1px solid #000;
             padding: 5px 8px;
             margin: 8px 10px;
-            font-size: 9px;
+            font-size: 11px;
         }
         .os-payment strong { font-weight: 700; }
 
         /* ── Status badge ─────────────────────────── */
         .os-badge {
             display: inline-block;
-            font-size: 8px;
+            font-size: 12px;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.05em;
-            padding: 2px 6px;
+            padding: 3px 10px;
             border: 1px solid;
         }
         .os-badge-pending  { color: var(--os-dark); border-color: var(--os-dark); background: var(--os-white); }
@@ -342,14 +360,14 @@
             flex-wrap: wrap;
         }
         .os-action-total { font-size: 11px; color: #555; }
-        .os-action-total strong { font-size: 15px; color: var(--os-black); }
+        .os-action-total strong { font-size: 16px; color: var(--os-black); }
         .os-btn {
             font-family: Arial, Helvetica, sans-serif;
-            font-size: 10px;
+            font-size: 13px;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.05em;
-            padding: 7px 14px;
+            padding: 10px 20px;
             border: 2px solid var(--os-dark);
             cursor: pointer;
             transition: all 0.15s;
@@ -520,30 +538,23 @@
     </div>
     {% endif %}
 
-    <!-- ══ DOCUMENT ═════════════════════════════════════════════════════════ -->
     <div class="os-doc" id="approval-doc">
 
-        <!-- ── Header ─────────────────────────────────────────────────── -->
         <div class="os-header">
             <div style="display:grid;grid-template-columns:1fr auto 1fr;align-items:start;gap:10px;" class="os-header-flex">
-                <!-- Meta – left -->
                 <div class="os-header-meta" style="align-self:start;">
                     <div><strong>Data Proposta:</strong> {{ budget.created_at|date:"d/m/Y" }}</div>
                     <div><strong>Proposta nº</strong> {{ budget.id }}</div>
                 </div>
-                <!-- Logo – center -->
                 <div class="os-header-logo" style="text-align:center;align-self:center;">
                     <img src="{% static 'assets/logo_black.png' %}" alt="Código Eventos"
                          style="height:120px;width:auto;object-fit:contain;display:inline-block;">
                 </div>
-                <!-- QR code – right -->
-                <div style="text-align:right;align-self:start;justify-self: end;">
-                    <img src="{% static 'assets/qr_code_codigo_eventos.png' %}" alt="QR Code" style="display:block;width:70px;height:70px;object-fit:contain;">
+                <div style="text-align:right;align-self:start;">
+                    <img src="{% static 'assets/qr_code_codigo_eventos.png' %}" alt="QR Code" style="display:block;width:70px;height:70px;object-fit:contain;margin-left:auto;">
                     {% if budget.approval_status != 'pending' %}
                     <div style="margin-top:4px;">
-                        <span class="os-badge
-                            {% if budget.approval_status == 'approved' %}os-badge-approved
-                            {% else %}os-badge-rejected{% endif %}">
+                        <span class="os-badge {% if budget.approval_status == 'approved' %}os-badge-approved{% else %}os-badge-rejected{% endif %}">
                             {{ budget.get_approval_status_display }}
                         </span>
                     </div>
@@ -552,7 +563,6 @@
             </div>
         </div>
 
-        <!-- ── Client + Event info ────────────────────────────────────── -->
         <table class="os-info-table">
             <tr>
                 <td class="os-section-bar" style="width:50%;text-align:center;border:1px solid #000;">DADOS CLIENTE</td>
@@ -576,12 +586,10 @@
             </tr>
         </table>
 
-        <!-- ── Description line ───────────────────────────────────────── -->
         <div class="os-description">
             <em>Conforme solicitação, segue abaixo descritivo e custos de locação, das seguintes estruturas:</em>
         </div>
 
-        <!-- ── Section title ──────────────────────────────────────────── -->
         <div class="os-section-title">{{ budget.name }}</div>
 
         <!-- ── Items table ────────────────────────────────────────────── -->
@@ -590,7 +598,7 @@
 
             {% if is_editable %}
             <div class="os-section-bar no-print" style="display:flex;justify-content:space-between;align-items:center;">
-                <span>Itens do Orçamento</span>
+                <span>Itens do Proposta</span>
                 <label style="cursor:pointer;display:flex;align-items:center;gap:4px;">
                     <input type="checkbox" id="select-all" checked class="os-check" style="width:13px;height:13px;">
                     <span style="font-size:8px;text-transform:uppercase;">Selecionar todos</span>
@@ -605,7 +613,6 @@
                         {% if is_editable %}
                         <th style="width:40px;" class="no-print">Sel.</th>
                         {% endif %}
-                        <th style="width:36px;">Nº</th>
                         <th class="th-left" style="width:14%;">Item</th>
                         <th class="th-left">Descritivo</th>
                         {% if budget.has_item_fiscal %}
@@ -626,9 +633,9 @@
                         <!-- Section header row -->
                         <tr class="os-section-row">
                             {% if is_editable %}<td class="no-print"></td>{% endif %}
-                            <td colspan="{% if is_editable %}{% if budget.has_item_fiscal %}6{% else %}4{% endif %}{% else %}{% if budget.has_item_fiscal %}7{% else %}5{% endif %}{% endif %}"
+                            <td colspan="{% if is_editable %}{% if budget.has_item_fiscal %}5{% else %}3{% endif %}{% else %}{% if budget.has_item_fiscal %}6{% else %}4{% endif %}{% endif %}"
                                 style="background:#3f3f3f;color:#eeece1;font-weight:700;font-size:10px;
-                                       text-transform:uppercase;letter-spacing:.05em;padding:6px 8px;">
+                                       text-transform:uppercase;letter-spacing:.05em;padding:6px 8px; text-align: center;">
                                 {{ section.title }}
                             </td>
                         </tr>
@@ -643,15 +650,29 @@
                                     {% if item.is_approved %}checked{% endif %}>
                             </td>
                             {% endif %}
-                            <td class="os-item-num" data-label="Nº">{{ forloop.counter }}</td>
                             <td class="os-item-name" data-label="Item">
                                 {{ item.name }}
                             </td>
                             <td class="os-item-desc" data-label="Descritivo">
-                                <span style="font-weight:600;">{{ item.quantity }}×</span>
-                                {{ item.description|default:"—" }}
-                                {% if item.measurement %}
-                                    · {{ item.measurement }} {{ item.get_measurement_unit_display|default:"" }}{% if item.weight %} · {{ item.weight }} kg{% endif %}
+                                <span class="os-item-desc-main">{{ item.description|default:"—" }}</span>
+                                {% if item.subitems_data %}
+                                <span class="os-item-dimensions">
+                                    {% for sub in item.subitems_data %}
+                                        {% if sub.dim_width and sub.dim_height %}
+                                        <span class="os-item-dimension-line">Dimensão {{ sub.dim_width|floatformat:"2g" }} X {{ sub.dim_height|floatformat:"2g" }}</span>
+                                        {% elif sub.measurement and sub.measurement_unit %}
+                                        <span class="os-item-dimension-line">Dimensão {{ sub.measurement|floatformat:"2g" }} {{ sub.measurement_unit }}</span>
+                                        {% endif %}
+                                    {% endfor %}
+                                </span>
+                                {% elif item.dim_width and item.dim_height %}
+                                <span class="os-item-dimensions">
+                                    <span class="os-item-dimension-line">Dimensão {{ item.dim_width|floatformat:"2g" }} X {{ item.dim_height|floatformat:"2g" }}</span>
+                                </span>
+                                {% elif item.measurement %}
+                                <span class="os-item-dimensions">
+                                    <span class="os-item-dimension-line">Dimensão {{ item.measurement|floatformat:"2g" }} {{ item.get_measurement_unit_display|default:"" }}</span>
+                                </span>
                                 {% endif %}
                             </td>
                             <td class="text-right" data-label="Valor (Qtd.)">R$ {{ item.total_price|floatformat:"2g" }}</td>
@@ -669,6 +690,13 @@
                             </td>
                             {% endif %}
                         </tr>
+                        {% if not forloop.last %}
+                        <tr class="os-separator-row" aria-hidden="true">
+                            {% if is_editable %}<td class="no-print" style="height:10px;padding:0;background:#fff;border:0;"></td>{% endif %}
+                            <td colspan="{% if budget.has_item_fiscal %}5{% else %}3{% endif %}" style="height:10px;padding:0;background:#fff;border:0;"></td>
+                            {% if not is_editable %}<td style="border:0;"></td>{% endif %}
+                        </tr>
+                        {% endif %}
                         {% endfor %}
                         {% endfor %}
                     {% else %}
@@ -684,15 +712,29 @@
                                     {% if item.is_approved %}checked{% endif %}>
                             </td>
                             {% endif %}
-                            <td class="os-item-num" data-label="Nº">{{ forloop.counter }}</td>
                             <td class="os-item-name" data-label="Item">
                                 {{ item.name }}
                             </td>
                             <td class="os-item-desc" data-label="Descritivo">
-                                <span style="font-weight:600;">{{ item.quantity }}×</span>
-                                {{ item.description|default:"—" }}
-                                {% if item.measurement %}
-                                    · {{ item.measurement }} {{ item.get_measurement_unit_display|default:"" }}{% if item.weight %} · {{ item.weight }} kg{% endif %}
+                                <span class="os-item-desc-main">{{ item.description|default:"—" }}</span>
+                                {% if item.subitems_data %}
+                                <span class="os-item-dimensions">
+                                    {% for sub in item.subitems_data %}
+                                        {% if sub.dim_width and sub.dim_height %}
+                                        <span class="os-item-dimension-line">Dimensão {{ sub.dim_width|floatformat:"2g" }} X {{ sub.dim_height|floatformat:"2g" }}</span>
+                                        {% elif sub.measurement and sub.measurement_unit %}
+                                        <span class="os-item-dimension-line">Dimensão {{ sub.measurement|floatformat:"2g" }} {{ sub.measurement_unit }}</span>
+                                        {% endif %}
+                                    {% endfor %}
+                                </span>
+                                {% elif item.dim_width and item.dim_height %}
+                                <span class="os-item-dimensions">
+                                    <span class="os-item-dimension-line">Dimensão {{ item.dim_width|floatformat:"2g" }} X {{ item.dim_height|floatformat:"2g" }}</span>
+                                </span>
+                                {% elif item.measurement %}
+                                <span class="os-item-dimensions">
+                                    <span class="os-item-dimension-line">Dimensão {{ item.measurement|floatformat:"2g" }} {{ item.get_measurement_unit_display|default:"" }}</span>
+                                </span>
                                 {% endif %}
                             </td>
                             <td class="text-right" data-label="Valor (Qtd.)">R$ {{ item.total_price|floatformat:"2g" }}</td>
@@ -710,9 +752,135 @@
                             </td>
                             {% endif %}
                         </tr>
+                        {% if not forloop.last %}
+                        <tr class="os-separator-row" aria-hidden="true">
+                            {% if is_editable %}<td class="no-print" style="height:10px;padding:0;background:#fff;border:0;"></td>{% endif %}
+                            <td colspan="{% if budget.has_item_fiscal %}5{% else %}3{% endif %}" style="height:10px;padding:0;background:#fff;border:0;"></td>
+                            {% if not is_editable %}<td style="border:0;"></td>{% endif %}
+                        </tr>
+                        {% endif %}
                         {% empty %}
-                        <tr><td colspan="{% if budget.has_item_fiscal %}7{% else %}5{% endif %}" style="text-align:center;padding:16px;color:#888;">Nenhum item cadastrado</td></tr>
+                        {% if not budget.extra_charges %}
+                        <tr><td colspan="{% if budget.has_item_fiscal %}6{% else %}4{% endif %}" style="text-align:center;padding:16px;color:#888;">Nenhum item cadastrado</td></tr>
+                        {% endif %}
                         {% endfor %}
+                    {% endif %}
+
+                    {% if budget.extra_charges %}
+                    {% if sections or unsectioned_items %}
+                    <tr class="os-separator-row" aria-hidden="true">
+                        {% if is_editable %}<td class="no-print" style="height:10px;padding:0;background:#fff;border:0;"></td>{% endif %}
+                        <td colspan="{% if budget.has_item_fiscal %}5{% else %}3{% endif %}" style="height:10px;padding:0;background:#fff;border:0;"></td>
+                        {% if not is_editable %}<td style="border:0;"></td>{% endif %}
+                    </tr>
+                    {% endif %}
+                    {% with rows=budget.extra_charges.logistica %}
+                    {% if rows %}
+                    {% for row in rows %}
+                    <tr>
+                        {% if is_editable %}<td class="no-print"></td>{% endif %}
+                        {% if forloop.first %}<td class="os-item-name" rowspan="{{ rows|length }}">Logística</td>{% endif %}
+                        <td class="os-item-desc" data-label="Descritivo">{{ row.label|default:"—" }}</td>
+                        <td class="text-right" data-label="Valor (Qtd.)">R$ {{ row.value|floatformat:"2g" }}</td>
+                        {% if budget.has_item_fiscal %}
+                        <td class="text-right os-item-encargos" data-label="Encargos">—</td>
+                        <td class="text-right os-item-total" data-label="Total" style="font-weight:700;">—</td>
+                        {% endif %}
+                        {% if not is_editable %}<td></td>{% endif %}
+                    </tr>
+                    {% endfor %}
+                    {% endif %}
+                    {% endwith %}
+
+                    {% with rows=budget.extra_charges.apoio %}
+                    {% if rows %}
+                    {% for row in rows %}
+                    <tr>
+                        {% if is_editable %}<td class="no-print"></td>{% endif %}
+                        {% if forloop.first %}<td class="os-item-name" rowspan="{{ rows|length }}">Apoio</td>{% endif %}
+                        <td class="os-item-desc" data-label="Descritivo">{{ row.label|default:"—" }}</td>
+                        <td class="text-right" data-label="Valor (Qtd.)">R$ {{ row.value|floatformat:"2g" }}</td>
+                        {% if budget.has_item_fiscal %}
+                        <td class="text-right os-item-encargos" data-label="Encargos">—</td>
+                        <td class="text-right os-item-total" data-label="Total" style="font-weight:700;">—</td>
+                        {% endif %}
+                        {% if not is_editable %}<td></td>{% endif %}
+                    </tr>
+                    {% endfor %}
+                    {% endif %}
+                    {% endwith %}
+
+                    {% with rows=budget.extra_charges.mao_de_obra %}
+                    {% if rows %}
+                    {% for row in rows|dictsortreversed:"label" %}
+                    <tr>
+                        {% if is_editable %}<td class="no-print"></td>{% endif %}
+                        {% if forloop.first %}<td class="os-item-name" rowspan="{{ rows|length }}">Extra Mão de Obra</td>{% endif %}
+                        <td class="os-item-desc" data-label="Descritivo">{{ row.label|default:"—" }}</td>
+                        <td class="text-right" data-label="Valor (Qtd.)">R$ {{ row.value|floatformat:"2g" }}</td>
+                        {% if budget.has_item_fiscal %}
+                        <td class="text-right os-item-encargos" data-label="Encargos">—</td>
+                        <td class="text-right os-item-total" data-label="Total" style="font-weight:700;">—</td>
+                        {% endif %}
+                        {% if not is_editable %}<td></td>{% endif %}
+                    </tr>
+                    {% endfor %}
+                    {% endif %}
+                    {% endwith %}
+
+                    {% with rows=budget.extra_charges.documentacao %}
+                    {% if rows %}
+                    {% for row in rows %}
+                    <tr>
+                        {% if is_editable %}<td class="no-print"></td>{% endif %}
+                        {% if forloop.first %}<td class="os-item-name" rowspan="{{ rows|length }}">Documentação Legal</td>{% endif %}
+                        <td class="os-item-desc" data-label="Descritivo">{{ row.label|default:"—" }}</td>
+                        <td class="text-right" data-label="Valor (Qtd.)">R$ {{ row.value|floatformat:"2g" }}</td>
+                        {% if budget.has_item_fiscal %}
+                        <td class="text-right os-item-encargos" data-label="Encargos">—</td>
+                        <td class="text-right os-item-total" data-label="Total" style="font-weight:700;">—</td>
+                        {% endif %}
+                        {% if not is_editable %}<td></td>{% endif %}
+                    </tr>
+                    {% endfor %}
+                    {% endif %}
+                    {% endwith %}
+
+                    {% with rows=budget.extra_charges.taxa_feira %}
+                    {% if rows %}
+                    {% for row in rows %}
+                    <tr>
+                        {% if is_editable %}<td class="no-print"></td>{% endif %}
+                        {% if forloop.first %}<td class="os-item-name" rowspan="{{ rows|length }}">Taxa Feira</td>{% endif %}
+                        <td class="os-item-desc" data-label="Descritivo">{{ row.label|default:"—" }}</td>
+                        <td class="text-right" data-label="Valor (Qtd.)">R$ {{ row.value|floatformat:"2g" }}</td>
+                        {% if budget.has_item_fiscal %}
+                        <td class="text-right os-item-encargos" data-label="Encargos">—</td>
+                        <td class="text-right os-item-total" data-label="Total" style="font-weight:700;">—</td>
+                        {% endif %}
+                        {% if not is_editable %}<td></td>{% endif %}
+                    </tr>
+                    {% endfor %}
+                    {% endif %}
+                    {% endwith %}
+
+                    {% with rows=budget.extra_charges.outros %}
+                    {% if rows %}
+                    {% for row in rows %}
+                    <tr>
+                        {% if is_editable %}<td class="no-print"></td>{% endif %}
+                        {% if forloop.first %}<td class="os-item-name" rowspan="{{ rows|length }}">Outros</td>{% endif %}
+                        <td class="os-item-desc" data-label="Descritivo">{{ row.label|default:"—" }}</td>
+                        <td class="text-right" data-label="Valor (Qtd.)">R$ {{ row.value|floatformat:"2g" }}</td>
+                        {% if budget.has_item_fiscal %}
+                        <td class="text-right os-item-encargos" data-label="Encargos">—</td>
+                        <td class="text-right os-item-total" data-label="Total" style="font-weight:700;">—</td>
+                        {% endif %}
+                        {% if not is_editable %}<td></td>{% endif %}
+                    </tr>
+                    {% endfor %}
+                    {% endif %}
+                    {% endwith %}
                     {% endif %}
                 </tbody>
                 <!-- Total row -->
@@ -735,7 +903,6 @@
                                 {% if budget.freight_included %}checked{% endif %}>
                         </td>
                         {% endif %}
-                        <td></td>
                         <td colspan="{% if budget.has_item_fiscal %}3{% else %}2{% endif %}" style="text-align:right;font-weight:600;">
                             Frete
                             {% if budget.freight_urgency %}<span style="font-size:8px;font-weight:400;"> &mdash; {{ budget.freight_urgency.label }}</span>{% endif %}
@@ -751,7 +918,6 @@
                     {% if budget.discount_type != 'none' and budget.discount_value > 0 %}
                     <tr class="os-total-row" style="font-size:10px;font-weight:400;opacity:.85;" id="discount-row-main">
                         {% if is_editable %}<td class="no-print"></td>{% endif %}
-                        <td></td>
                         <td colspan="{% if budget.has_item_fiscal %}3{% else %}2{% endif %}" style="text-align:right;font-weight:600;white-space:nowrap;">
                             Desconto {% if budget.discount_type == 'percent' %}({{ budget.discount_value|floatformat:"2g" }}%){% else %}(R$){% endif %}
                         </td>
@@ -764,27 +930,19 @@
                     {% if budget.has_item_fiscal %}
                     <tr class="os-total-row">
                         {% if is_editable %}<td class="no-print"></td>{% endif %}
-                        <td></td>
-                        <td colspan="2" style="text-align:right;">
-                            {% if budget.extra_charges_total %}SUBTOTAL ITENS{% elif is_editable %}TOTAL SELECIONADO{% else %}TOTAL APROVADO{% endif %}
+                        <td colspan="2" style="text-align:center;">
+                            TOTAIS
                         </td>
-                        <td class="text-right" id="subtotal-value" style="opacity:.8;font-size:11px;">R$ 0,00</td>
-                        <td class="text-right" id="fiscal-charges-value" style="opacity:.8;font-size:11px;">R$ 0,00</td>
-                        <td class="text-right" style="font-size:13px;" {% if not budget.extra_charges_total %}id="total-value"{% else %}id="items-total-value"{% endif %}>
-                            R$ {{ budget.total_value|floatformat:"2g" }}
-                        </td>
+                        <td class="text-right" id="items-total-value" style="opacity:.8;font-size:11px;">R$ {{ budget.total_value|add:budget.extra_charges_total|floatformat:"2g" }}</td>
+                        <td class="text-right" id="fiscal-charges-value" style="opacity:.8;font-size:11px;">R$ {{ budget.fiscal_charges_value|floatformat:"2g" }}</td>
+                        <td class="text-right" id="total-value" style="font-size:13px;">R$ {{ budget.total_value|add:budget.extra_charges_total|add:budget.fiscal_charges_value|floatformat:"2g" }}</td>
                         {% if not is_editable %}<td></td>{% endif %}
                     </tr>
                     {% else %}
                     <tr class="os-total-row">
                         {% if is_editable %}<td class="no-print"></td>{% endif %}
-                        <td></td>
-                        <td colspan="2" style="text-align:right;">
-                            {% if budget.extra_charges_total %}SUBTOTAL ITENS{% elif is_editable %}TOTAL SELECIONADO{% else %}TOTAL APROVADO{% endif %}
-                        </td>
-                        <td class="text-right" style="font-size:13px;" {% if not budget.extra_charges_total %}id="total-value"{% else %}id="items-total-value"{% endif %}>
-                            R$ {{ budget.total_value|floatformat:"2g" }}
-                        </td>
+                        <td colspan="2" style="text-align:right;">TOTAIS</td>
+                        <td class="text-right" id="total-value" style="font-size:13px;">R$ {{ budget.total_value|add:budget.extra_charges_total|floatformat:"2g" }}</td>
                         {% if not is_editable %}<td></td>{% endif %}
                     </tr>
                     {% endif %}
@@ -792,199 +950,12 @@
             </table>
             </div><!-- /os-items-table-wrap -->
 
-            {% if budget.extra_charges %}
-            <div class="os-section-bar" style="margin-top:16px;">
-                <span>Encargos Adicionais</span>
-            </div>
-            <div class="os-items-table-wrap">
-            <table class="os-items-table os-extra-table">
-                <thead>
-                    <tr>
-                        <th style="width:170px;">Grupo</th>
-                        <th style="text-align:center;">Descritivo</th>
-                        <th style="width:130px;">Valor dos Serviços</th>
-                        <th style="width:130px;">Encargos Fiscais</th>
-                        <th style="width:130px;">Valor Total</th>
-                    </tr>
-                </thead>
-                <tbody>
-                {% with rows=budget.extra_charges.logistica %}
-                {% if rows %}
-                {% for row in rows %}
-                <tr>
-                    {% if forloop.first %}
-                    <td class="os-extra-group" rowspan="{{ rows|length }}">Logística</td>
-                    {% endif %}
-                    <td class="os-extra-desc" data-label="Descritivo">{{ row.label|default:"—" }}</td>
-                    <td data-label="Valor dos Serviços"><div class="os-extra-money"><span class="cur">R$</span><span class="val">{{ row.value|floatformat:"2g" }}</span></div></td>
-                    <td data-label="Encargos Fiscais"><div class="os-extra-money"><span class="cur">R$</span><span class="val">-</span></div></td>
-                    <td data-label="Valor Total"><div class="os-extra-money"><span class="cur">R$</span><span class="val">-</span></div></td>
-                </tr>
-                {% endfor %}
-                {% endif %}
-                {% endwith %}
-
-                {% with rows=budget.extra_charges.apoio %}
-                {% if rows %}
-                {% for row in rows %}
-                <tr>
-                    {% if forloop.first %}
-                    <td class="os-extra-group" rowspan="{{ rows|length }}">Apoio</td>
-                    {% endif %}
-                    <td class="os-extra-desc" data-label="Descritivo">{{ row.label|default:"—" }}</td>
-                    <td data-label="Valor dos Serviços"><div class="os-extra-money"><span class="cur">R$</span><span class="val">{{ row.value|floatformat:"2g" }}</span></div></td>
-                    <td data-label="Encargos Fiscais"><div class="os-extra-money"><span class="cur">R$</span><span class="val">-</span></div></td>
-                    <td data-label="Valor Total"><div class="os-extra-money"><span class="cur">R$</span><span class="val">-</span></div></td>
-                </tr>
-                {% endfor %}
-                {% endif %}
-                {% endwith %}
-
-                {% with rows=budget.extra_charges.mao_de_obra %}
-                {% if rows %}
-                {% for row in rows|dictsortreversed:"label" %}
-                <tr>
-                    {% if forloop.first %}
-                    <td class="os-extra-group" rowspan="{{ rows|length }}">Extra Mão de Obra</td>
-                    {% endif %}
-                    <td class="os-extra-desc" data-label="Descritivo">{{ row.label|default:"—" }}</td>
-                    <td data-label="Valor dos Serviços"><div class="os-extra-money"><span class="cur">R$</span><span class="val">{{ row.value|floatformat:"2g" }}</span></div></td>
-                    <td data-label="Encargos Fiscais"><div class="os-extra-money"><span class="cur">R$</span><span class="val">-</span></div></td>
-                    <td data-label="Valor Total"><div class="os-extra-money"><span class="cur">R$</span><span class="val">-</span></div></td>
-                </tr>
-                {% endfor %}
-                {% endif %}
-                {% endwith %}
-
-                {% with rows=budget.extra_charges.documentacao %}
-                {% if rows %}
-                {% for row in rows %}
-                <tr>
-                    {% if forloop.first %}
-                    <td class="os-extra-group" rowspan="{{ rows|length }}">Documentação Legal</td>
-                    {% endif %}
-                    <td class="os-extra-desc" data-label="Descritivo">{{ row.label|default:"—" }}</td>
-                    <td data-label="Valor dos Serviços"><div class="os-extra-money"><span class="cur">R$</span><span class="val">{{ row.value|floatformat:"2g" }}</span></div></td>
-                    <td data-label="Encargos Fiscais"><div class="os-extra-money"><span class="cur">R$</span><span class="val">-</span></div></td>
-                    <td data-label="Valor Total"><div class="os-extra-money"><span class="cur">R$</span><span class="val">-</span></div></td>
-                </tr>
-                {% endfor %}
-                {% endif %}
-                {% endwith %}
-
-                {% with rows=budget.extra_charges.taxa_feira %}
-                {% if rows %}
-                {% for row in rows %}
-                <tr>
-                    {% if forloop.first %}
-                    <td class="os-extra-group" rowspan="{{ rows|length }}">Taxa Feira</td>
-                    {% endif %}
-                    <td class="os-extra-desc" data-label="Descritivo">{{ row.label|default:"—" }}</td>
-                    <td data-label="Valor dos Serviços"><div class="os-extra-money"><span class="cur">R$</span><span class="val">{{ row.value|floatformat:"2g" }}</span></div></td>
-                    <td data-label="Encargos Fiscais"><div class="os-extra-money"><span class="cur">R$</span><span class="val">-</span></div></td>
-                    <td data-label="Valor Total"><div class="os-extra-money"><span class="cur">R$</span><span class="val">-</span></div></td>
-                </tr>
-                {% endfor %}
-                {% endif %}
-                {% endwith %}
-
-                {% with rows=budget.extra_charges.outros %}
-                {% if rows %}
-                {% for row in rows %}
-                <tr>
-                    {% if forloop.first %}
-                    <td class="os-extra-group" rowspan="{{ rows|length }}">Outros</td>
-                    {% endif %}
-                    <td class="os-extra-desc" data-label="Descritivo">{{ row.label|default:"—" }}</td>
-                    <td data-label="Valor dos Serviços"><div class="os-extra-money"><span class="cur">R$</span><span class="val">{{ row.value|floatformat:"2g" }}</span></div></td>
-                    <td data-label="Encargos Fiscais"><div class="os-extra-money"><span class="cur">R$</span><span class="val">-</span></div></td>
-                    <td data-label="Valor Total"><div class="os-extra-money"><span class="cur">R$</span><span class="val">-</span></div></td>
-                </tr>
-                {% endfor %}
-                {% endif %}
-                {% endwith %}
-                </tbody>
-                <tfoot>
-                    <tr class="os-total-row">
-                        <td></td>
-                        <td style="text-align:right;">TOTAL ENCARGOS ADICIONAIS</td>
-                        <td class="text-right" style="font-size:12px;">R$ {{ budget.extra_charges_total|floatformat:"2g" }}</td>
-                        <td class="text-right" style="font-size:12px;">R$ {{ budget.extra_charges_fiscal_total|floatformat:"2g" }}</td>
-                        <td class="text-right" style="font-size:14px;">R$ {{ budget.extra_charges_total|add:budget.extra_charges_fiscal_total|floatformat:"2g" }}</td>
-                    </tr>
-                </tfoot>
-            </table>
-            </div><!-- /extra-charges-table-wrap -->
-            {% endif %}
-
-            <!-- ── Grand summary (only when extra charges exist) ──────── -->
-            {% if budget.extra_charges_total %}
-            <div class="os-items-table-wrap" style="margin-top:16px;">
-            <table class="os-items-table">
-                <tfoot>
-                    <tr class="os-total-row" style="font-size:11px;font-weight:400;opacity:.8;">
-                        {% if is_editable %}<td class="no-print"></td>{% endif %}
-                        <td></td>
-                        <td colspan="{% if budget.has_item_fiscal %}3{% else %}2{% endif %}" style="text-align:right;">Total dos Itens</td>
-                        {% if budget.has_item_fiscal %}<td></td>{% endif %}
-                        <td class="text-right" id="items-total-value">R$ {{ budget.total_value|floatformat:"2g" }}</td>
-                        {% if not is_editable %}<td></td>{% endif %}
-                    </tr>
-                    {% if budget.freight_cost %}
-                    <tr class="os-total-row" style="font-size:11px;font-weight:400;opacity:.8;">
-                        {% if is_editable %}<td class="no-print"></td>{% endif %}
-                        <td></td>
-                        <td colspan="{% if budget.has_item_fiscal %}3{% else %}2{% endif %}" style="text-align:right;">
-                            Frete{% if budget.freight_urgency %} — {{ budget.freight_urgency.label }}{% endif %}
-                        </td>
-                        {% if budget.has_item_fiscal %}<td></td>{% endif %}
-                        <td class="text-right">R$ {{ budget.freight_cost|floatformat:"2g" }}</td>
-                        {% if not is_editable %}<td></td>{% endif %}
-                    </tr>
-                    {% endif %}
-                    {% if budget.extra_charges_total %}
-                    <tr class="os-total-row" style="font-size:11px;font-weight:400;opacity:.8;">
-                        {% if is_editable %}<td class="no-print"></td>{% endif %}
-                        <td></td>
-                        <td colspan="{% if budget.has_item_fiscal %}3{% else %}2{% endif %}" style="text-align:right;">Total dos Encargos Adicionais</td>
-                        {% if budget.has_item_fiscal %}<td></td>{% endif %}
-                        <td class="text-right">R$ {{ budget.extra_charges_total|floatformat:"2g" }}</td>
-                        {% if not is_editable %}<td></td>{% endif %}
-                    </tr>
-                    {% endif %}
-                    {% if budget.discount_type != 'none' and budget.discount_value > 0 %}
-                    <tr class="os-total-row" style="font-size:11px;font-weight:400;opacity:.85;">
-                        {% if is_editable %}<td class="no-print"></td>{% endif %}
-                        <td></td>
-                        <td colspan="{% if budget.has_item_fiscal %}3{% else %}2{% endif %}" style="text-align:right;white-space:nowrap;">
-                            Desconto {% if budget.discount_type == 'percent' %}({{ budget.discount_value|floatformat:"2g" }}%){% else %}(R$){% endif %}
-                        </td>
-                        {% if budget.has_item_fiscal %}<td></td>{% endif %}
-                        <td class="text-right" id="discount-value-grand" style="white-space:nowrap;font-size:11px;font-weight:400;opacity:.8;">-R$ {{ budget.discount_amount|floatformat:"2g" }}</td>
-                        {% if not is_editable %}<td></td>{% endif %}
-                    </tr>
-                    {% endif %}
-                    <tr class="os-total-row">
-                        {% if is_editable %}<td class="no-print"></td>{% endif %}
-                        <td></td>
-                        <td colspan="{% if budget.has_item_fiscal %}3{% else %}2{% endif %}" style="text-align:right;">VALOR TOTAL</td>
-                        {% if budget.has_item_fiscal %}<td></td>{% endif %}
-                        <td class="text-right" style="font-size:15px;" id="total-value">
-                            {% if is_editable %}R$ {{ budget.total_with_freight|floatformat:"2g" }}{% else %}R$ {{ budget.approved_value|floatformat:"2g" }}{% endif %}
-                        </td>
-                        {% if not is_editable %}<td></td>{% endif %}
-                    </tr>
-                </tfoot>
-            </table>
-            </div><!-- /grand-summary-wrap -->
-            {% endif %}
-
             <!-- ── Notes (editable only) ──────────────────────────────── -->
             {% if is_editable %}
             <div class="os-notes-section no-print">
                 <div class="os-notes-label">Observações / Comentários (opcional)</div>
                 <textarea name="notes" id="notes" rows="3" class="os-notes-textarea"
-                    placeholder="Adicione comentários ou dúvidas sobre este orçamento..."></textarea>
+                    placeholder="Adicione comentários ou dúvidas sobre este proposta..."></textarea>
             </div>
             {% endif %}
 
@@ -999,7 +970,7 @@
             <!-- ── Read-only status footer ────────────────────────────── -->
             {% if not is_editable %}
             <div style="background:var(--os-cream);padding:8px 16px;text-align:center;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--os-dark);border-top:1px solid var(--os-dark);">
-                Este orçamento foi {{ budget.get_approval_status_display|upper }}
+                Este proposta foi {{ budget.get_approval_status_display|upper }}
                 e não pode mais ser modificado.
                 {% if budget.approved_at %}
                 · {{ budget.approved_at|date:"d/m/Y \à\s H:i" }}
@@ -1012,20 +983,23 @@
 
         <!-- ── Footer ─────────────────────────────────────────────────── -->
         <!-- ── Condições de Pagamento ──────────────────────────────────── -->
+        {% if budget.payment_info %}
         <div class="os-payment">
-            <strong>Condições de Pagamento:</strong> 50% na confirmação e saldo na entrega dos serviços.
+            <div><strong>CONDIÇÕES DE PAGAMENTO:</strong> <strong>Valor integral R$ {{ budget.total_with_freight|floatformat:"2g" }}</strong></div>
+            {{ budget.payment_info|format_payment_info }}
         </div>
+        {% endif %}
 
         <!-- ── Observações fixas ──────────────────────────────────────── -->
-        <div style="padding:8px 10px;border-top:1px solid #c0c0c0;font-size:9px;color:#333;line-height:1.6;">
+        <div style="padding:8px 10px;border-top:1px solid #c0c0c0;font-size:9px;color:#333;line-height:1.6;text-align:center;">
             <div style="font-size:9px;font-weight:700;text-align:center;text-transform:uppercase;letter-spacing:0.05em;color:#000;margin-bottom:4px;">Observações:</div>
             <p style="margin-bottom:4px;"><strong>1)</strong> Os valores indicados acima <em>não contemplam</em> os seguintes itens:</p>
-            <p style="margin-left:12px;margin-bottom:2px;">*Equipamentos eletrônicos e computadores;</p>
-            <p style="margin-left:12px;margin-bottom:2px;">*Cálculo Estrutural;</p>
-            <p style="margin-left:12px;margin-bottom:6px;">*Laudo e Ignifugação dos materiais;</p>
+            <p style="margin:0 0 2px 0;">*Equipamentos eletrônicos e computadores;</p>
+            <p style="margin:0 0 2px 0;">*Cálculo Estrutural;</p>
+            <p style="margin:0 0 6px 0;">*Laudo e Ignifugação dos materiais;</p>
             <p style="margin-bottom:4px;"><strong>2)</strong> O cliente deverá fornecer os seguintes itens:</p>
-            <p style="margin-left:12px;margin-bottom:2px;">* Ponto de AC, para interligação dos equipamentos de luz e elétrica;</p>
-            <p style="margin-left:12px;">*Artes em alta definição para confecção dos itens de comunicação.</p>
+            <p style="margin:0 0 2px 0;">* Ponto de AC, para interligação dos equipamentos de luz e elétrica;</p>
+            <p style="margin:0;">*Artes em alta definição para confecção dos itens de comunicação.</p>
         </div>
 
         <div class="os-footer">Pagina 1/1</div>
@@ -1112,19 +1086,20 @@
                     if (freightRow) freightRow.style.opacity = '0.35';
                 }
             }
+            const servicesTotal = subtotal + extraChargesTotal;
+            const fiscalAll = fiscalTotal + extraChargesFiscalTotal;
+            const totalsRowValue = servicesTotal + fiscalAll;
             total += extraChargesTotal + extraChargesFiscalTotal;
             const discount = calcDiscount(total);
             total -= discount;
             const el = document.getElementById('total-value');
             const bar = document.getElementById('total-bar');
-            const subtotalEl = document.getElementById('subtotal-value');
             const fiscalEl = document.getElementById('fiscal-charges-value');
             const itemsEl = document.getElementById('items-total-value');
-            if (el) el.textContent = fmt(total);
+            if (el) el.textContent = fmt(totalsRowValue);
             if (bar) bar.textContent = fmt(total);
-            if (subtotalEl) subtotalEl.textContent = fmt(subtotal);
-            if (fiscalEl) fiscalEl.textContent = fmt(fiscalTotal + extraChargesFiscalTotal);
-            if (itemsEl) itemsEl.textContent = fmt(subtotal + fiscalTotal);
+            if (fiscalEl) fiscalEl.textContent = fmt(fiscalAll);
+            if (itemsEl) itemsEl.textContent = fmt(servicesTotal);
             updateDiscountDisplay(discount);
         }
 
@@ -1149,16 +1124,17 @@
             if (freightRowRO) freightRowRO.style.opacity = '0.35';
             {% endif %}
             sum += extraChargesTotal;
+            const servicesRO = subtotalRO + extraChargesTotal;
+            const fiscalAllRO = fiscalRO + extraChargesFiscalTotal;
+            const totalsRowRO = servicesRO + fiscalAllRO;
             const discountRO = calcDiscount(sum);
             sum -= discountRO;
             const el = document.getElementById('total-value');
-            if (el) el.textContent = fmt(sum);
-            const subtotalEl = document.getElementById('subtotal-value');
+            if (el) el.textContent = fmt(totalsRowRO);
             const fiscalEl = document.getElementById('fiscal-charges-value');
             const itemsElRO = document.getElementById('items-total-value');
-            if (subtotalEl) subtotalEl.textContent = fmt(subtotalRO);
-            if (fiscalEl) fiscalEl.textContent = fmt(fiscalRO + extraChargesFiscalTotal);
-            if (itemsElRO) itemsElRO.textContent = fmt(subtotalRO + fiscalRO);
+            if (fiscalEl) fiscalEl.textContent = fmt(fiscalAllRO);
+            if (itemsElRO) itemsElRO.textContent = fmt(servicesRO);
             updateDiscountDisplay(discountRO);
         }
 
@@ -1200,7 +1176,7 @@
                     : '<p style="color:#999;font-style:italic;">Nenhum</p>';
 
                 mBody.innerHTML = `
-                    <p style="margin-bottom:8px;">Após confirmar, este orçamento ficará <strong>bloqueado para edição</strong>.</p>
+                    <p style="margin-bottom:8px;">Após confirmar, este proposta ficará <strong>bloqueado para edição</strong>.</p>
                     <div style="border:1px solid #c0c0c0;padding:8px;margin-bottom:8px;">
                         <div style="font-size:9px;font-weight:700;text-transform:uppercase;color:#3f3f3f;margin-bottom:4px;">✓ Serão aprovados (${approved.length})</div>
                         ${list(approved, '✓')}
@@ -1210,7 +1186,7 @@
                         ${list(not, '✗')}
                     </div>` : ''}`;
             } else {
-                mBody.innerHTML = '<p>Você está prestes a <strong>rejeitar</strong> este orçamento. Esta ação não poderá ser desfeita.</p>';
+                mBody.innerHTML = '<p>Você está prestes a <strong>rejeitar</strong> este proposta. Esta ação não poderá ser desfeita.</p>';
             }
 
             aInput.value = action;

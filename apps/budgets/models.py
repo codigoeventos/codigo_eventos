@@ -84,6 +84,13 @@ class Budget(BaseModel):
         help_text='Comentários do cliente na aprovação'
     )
 
+    payment_info = models.TextField(
+        'Informações de Pagamento',
+        blank=True,
+        default='',
+        help_text='Bloco exibido antes das observações no documento público'
+    )
+
     # ── Logistics / Freight ──────────────────────────────────────────────
     freight_cost = models.DecimalField(
         'Custo de Frete (R$)',
@@ -523,6 +530,37 @@ class ItemDescription(models.Model):
     class Meta:
         verbose_name = 'Descrição de Item'
         verbose_name_plural = 'Descrições de Itens'
+        ordering = ['title']
+
+    def __str__(self):
+        return self.title
+
+
+class PaymentInfoTemplate(models.Model):
+    """
+    Reusable payment information library.
+
+    Pre-defined payment blocks that can be selected in the budget form
+    and copied to Budget.payment_info.
+    """
+
+    title = models.CharField(
+        'Título',
+        max_length=255,
+        help_text='Nome curto exibido no seletor (ex.: "Dados bancários padrão")'
+    )
+
+    body = models.TextField(
+        'Informações de Pagamento',
+        blank=True,
+        help_text='Texto completo que será copiado para o orçamento'
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Informação de Pagamento'
+        verbose_name_plural = 'Informações de Pagamento'
         ordering = ['title']
 
     def __str__(self):

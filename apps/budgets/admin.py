@@ -4,7 +4,7 @@ Admin configuration for budgets app.
 
 from django.contrib import admin
 from simple_history.admin import SimpleHistoryAdmin
-from .models import Budget, BudgetItem, BudgetSection, ItemDescription
+from .models import Budget, BudgetItem, BudgetSection, ItemDescription, PaymentInfoTemplate
 
 
 class BudgetSectionInline(admin.TabularInline):
@@ -78,6 +78,19 @@ class ItemDescriptionAdmin(admin.ModelAdmin):
     ordering      = ('title',)
 
     @admin.display(description='Descrição (prévia)')
+    def body_preview(self, obj):
+        return obj.body[:80] + '…' if len(obj.body) > 80 else obj.body
+
+
+@admin.register(PaymentInfoTemplate)
+class PaymentInfoTemplateAdmin(admin.ModelAdmin):
+    """Admin interface for the payment info library."""
+
+    list_display = ('title', 'body_preview', 'created_at')
+    search_fields = ('title', 'body')
+    ordering = ('title',)
+
+    @admin.display(description='Conteúdo (prévia)')
     def body_preview(self, obj):
         return obj.body[:80] + '…' if len(obj.body) > 80 else obj.body
 

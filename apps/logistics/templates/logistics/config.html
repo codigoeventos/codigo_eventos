@@ -12,7 +12,7 @@
     <div>
         <h3 class="text-lg font-semibold text-gray-900">Painel de Configuração de Frete</h3>
         <p class="text-sm text-gray-500 mt-1">
-            Defina as tabelas de preço e regras para o cálculo automático de frete nos orçamentos.
+            Defina as tabelas de preço e regras para o cálculo automático de frete nos propostas.
         </p>
     </div>
 </div>
@@ -34,7 +34,7 @@
                 {% if form.fixed_delivery_fee.errors %}
                     <p class="text-red-600 text-xs mt-1">{{ form.fixed_delivery_fee.errors.0 }}</p>
                 {% endif %}
-                <p class="text-xs text-gray-400 mt-1">Adicionada a todos os orçamentos independentemente do peso/volume.</p>
+                <p class="text-xs text-gray-400 mt-1">Adicionada a todos os propostas independentemente do peso/volume.</p>
             </div>
 
             <div>
@@ -45,7 +45,7 @@
                 {% if form.percentage_on_total.errors %}
                     <p class="text-red-600 text-xs mt-1">{{ form.percentage_on_total.errors.0 }}</p>
                 {% endif %}
-                <p class="text-xs text-gray-400 mt-1">Ex: 5.00 = 5% do valor total do orçamento.</p>
+                <p class="text-xs text-gray-400 mt-1">Ex: 5.00 = 5% do valor total do proposta.</p>
             </div>
 
             <div>
@@ -333,11 +333,11 @@
         Como o cálculo funciona
     </h4>
     <ol class="text-sm text-blue-800 space-y-1.5 list-decimal list-inside">
-        <li>O sistema soma o <strong>peso total</strong> e o <strong>volume total (m³)</strong> de todos os itens do orçamento.</li>
+        <li>O sistema soma o <strong>peso total</strong> e o <strong>volume total (m³)</strong> de todos os itens do proposta.</li>
         <li>Cada total é consultado na respectiva tabela de faixas para obter o custo base.</li>
         <li>Os dois custos são combinados conforme o <strong>Modo de Cálculo</strong> escolhido acima.</li>
-        <li>A <strong>Taxa Fixa</strong> e o <strong>Percentual</strong> sobre o total do orçamento são somados ao custo base.</li>
-        <li>O resultado é multiplicado pelo <strong>fator de urgência</strong> selecionado no orçamento.</li>
+        <li>A <strong>Taxa Fixa</strong> e o <strong>Percentual</strong> sobre o total do proposta são somados ao custo base.</li>
+        <li>O resultado é multiplicado pelo <strong>fator de urgência</strong> selecionado no proposta.</li>
         <li>Se o frete por distância estiver habilitado, o custo adicional por km também é incluído.</li>
     </ol>
 </div>

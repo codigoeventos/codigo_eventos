@@ -221,7 +221,7 @@ function openProjectDeleteModal(projectId, projectTitle, eventName, budgetsCount
     `;
     
     const warning = budgetsCount > 0 
-        ? `Este projeto possui ${budgetsCount} orçamento${budgetsCount > 1 ? 's' : ''} associado${budgetsCount > 1 ? 's' : ''}.`
+        ? `Este projeto possui ${budgetsCount} proposta${budgetsCount > 1 ? 's' : ''} associado${budgetsCount > 1 ? 's' : ''}.`
         : null;
     
     openDeleteModal(deleteUrl, `o projeto "${projectTitle}"`, itemDetails, warning, redirectUrl);

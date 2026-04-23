@@ -17,7 +17,7 @@ from django.utils import timezone
 from django.contrib import messages
 
 from apps.common.mixins import AuditMixin
-from .models import Budget, BudgetItem, BudgetSection, ItemDescription
+from .models import Budget, BudgetItem, BudgetSection, ItemDescription, PaymentInfoTemplate
 from .forms import BudgetForm, BudgetSearchForm, BudgetItemFormSet
 
 
@@ -336,6 +336,9 @@ class BudgetCreateView(LoginRequiredMixin, AuditMixin, SuccessMessageMixin, Crea
         context['item_descriptions_json'] = json.dumps(
             list(ItemDescription.objects.values('id', 'title', 'body'))
         )
+        context['payment_info_templates_json'] = json.dumps(
+            list(PaymentInfoTemplate.objects.values('id', 'title', 'body'))
+        )
 
         return context
 
@@ -395,6 +398,9 @@ class BudgetUpdateView(LoginRequiredMixin, AuditMixin, SuccessMessageMixin, Upda
         # Pass item descriptions for the select dropdown
         context['item_descriptions_json'] = json.dumps(
             list(ItemDescription.objects.values('id', 'title', 'body'))
+        )
+        context['payment_info_templates_json'] = json.dumps(
+            list(PaymentInfoTemplate.objects.values('id', 'title', 'body'))
         )
 
         return context
@@ -901,4 +907,60 @@ class ItemDescriptionDetailView(LoginRequiredMixin, View):
     def delete(self, request, pk):
         desc = get_object_or_404(ItemDescription, pk=pk)
         desc.delete()
+        return JsonResponse({'ok': True})
+
+
+class PaymentInfoTemplateListCreateView(LoginRequiredMixin, View):
+    """
+    GET  /budgets/payment-info-templates/      → JSON list of all templates
+    POST /budgets/payment-info-templates/      → create and return new template
+    """
+
+    def get(self, request):
+        templates = list(PaymentInfoTemplate.objects.values('id', 'title', 'body'))
+        return JsonResponse(templates, safe=False)
+
+    def post(self, request):
+        try:
+            data = json.loads(request.body)
+        except (json.JSONDecodeError, ValueError):
+            data = request.POST.dict()
+
+        title = (data.get('title') or '').strip()
+        body = (data.get('body') or '').strip()
+
+        if not title:
+            return JsonResponse({'error': 'Título é obrigatório.'}, status=400)
+
+        template = PaymentInfoTemplate.objects.create(title=title, body=body)
+        return JsonResponse({'id': template.id, 'title': template.title, 'body': template.body}, status=201)
+
+
+class PaymentInfoTemplateDetailView(LoginRequiredMixin, View):
+    """
+    PATCH  /budgets/payment-info-templates/<pk>/  → update title/body
+    DELETE /budgets/payment-info-templates/<pk>/  → delete
+    """
+
+    def patch(self, request, pk):
+        template = get_object_or_404(PaymentInfoTemplate, pk=pk)
+        try:
+            data = json.loads(request.body)
+        except (json.JSONDecodeError, ValueError):
+            return JsonResponse({'error': 'JSON inválido.'}, status=400)
+
+        title = (data.get('title') or '').strip()
+        body = (data.get('body') or '').strip()
+
+        if not title:
+            return JsonResponse({'error': 'Título é obrigatório.'}, status=400)
+
+        template.title = title
+        template.body = body
+        template.save()
+        return JsonResponse({'id': template.id, 'title': template.title, 'body': template.body})
+
+    def delete(self, request, pk):
+        template = get_object_or_404(PaymentInfoTemplate, pk=pk)
+        template.delete()
         return JsonResponse({'ok': True})

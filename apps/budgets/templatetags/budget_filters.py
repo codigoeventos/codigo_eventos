@@ -1,4 +1,6 @@
 from django import template
+from django.utils.html import escape
+from django.utils.safestring import mark_safe
 
 register = template.Library()
 
@@ -31,3 +33,35 @@ def brl3(value):
         return value or ''
     formatted = f"{value:,.3f}"
     return formatted.replace(',', 'X').replace('.', ',').replace('X', '.')
+
+
+@register.filter
+def format_payment_info(value):
+    """
+    Render payment lines with bold titles before ':'
+    while keeping values escaped.
+    """
+    if not value:
+        return ''
+
+    lines = str(value).splitlines()
+    rendered_lines = []
+
+    for line in lines:
+        text = line.strip()
+        if not text:
+            rendered_lines.append('')
+            continue
+
+        if ':' in text:
+            title, rest = text.split(':', 1)
+            title_html = f"<strong>{escape(title.strip())}:</strong>"
+            rest_text = rest.strip()
+            if rest_text:
+                rendered_lines.append(f"{title_html} {escape(rest_text)}")
+            else:
+                rendered_lines.append(title_html)
+        else:
+            rendered_lines.append(escape(text))
+
+    return mark_safe('<br>'.join(rendered_lines))
