@@ -167,6 +167,88 @@
             </dl>
         </div>
 
+        <!-- ART -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold text-gray-900">ART</h3>
+                {% if not service_order_art %}
+                <button type="button" onclick="openArtGenerateModal()"
+                    class="text-sm text-black hover:underline font-medium flex items-center gap-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    Gerar ART
+                </button>
+                {% endif %}
+            </div>
+
+            {% if service_order_art %}
+            <div class="space-y-3">
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div>
+                        <p class="text-sm font-medium text-gray-900">{{ service_order_art.art_number }}</p>
+                        <p class="text-xs text-gray-500">Emitida em: {{ service_order_art.created_at|date:"d/m/Y" }}</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <a href="{% url 'art:detail' service_order_art.pk %}"
+                            class="px-3 py-1.5 text-xs bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
+                            Detalhes
+                        </a>
+                        <a href="{{ service_order_art.get_public_url }}" target="_blank"
+                            class="px-3 py-1.5 text-xs bg-black text-white rounded-lg hover:bg-gray-800 transition-all flex items-center gap-1">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                            </svg>
+                            Link Público
+                        </a>
+                    </div>
+                </div>
+
+                <div class="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                    <form method="post" action="{% url 'art:file_upload' service_order_art.pk %}" enctype="multipart/form-data" class="space-y-2">
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                        <label class="block text-xs font-medium text-gray-700">Arquivos vinculados à ART</label>
+                        <input type="file" name="files" multiple
+                            accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.zip,.rar"
+                            class="w-full text-xs text-gray-700 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-medium file:bg-gray-200 file:text-gray-700 hover:file:bg-gray-300">
+                        <div class="flex justify-end">
+                            <button type="submit" class="px-3 py-1.5 text-xs bg-black text-white rounded-lg hover:bg-gray-800 transition-all">
+                                Enviar Arquivo(s)
+                            </button>
+                        </div>
+                    </form>
+
+                    {% if service_order_art.files.all %}
+                    <div class="mt-3 space-y-2">
+                        {% for afile in service_order_art.files.all %}
+                        <div class="flex items-center justify-between p-2 bg-white border border-gray-200 rounded-lg">
+                            <a href="{{ afile.file.url }}" target="_blank" class="text-xs text-blue-600 hover:underline truncate max-w-xs" title="{{ afile.name|default:afile.filename }}">
+                                {{ afile.name|default:afile.filename }}
+                            </a>
+                            <form method="post" action="{% url 'art:file_delete' afile.pk %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                <button type="submit" class="p-1 text-gray-400 hover:text-red-600 transition-colors" title="Remover">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                </button>
+                            </form>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="mt-2 text-xs text-gray-400">Nenhum arquivo vinculado à ART.</p>
+                    {% endif %}
+                </div>
+            </div>
+            {% else %}
+            <p class="text-sm text-gray-500 text-center py-4">Nenhuma ART emitida para esta OS</p>
+            {% endif %}
+        </div>
+
         <!-- Project Link -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <h3 class="text-lg font-semibold text-gray-900 mb-4">Projeto</h3>
@@ -176,6 +258,100 @@
         </div>
     </div>
 </div>
+
+{% if not service_order_art %}
+<div id="art-generate-modal" class="fixed inset-0 z-50 hidden">
+    <div class="absolute inset-0 bg-black/40" onclick="closeArtGenerateModal()"></div>
+    <div class="relative mx-auto mt-8 w-[95%] max-w-5xl rounded-lg bg-white shadow-xl border border-gray-200">
+        <div class="flex items-center justify-between border-b border-gray-200 px-6 py-4">
+            <h3 class="text-lg font-semibold text-gray-900">Gerar ART</h3>
+            <button type="button" onclick="closeArtGenerateModal()" class="text-gray-500 hover:text-gray-700">✕</button>
+        </div>
+
+        <form method="post" action="{% url 'art:generate' service_order.pk %}" class="max-h-[80vh] overflow-y-auto px-6 py-5 space-y-6">
+            {% csrf_token %}
+
+            <div>
+                <h4 class="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">Contratado</h4>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div class="md:col-span-2"><label class="block text-xs font-medium text-gray-600 mb-1">Endereço</label><input type="text" name="client_address" value="{{ art_initial.client_address|default:'' }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg"></div>
+                    <div><label class="block text-xs font-medium text-gray-600 mb-1">N°</label><input type="text" name="client_number" value="{{ art_initial.client_number|default:'' }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg"></div>
+                    <div><label class="block text-xs font-medium text-gray-600 mb-1">Complemento</label><input type="text" name="client_complement" value="{{ art_initial.client_complement|default:'' }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg"></div>
+                    <div><label class="block text-xs font-medium text-gray-600 mb-1">Bairro</label><input type="text" name="client_neighborhood" value="{{ art_initial.client_neighborhood|default:'' }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg"></div>
+                    <div><label class="block text-xs font-medium text-gray-600 mb-1">Cidade</label><input type="text" name="client_city" value="{{ art_initial.client_city|default:'' }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg"></div>
+                    <div><label class="block text-xs font-medium text-gray-600 mb-1">UF</label><input type="text" maxlength="2" name="client_state" value="{{ art_initial.client_state|default:'' }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg"></div>
+                    <div><label class="block text-xs font-medium text-gray-600 mb-1">CEP</label><input type="text" name="client_zip" value="{{ art_initial.client_zip|default:'' }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg"></div>
+                    <div class="md:col-span-2">
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Tipo de Contratante</label>
+                        <select name="tipo_contratante" class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white">
+                            <option value="">Selecione</option>
+                            <option value="pf_privado" {% if art_initial.tipo_contratante == 'pf_privado' %}selected{% endif %}>Pessoa Física de Direito Privado</option>
+                            <option value="pj_privado" {% if art_initial.tipo_contratante == 'pj_privado' %}selected{% endif %}>Pessoa Jurídica de Direito Privado</option>
+                            <option value="pf_publico" {% if art_initial.tipo_contratante == 'pf_publico' %}selected{% endif %}>Pessoa Física de Direito Público</option>
+                            <option value="pj_publico" {% if art_initial.tipo_contratante == 'pj_publico' %}selected{% endif %}>Pessoa Jurídica de Direito Público</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <h4 class="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">Obra / Serviço</h4>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div class="md:col-span-2"><label class="block text-xs font-medium text-gray-600 mb-1">Endereço</label><input type="text" name="obra_address" value="{{ art_initial.obra_address|default:'' }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg"></div>
+                    <div><label class="block text-xs font-medium text-gray-600 mb-1">N°</label><input type="text" name="obra_number" value="{{ art_initial.obra_number|default:'' }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg"></div>
+                    <div><label class="block text-xs font-medium text-gray-600 mb-1">Complemento</label><input type="text" name="obra_complement" value="{{ art_initial.obra_complement|default:'' }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg"></div>
+                    <div><label class="block text-xs font-medium text-gray-600 mb-1">Bairro</label><input type="text" name="obra_neighborhood" value="{{ art_initial.obra_neighborhood|default:'' }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg"></div>
+                    <div><label class="block text-xs font-medium text-gray-600 mb-1">Cidade</label><input type="text" name="obra_city" value="{{ art_initial.obra_city|default:'' }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg"></div>
+                    <div><label class="block text-xs font-medium text-gray-600 mb-1">UF</label><input type="text" maxlength="2" name="obra_state" value="{{ art_initial.obra_state|default:'' }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg"></div>
+                    <div><label class="block text-xs font-medium text-gray-600 mb-1">CEP</label><input type="text" name="obra_zip" value="{{ art_initial.obra_zip|default:'' }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg"></div>
+                </div>
+            </div>
+
+            <div>
+                <h4 class="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">Atividades Técnicas</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div><label class="block text-xs font-medium text-gray-600 mb-1">Nível de Atuação</label><input type="text" name="nivel_atuacao" value="{{ art_initial.nivel_atuacao|default:'' }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg"></div>
+                    <div><label class="block text-xs font-medium text-gray-600 mb-1">Atividade</label><input type="text" name="atividade" value="{{ art_initial.atividade|default:'' }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg"></div>
+                    <div><label class="block text-xs font-medium text-gray-600 mb-1">Complemento</label><input type="text" name="atividade_complemento" value="{{ art_initial.atividade_complemento|default:'' }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg"></div>
+                    <div><label class="block text-xs font-medium text-gray-600 mb-1">Obra / Serviço</label><input type="text" name="obra_servico" value="{{ art_initial.obra_servico|default:'' }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg"></div>
+                    <div class="md:col-span-2">
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Descrição da Atividade</label>
+                        <textarea name="activity_description" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg">{{ art_initial.activity_description|default:'' }}</textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <h4 class="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">Contrato e Prazo</h4>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div><label class="block text-xs font-medium text-gray-600 mb-1">Metragem</label><input type="text" name="quantity" value="{{ art_initial.quantity|default:'0' }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg"></div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Unidade</label>
+                        <select name="measurement_unit" class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white">
+                            <option value="m" {% if art_initial.measurement_unit == 'm' %}selected{% endif %}>metros (m)</option>
+                            <option value="m2" {% if art_initial.measurement_unit == 'm2' %}selected{% endif %}>metros² (m²)</option>
+                            <option value="m3" {% if art_initial.measurement_unit == 'm3' %}selected{% endif %}>metros³ (m³)</option>
+                            <option value="un" {% if art_initial.measurement_unit == 'un' %}selected{% endif %}>unidades (un)</option>
+                        </select>
+                    </div>
+                    <div><label class="block text-xs font-medium text-gray-600 mb-1">Valor do Contrato</label><input type="text" name="contract_value" value="{{ art_initial.contract_value|default:'' }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg"></div>
+                    <div><label class="block text-xs font-medium text-gray-600 mb-1">Data Início</label><input type="date" name="start_date" value="{% if art_initial.start_date %}{{ art_initial.start_date|date:'Y-m-d' }}{% endif %}" class="w-full px-3 py-2 border border-gray-300 rounded-lg"></div>
+                    <div><label class="block text-xs font-medium text-gray-600 mb-1">Data Conclusão</label><input type="date" name="end_date" value="{% if art_initial.end_date %}{{ art_initial.end_date|date:'Y-m-d' }}{% endif %}" class="w-full px-3 py-2 border border-gray-300 rounded-lg"></div>
+                    <div class="md:col-span-3">
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Observações</label>
+                        <textarea name="notes" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-lg">{{ art_initial.notes|default:'' }}</textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-3 border-t border-gray-200 pt-4">
+                <button type="button" onclick="closeArtGenerateModal()" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50">Cancelar</button>
+                <button type="submit" class="px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800">Gerar ART</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endif %}
 
 <!-- Delete Modal -->
 {% include 'components/delete_modal.html' %}
@@ -216,6 +392,20 @@ function openServiceOrderDeleteModal(serviceOrderId, osNumber, eventName, itemsC
         : null;
     
     openDeleteModal(deleteUrl, `a Ordem de Serviço #${osNumber}`, itemDetails, warning, redirectUrl);
+}
+
+function openArtGenerateModal() {
+    const modal = document.getElementById('art-generate-modal');
+    if (!modal) return;
+    modal.classList.remove('hidden');
+    document.body.classList.add('overflow-hidden');
+}
+
+function closeArtGenerateModal() {
+    const modal = document.getElementById('art-generate-modal');
+    if (!modal) return;
+    modal.classList.add('hidden');
+    document.body.classList.remove('overflow-hidden');
 }
 </script>
 {% endblock %}

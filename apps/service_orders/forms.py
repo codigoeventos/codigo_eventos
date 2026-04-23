@@ -25,7 +25,7 @@ class ServiceOrderForm(forms.ModelForm):
             }),
         }
         labels = {
-            'budget': 'Orçamento',
+            'budget': 'Proposta',
             'event': 'Evento',
             'status': 'Status',
         }

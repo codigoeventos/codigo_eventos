@@ -98,7 +98,7 @@ class ProjectDetailView(LoginRequiredMixin, DetailView):
         context['art_budget'] = art_budget
         context['has_budget'] = art_budget is not None
         # Use manager directly so soft-deleted ARTs are excluded
-        context['project_art'] = ART.objects.filter(budget__proposal=self.object).select_related('budget').first()
+        context['project_art'] = ART.objects.filter(service_order__budget__proposal=self.object).select_related('service_order', 'service_order__budget').first()
         return context
 
 
@@ -133,6 +133,24 @@ class ProjectCreateView(LoginRequiredMixin, AuditMixin, SuccessMessageMixin, Cre
         context['submit_text'] = 'Criar Projeto'
         return context
 
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        uploaded_files = self.request.FILES.getlist('original_documents')
+        if uploaded_files:
+            created_count = 0
+            for uploaded_file in uploaded_files:
+                ProjectFile.objects.create(
+                    project=self.object,
+                    file=uploaded_file,
+                    name=uploaded_file.name,
+                    file_type='contract',
+                    notes='Documento Original',
+                    uploaded_by=self.request.user,
+                )
+                created_count += 1
+            messages.success(self.request, f'{created_count} documento(s) original(is) adicional(is) enviado(s) com sucesso!')
+        return response
+
 
 class ProjectUpdateView(LoginRequiredMixin, AuditMixin, SuccessMessageMixin, UpdateView):
     """Update an existing project."""
@@ -157,6 +175,24 @@ class ProjectUpdateView(LoginRequiredMixin, AuditMixin, SuccessMessageMixin, Upd
         context['form_title'] = f'Editar Projeto: {self.object.title}'
         context['submit_text'] = 'Salvar Alterações'
         return context
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        uploaded_files = self.request.FILES.getlist('original_documents')
+        if uploaded_files:
+            created_count = 0
+            for uploaded_file in uploaded_files:
+                ProjectFile.objects.create(
+                    project=self.object,
+                    file=uploaded_file,
+                    name=uploaded_file.name,
+                    file_type='contract',
+                    notes='Documento Original',
+                    uploaded_by=self.request.user,
+                )
+                created_count += 1
+            messages.success(self.request, f'{created_count} documento(s) original(is) adicional(is) enviado(s) com sucesso!')
+        return response
 
 
 class ProjectDeleteView(LoginRequiredMixin, DeleteView):

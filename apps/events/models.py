@@ -31,13 +31,31 @@ class Event(BaseModel):
     )
 
     setup_date = models.DateField(
-        'Data de Montagem',
+        'Data de Montagem (início)',
+        null=True,
+        blank=True
+    )
+
+    setup_date_end = models.DateField(
+        'Data de Montagem (término)',
+        null=True,
+        blank=True
+    )
+
+    event_date_end = models.DateField(
+        'Data do Evento (término)',
         null=True,
         blank=True
     )
 
     teardown_date = models.DateField(
-        'Data de Desmontagem',
+        'Data de Desmontagem (início)',
+        null=True,
+        blank=True
+    )
+
+    teardown_date_end = models.DateField(
+        'Data de Desmontagem (término)',
         null=True,
         blank=True
     )

@@ -8,11 +8,14 @@ from django.urls import reverse_lazy
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.views import View
 from django.db.models import Q
+from django.db.models.deletion import ProtectedError
 from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.db import transaction
+from safedelete.models import HARD_DELETE
 
 from apps.common.mixins import AuditMixin
+from apps.art.models import ART
 from .models import ServiceOrder
 from .forms import ServiceOrderForm, ServiceOrderSearchForm, ServiceOrderItemFormSet
 
@@ -83,6 +86,7 @@ class ServiceOrderDetailView(LoginRequiredMixin, DetailView):
             'budget__proposal',
             'event',
             'event__client',
+            'art',
             'created_by',
             'updated_by'
         ).prefetch_related(
@@ -96,6 +100,8 @@ class ServiceOrderDetailView(LoginRequiredMixin, DetailView):
             {'name': 'Ordens de Serviço', 'url': reverse_lazy('service_orders:list')},
             {'name': f'OS #{self.object.pk}', 'url': None}
         ]
+        context['service_order_art'] = getattr(self.object, 'art', None)
+        context['art_initial'] = ART.build_initial_data(self.object)
         return context
 
 
@@ -206,16 +212,25 @@ class ServiceOrderDeleteView(LoginRequiredMixin, DeleteView):
     def post(self, request, *args, **kwargs):
         """Handle POST delete request - AJAX only."""
         self.object = self.get_object()
-        
-        # Perform HARD delete to allow recreating OS with same budget
-        # Use Django's Model.delete() directly to bypass safedelete
-        super(ServiceOrder, self.object).delete()
-        
-        # Return JSON response
-        return JsonResponse({
-            'success': True,
-            'message': self.success_message
-        })
+
+        try:
+            with transaction.atomic():
+                art = getattr(self.object, 'art', None)
+                if art:
+                    art.delete(force_policy=HARD_DELETE)
+
+                # Perform HARD delete to allow recreating OS with same budget
+                self.object.delete(force_policy=HARD_DELETE)
+
+            return JsonResponse({
+                'success': True,
+                'message': self.success_message
+            })
+        except ProtectedError:
+            return JsonResponse({
+                'success': False,
+                'message': 'Não foi possível excluir a OS porque existem vínculos protegidos.'
+            }, status=400)
     
     def get(self, request, *args, **kwargs):
         """Redirect GET requests to service order detail page."""

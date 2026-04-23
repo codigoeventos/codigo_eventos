@@ -77,17 +77,15 @@
             {% if events %}
             <div class="space-y-3">
                 {% for event in events %}
-                <div class="flex items-start p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                <a href="{% url 'events:detail' event.pk %}" class="flex items-start p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
                     <div class="flex-1">
                         <p class="text-sm font-medium text-gray-900">{{ event.name }}</p>
                         <p class="text-xs text-gray-500">{{ event.event_date|date:"d/m/Y" }}</p>
                     </div>
-                    <a href="#" class="text-blue-600 hover:text-blue-900">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                        </svg>
-                    </a>
-                </div>
+                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                </a>
                 {% endfor %}
             </div>
             {% else %}

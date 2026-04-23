@@ -24,15 +24,15 @@ class ART(BaseModel):
     ART – Anotação de Responsabilidade Técnica.
 
     Document generated for the engineer in charge of the project.
-    Linked to a Budget.
+    Linked to a Service Order.
     The quantity is auto-calculated as the sum of all budget items' measurement.
     """
 
-    budget = models.OneToOneField(
-        'budgets.Budget',
+    service_order = models.OneToOneField(
+        'service_orders.ServiceOrder',
         on_delete=models.PROTECT,
         related_name='art',
-        verbose_name='Orçamento',
+        verbose_name='Ordem de Serviço',
     )
 
     public_token = models.UUIDField(
@@ -61,6 +61,44 @@ class ART(BaseModel):
     )
 
     # ── Serviço ───────────────────────────────────────────────────────────
+    # ── Contratado – endereço ─────────────────────────────────────────────
+    client_address = models.CharField('Endereço (Contratado)', max_length=300, blank=True, null=True)
+    client_number  = models.CharField('N° (Contratado)',       max_length=20,  blank=True, null=True)
+    client_complement = models.CharField('Complemento (Contratado)', max_length=100, blank=True, null=True)
+    client_neighborhood = models.CharField('Bairro (Contratado)', max_length=100, blank=True, null=True)
+    client_city    = models.CharField('Cidade (Contratado)',    max_length=100, blank=True, null=True)
+    client_state   = models.CharField('UF (Contratado)',        max_length=2,   blank=True, null=True)
+    client_zip     = models.CharField('CEP (Contratado)',       max_length=10,  blank=True, null=True)
+
+    TIPO_CONTRATANTE_CHOICES = [
+        ('pf_privado',  'Pessoa Física de Direito Privado'),
+        ('pj_privado',  'Pessoa Jurídica de Direito Privado'),
+        ('pf_publico',  'Pessoa Física de Direito Público'),
+        ('pj_publico',  'Pessoa Jurídica de Direito Público'),
+    ]
+    tipo_contratante = models.CharField(
+        'Tipo de Contratante',
+        max_length=20,
+        choices=TIPO_CONTRATANTE_CHOICES,
+        blank=True,
+        null=True,
+    )
+
+    # ── Obra / Serviço – endereço ─────────────────────────────────────────
+    obra_address    = models.CharField('Endereço (Obra)',    max_length=300, blank=True, null=True)
+    obra_number     = models.CharField('N° (Obra)',          max_length=20,  blank=True, null=True)
+    obra_complement = models.CharField('Complemento (Obra)', max_length=200, blank=True, null=True)
+    obra_neighborhood= models.CharField('Bairro (Obra)',     max_length=100, blank=True, null=True)
+    obra_city       = models.CharField('Cidade (Obra)',      max_length=100, blank=True, null=True)
+    obra_state      = models.CharField('UF (Obra)',          max_length=2,   blank=True, null=True)
+    obra_zip        = models.CharField('CEP (Obra)',         max_length=10,  blank=True, null=True)
+
+    # ── Atividades técnicas ───────────────────────────────────────────────
+    nivel_atuacao   = models.CharField('Nível de Atuação',        max_length=100, blank=True, null=True)
+    atividade       = models.CharField('Atividade',               max_length=100, blank=True, null=True)
+    atividade_complemento = models.CharField('Complemento da Atividade', max_length=200, blank=True, null=True)
+    obra_servico    = models.CharField('Obra / Serviço',          max_length=200, blank=True, null=True)
+
     activity_description = models.TextField(
         'Descrição da Atividade / Serviço',
         blank=True,
@@ -69,7 +107,7 @@ class ART(BaseModel):
     )
 
     location = models.CharField(
-        'Local da Obra / Endereço',
+        'Local da Obra / Endereço (legado)',
         max_length=500,
         blank=True,
         null=True,
@@ -131,8 +169,8 @@ class ART(BaseModel):
         ordering = ['-created_at']
 
     def __str__(self):
-        budget_name = self.budget.name if self.budget_id else 'Sem orçamento'
-        return f"ART {self.pk} – {budget_name}"
+        os_label = f"OS #{self.service_order_id}" if self.service_order_id else 'Sem OS'
+        return f"ART {self.pk} – {os_label}"
 
     def get_public_url(self):
         """Return the public share URL for this ART."""
@@ -148,22 +186,84 @@ class ART(BaseModel):
         return f"ART-{self.pk:04d}"
 
     @classmethod
-    def calculate_quantity(cls, budget):
-        """Return the sum of measurement of all items in the budget."""
+    def calculate_quantity(cls, service_order):
+        """Return the sum of measurement of all items in the service order budget."""
         from apps.budgets.models import BudgetItem
+        if not service_order or not service_order.budget_id:
+            return Decimal('0')
         result = (
             BudgetItem.objects
-            .filter(budget=budget, measurement__isnull=False)
+            .filter(budget_id=service_order.budget_id, measurement__isnull=False)
             .aggregate(total=models.Sum('measurement'))['total']
         )
         return result or Decimal('0')
 
+    @classmethod
+    def build_initial_data(cls, service_order):
+        """Build default values for ART fields from service order/budget/project data."""
+        if not service_order or not service_order.budget_id:
+            return {
+                'quantity': Decimal('0'),
+                'measurement_unit': 'm3',
+            }
+
+        budget = service_order.budget
+        project = budget.proposal
+        event = project.event if project else None
+        client = event.client if event else None
+
+        quantity = cls.calculate_quantity(service_order) or Decimal('0')
+
+        activity_parts = [budget.name]
+        if project and project.title and project.title != budget.name:
+            activity_parts.append(project.title)
+        if project and project.description:
+            activity_parts.append(project.description)
+
+        tipo_contratante = None
+        if client and client.document_type == 'cpf':
+            tipo_contratante = 'pf_privado'
+        elif client and client.document_type == 'cnpj':
+            tipo_contratante = 'pj_privado'
+
+        return {
+            'engineer_name': '',
+            'engineer_crea': '',
+            'client_address': '',
+            'client_number': '',
+            'client_complement': '',
+            'client_neighborhood': '',
+            'client_city': '',
+            'client_state': '',
+            'client_zip': '',
+            'tipo_contratante': tipo_contratante,
+            'obra_address': event.location if event else '',
+            'obra_number': '',
+            'obra_complement': '',
+            'obra_neighborhood': '',
+            'obra_city': '',
+            'obra_state': '',
+            'obra_zip': '',
+            'nivel_atuacao': '',
+            'atividade': '',
+            'atividade_complemento': '',
+            'obra_servico': '',
+            'activity_description': '\n'.join(activity_parts),
+            'location': event.location if event else '',
+            'quantity': quantity,
+            'measurement_unit': 'm3',
+            'contract_value': budget.total_with_freight or Decimal('0'),
+            'start_date': event.setup_date if event and event.setup_date else None,
+            'end_date': event.event_date if event else None,
+            'notes': '',
+        }
+
     @property
     def project(self):
-        """Compatibility accessor: project derived from linked budget."""
-        if not self.budget_id:
+        """Compatibility accessor: project derived from linked service order budget."""
+        if not self.service_order_id or not self.service_order.budget_id:
             return None
-        return self.budget.proposal
+        return self.service_order.budget.proposal
 
 
 class ARTFile(models.Model):

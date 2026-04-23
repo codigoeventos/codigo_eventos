@@ -528,90 +528,6 @@
             </a>
         </div>
         {% endif %}
-
-        <!-- ART Section -->
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-semibold text-gray-900">ART</h3>
-                {% if not budget_art %}
-                <form method="post" action="{% url 'art:generate' budget.pk %}">
-                    {% csrf_token %}
-                    <button type="submit"
-                        class="text-sm text-black hover:underline font-medium flex items-center gap-1">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                        </svg>
-                        Gerar ART
-                    </button>
-                </form>
-                {% endif %}
-            </div>
-
-            {% if budget_art %}
-            <div class="space-y-3">
-                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <div>
-                        <p class="text-sm font-medium text-gray-900">{{ budget_art.art_number }}</p>
-                        <p class="text-xs text-gray-500">Engenheiro: {{ budget_art.engineer_name }} · CREA: {{ budget_art.engineer_crea }}</p>
-                        <p class="text-xs text-gray-500">Emitida em: {{ budget_art.created_at|date:"d/m/Y" }}</p>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <a href="{% url 'art:detail' budget_art.pk %}"
-                            class="px-3 py-1.5 text-xs bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
-                            Detalhes
-                        </a>
-                        <a href="{{ budget_art.get_public_url }}" target="_blank"
-                            class="px-3 py-1.5 text-xs bg-black text-white rounded-lg hover:bg-gray-800 transition-all flex items-center gap-1">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                            </svg>
-                            Link Público
-                        </a>
-                    </div>
-                </div>
-
-                <div class="p-3 bg-gray-50 rounded-lg border border-gray-200">
-                    <form method="post" action="{% url 'art:file_upload' budget_art.pk %}" enctype="multipart/form-data" class="space-y-2">
-                        {% csrf_token %}
-                        <input type="hidden" name="next" value="{{ request.get_full_path }}">
-                        <label class="block text-xs font-medium text-gray-700">Arquivos vinculados à ART</label>
-                        <input type="file" name="files" multiple
-                            accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.zip,.rar"
-                            class="w-full text-xs text-gray-700 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-medium file:bg-gray-200 file:text-gray-700 hover:file:bg-gray-300">
-                        <div class="flex justify-end">
-                            <button type="submit" class="px-3 py-1.5 text-xs bg-black text-white rounded-lg hover:bg-gray-800 transition-all">
-                                Enviar Arquivo(s)
-                            </button>
-                        </div>
-                    </form>
-
-                    {% if budget_art.files.all %}
-                    <div class="mt-3 space-y-2">
-                        {% for afile in budget_art.files.all %}
-                        <div class="flex items-center justify-between p-2 bg-white border border-gray-200 rounded-lg">
-                            <a href="{{ afile.file.url }}" target="_blank" class="text-xs text-blue-600 hover:underline truncate max-w-xs" title="{{ afile.name|default:afile.filename }}">
-                                {{ afile.name|default:afile.filename }}
-                            </a>
-                            <button type="button"
-                                onclick="openArtFileDeleteModal('{% url 'art:file_delete' afile.pk %}', '{{ afile.name|default:afile.filename|escapejs }}')"
-                                class="p-1 text-gray-400 hover:text-red-600 transition-colors" title="Remover">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                </svg>
-                            </button>
-                        </div>
-                        {% endfor %}
-                    </div>
-                    {% else %}
-                    <p class="mt-2 text-xs text-gray-400">Nenhum arquivo vinculado à ART.</p>
-                    {% endif %}
-                </div>
-            </div>
-            {% else %}
-            <p class="text-sm text-gray-500 text-center py-4">Nenhuma ART emitida para este proposta</p>
-            {% endif %}
-        </div>
     </div>
 </div>
 
@@ -661,16 +577,6 @@ function copyApprovalLink() {
         console.error('Erro ao copiar:', err);
         alert('Erro ao copiar o link. Por favor, copie manualmente.');
     });
-}
-
-function openArtFileDeleteModal(deleteUrl, fileName) {
-    const details = `
-        <div class="space-y-2">
-            <p class="text-sm font-medium text-gray-900 truncate">${fileName}</p>
-            <p class="text-sm text-gray-500">Arquivo vinculado à ART</p>
-        </div>
-    `;
-    openDeleteModal(deleteUrl, `o arquivo "${fileName}"`, details, null, window.location.pathname + window.location.search);
 }
 
 function initApprovalEmailNotificationToggle() {

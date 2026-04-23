@@ -15,7 +15,7 @@ class ProjectForm(forms.ModelForm):
 
     class Meta:
         model = Project
-        fields = ['event', 'title', 'description', 'status', 'contractor', 'contractor_spend', 'original_document']
+        fields = ['event', 'title', 'description', 'status', 'contractor', 'contractor_spend']
         widgets = {
             'event': forms.Select(attrs={'class': CSS_INPUT}),
             'title': forms.TextInput(attrs={
@@ -35,7 +35,6 @@ class ProjectForm(forms.ModelForm):
                 'step': '0.01',
                 'min': '0',
             }),
-            'original_document': forms.FileInput(attrs={'class': CSS_FILE}),
         }
         labels = {
             'event': 'Evento',
@@ -44,7 +43,6 @@ class ProjectForm(forms.ModelForm):
             'status': 'Status',
             'contractor': 'Empreiteira Responsável',
             'contractor_spend': 'Valor Gasto com Empreiteira (R$)',
-            'original_document': 'Documento Original',
         }
 
     def __init__(self, *args, **kwargs):

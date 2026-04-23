@@ -3,6 +3,7 @@ ART (Anotação de Responsabilidade Técnica) views.
 """
 
 from decimal import Decimal
+from datetime import date
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -11,103 +12,175 @@ from django.urls import reverse_lazy
 from django.views import View
 from django.views.generic import DetailView, UpdateView
 
-from apps.budgets.models import Budget
+from apps.service_orders.models import ServiceOrder
 from .models import ART, ARTFile
 from .forms import ARTEditForm
 
 
 class ARTGenerateView(LoginRequiredMixin, View):
     """
-    Generates an ART automatically from budget data.
+    Generates an ART automatically from service order data.
 
     GET  → confirmation page showing what will be generated.
     POST → creates the ART and redirects to the detail page.
 
     Rules:
-    - Only one ART per budget (OneToOne). If one already exists, redirect to it.
+    - Only one ART per service order (OneToOne). If one already exists, redirect to it.
     - All data is derived automatically; no manual form required.
     """
 
-    def _get_budget(self, pk):
+    def _get_service_order(self, pk):
         return get_object_or_404(
-            Budget.objects.select_related('proposal', 'proposal__event', 'proposal__event__client'),
+            ServiceOrder.objects.select_related('budget', 'budget__proposal', 'budget__proposal__event', 'budget__proposal__event__client', 'event', 'event__client'),
             pk=pk,
         )
 
-    def _guard(self, request, budget):
+    def _guard(self, request, service_order):
         """Return a redirect response if ART cannot be created, else None."""
-        existing = ART.objects.filter(budget=budget).first()
+        existing = ART.objects.filter(service_order=service_order).first()
         if existing:
-            messages.info(request, 'Este orçamento já possui uma ART.')
+            messages.info(request, 'Esta OS já possui uma ART.')
             return redirect('art:detail', pk=existing.pk)
         return None
 
-    def _build_art_data(self, budget):
-        """Derive all ART fields automatically from budget."""
-        project = budget.proposal
-        quantity = ART.calculate_quantity(budget)
-        if not quantity:
-            quantity = Decimal('0')
+    def _parse_decimal(self, raw_value, default):
+        if raw_value is None:
+            return default
+        value = str(raw_value).strip()
+        if value == '':
+            return default
+        normalized = value
+        if ',' in normalized:
+            normalized = normalized.replace('.', '').replace(',', '.')
+        try:
+            return Decimal(normalized)
+        except Exception:
+            return default
 
-        location = ''
-        start_date = None
-        end_date = None
-        if project.event:
-            location = project.event.location or ''
-            end_date = project.event.event_date
+    def _parse_date(self, raw_value, default):
+        if raw_value is None:
+            return default
+        value = str(raw_value).strip()
+        if value == '':
+            return None
+        try:
+            return date.fromisoformat(value)
+        except Exception:
+            return default
 
-        # Activity description: project title + description (if any)
-        activity_parts = [budget.name]
-        if project and project.title and project.title != budget.name:
-            activity_parts.append(project.title)
-        if project.description:
-            activity_parts.append(project.description)
-        activity_description = '\n'.join(activity_parts)
+    def _build_art_data(self, request, service_order):
+        """Build ART data from defaults + popup form input."""
+        defaults = ART.build_initial_data(service_order)
 
-        contract_value = budget.total_with_freight or Decimal('0')
+        text_fields = [
+            'engineer_name', 'engineer_crea',
+            'client_address', 'client_number', 'client_complement',
+            'client_neighborhood', 'client_city', 'client_state', 'client_zip',
+            'obra_address', 'obra_number', 'obra_complement',
+            'obra_neighborhood', 'obra_city', 'obra_state', 'obra_zip',
+            'nivel_atuacao', 'atividade', 'atividade_complemento', 'obra_servico',
+            'activity_description', 'notes',
+        ]
 
-        return {
-            'quantity': quantity,
-            'location': location,
-            'activity_description': activity_description,
-            'contract_value': contract_value,
-            'start_date': start_date,
-            'end_date': end_date,
-        }
+        data = defaults.copy()
 
-    def post(self, request, budget_pk):
-        budget = self._get_budget(budget_pk)
-        guard = self._guard(request, budget)
+        for field in text_fields:
+            if field in request.POST:
+                data[field] = request.POST.get(field, '').strip()
+
+        tipo_contratante = request.POST.get('tipo_contratante')
+        if tipo_contratante in dict(ART.TIPO_CONTRATANTE_CHOICES):
+            data['tipo_contratante'] = tipo_contratante
+
+        measurement_unit = request.POST.get('measurement_unit')
+        if measurement_unit in dict(ART.MEASUREMENT_UNIT_CHOICES):
+            data['measurement_unit'] = measurement_unit
+
+        data['quantity'] = self._parse_decimal(request.POST.get('quantity'), defaults.get('quantity', Decimal('0')))
+        data['contract_value'] = self._parse_decimal(request.POST.get('contract_value'), defaults.get('contract_value'))
+        data['start_date'] = self._parse_date(request.POST.get('start_date'), defaults.get('start_date'))
+        data['end_date'] = self._parse_date(request.POST.get('end_date'), defaults.get('end_date'))
+        data['location'] = data.get('obra_address') or defaults.get('location', '')
+
+        return data
+
+    def post(self, request, service_order_pk):
+        service_order = self._get_service_order(service_order_pk)
+        guard = self._guard(request, service_order)
         if guard:
             return guard
 
-        data = self._build_art_data(budget)
+        data = self._build_art_data(request, service_order)
 
-        # If a soft-deleted ART already exists for this budget, restore and
+        # If a soft-deleted ART already exists for this service order, restore and
         # update it instead of creating a new one (avoids UniqueConstraint error).
-        deleted_art = ART.all_objects.filter(budget=budget).first()
+        deleted_art = ART.all_objects.filter(service_order=service_order).first()
         if deleted_art:
             deleted_art.undelete()
-            deleted_art.activity_description = data['activity_description']
-            deleted_art.location = data['location']
-            deleted_art.quantity = data['quantity']
-            deleted_art.measurement_unit = 'm3'
-            deleted_art.contract_value = data['contract_value'] if data['contract_value'] else None
-            deleted_art.start_date = data['start_date']
-            deleted_art.end_date = data['end_date']
+            deleted_art.engineer_name = data.get('engineer_name')
+            deleted_art.engineer_crea = data.get('engineer_crea')
+            deleted_art.client_address = data.get('client_address')
+            deleted_art.client_number = data.get('client_number')
+            deleted_art.client_complement = data.get('client_complement')
+            deleted_art.client_neighborhood = data.get('client_neighborhood')
+            deleted_art.client_city = data.get('client_city')
+            deleted_art.client_state = data.get('client_state')
+            deleted_art.client_zip = data.get('client_zip')
+            deleted_art.tipo_contratante = data.get('tipo_contratante')
+            deleted_art.obra_address = data.get('obra_address')
+            deleted_art.obra_number = data.get('obra_number')
+            deleted_art.obra_complement = data.get('obra_complement')
+            deleted_art.obra_neighborhood = data.get('obra_neighborhood')
+            deleted_art.obra_city = data.get('obra_city')
+            deleted_art.obra_state = data.get('obra_state')
+            deleted_art.obra_zip = data.get('obra_zip')
+            deleted_art.nivel_atuacao = data.get('nivel_atuacao')
+            deleted_art.atividade = data.get('atividade')
+            deleted_art.atividade_complemento = data.get('atividade_complemento')
+            deleted_art.obra_servico = data.get('obra_servico')
+            deleted_art.activity_description = data.get('activity_description')
+            deleted_art.notes = data.get('notes')
+            deleted_art.location = data.get('location')
+            deleted_art.quantity = data.get('quantity')
+            deleted_art.measurement_unit = data.get('measurement_unit') or 'm3'
+            deleted_art.contract_value = data.get('contract_value') if data.get('contract_value') else None
+            deleted_art.start_date = data.get('start_date')
+            deleted_art.end_date = data.get('end_date')
             deleted_art.updated_by = request.user
             deleted_art.save()
             art = deleted_art
         else:
             art = ART.objects.create(
-                budget=budget,
-                activity_description=data['activity_description'],
-                location=data['location'],
-                quantity=data['quantity'],
-                measurement_unit='m3',
-                contract_value=data['contract_value'] if data['contract_value'] else None,
-                start_date=data['start_date'],
-                end_date=data['end_date'],
+                service_order=service_order,
+                engineer_name=data.get('engineer_name'),
+                engineer_crea=data.get('engineer_crea'),
+                client_address=data.get('client_address'),
+                client_number=data.get('client_number'),
+                client_complement=data.get('client_complement'),
+                client_neighborhood=data.get('client_neighborhood'),
+                client_city=data.get('client_city'),
+                client_state=data.get('client_state'),
+                client_zip=data.get('client_zip'),
+                tipo_contratante=data.get('tipo_contratante'),
+                obra_address=data.get('obra_address'),
+                obra_number=data.get('obra_number'),
+                obra_complement=data.get('obra_complement'),
+                obra_neighborhood=data.get('obra_neighborhood'),
+                obra_city=data.get('obra_city'),
+                obra_state=data.get('obra_state'),
+                obra_zip=data.get('obra_zip'),
+                nivel_atuacao=data.get('nivel_atuacao'),
+                atividade=data.get('atividade'),
+                atividade_complemento=data.get('atividade_complemento'),
+                obra_servico=data.get('obra_servico'),
+                activity_description=data.get('activity_description'),
+                notes=data.get('notes'),
+                location=data.get('location'),
+                quantity=data.get('quantity'),
+                measurement_unit=data.get('measurement_unit') or 'm3',
+                contract_value=data.get('contract_value') if data.get('contract_value') else None,
+                start_date=data.get('start_date'),
+                end_date=data.get('end_date'),
                 created_by=request.user,
                 updated_by=request.user,
             )
@@ -125,10 +198,13 @@ class ARTDetailView(LoginRequiredMixin, DetailView):
 
     def get_queryset(self):
         return ART.objects.select_related(
-            'budget',
-            'budget__proposal',
-            'budget__proposal__event',
-            'budget__proposal__event__client',
+            'service_order',
+            'service_order__budget',
+            'service_order__budget__proposal',
+            'service_order__budget__proposal__event',
+            'service_order__budget__proposal__event__client',
+            'service_order__event',
+            'service_order__event__client',
             'created_by',
             'updated_by',
         )
@@ -136,11 +212,11 @@ class ARTDetailView(LoginRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['breadcrumbs'] = [
-            {'name': 'Orçamentos', 'url': reverse_lazy('budgets:list')},
-            {'name': self.object.budget.name, 'url': reverse_lazy('budgets:detail', kwargs={'pk': self.object.budget.pk})},
+            {'name': 'Ordens de Serviço', 'url': reverse_lazy('service_orders:list')},
+            {'name': f'OS #{self.object.service_order.pk}', 'url': reverse_lazy('service_orders:detail', kwargs={'pk': self.object.service_order.pk})},
             {'name': self.object.art_number, 'url': None},
         ]
-        context['calculated_quantity'] = ART.calculate_quantity(self.object.budget)
+        context['calculated_quantity'] = ART.calculate_quantity(self.object.service_order)
         return context
 
 
@@ -153,15 +229,18 @@ class PublicARTView(View):
     def get(self, request, token):
         art = get_object_or_404(
             ART.objects.select_related(
-                'budget',
-                'budget__proposal',
-                'budget__proposal__event',
-                'budget__proposal__event__client',
+                'service_order',
+                'service_order__budget',
+                'service_order__budget__proposal',
+                'service_order__budget__proposal__event',
+                'service_order__budget__proposal__event__client',
+                'service_order__event',
+                'service_order__event__client',
                 'created_by',
             ),
             public_token=token,
         )
-        calculated_quantity = ART.calculate_quantity(art.budget)
+        calculated_quantity = ART.calculate_quantity(art.service_order)
         return render(request, 'art/public_art.html', {
             'art': art,
             'calculated_quantity': calculated_quantity,
@@ -179,8 +258,8 @@ class ARTUpdateView(LoginRequiredMixin, UpdateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['breadcrumbs'] = [
-            {'name': 'Orçamentos', 'url': reverse_lazy('budgets:list')},
-            {'name': self.object.budget.name, 'url': reverse_lazy('budgets:detail', kwargs={'pk': self.object.budget.pk})},
+            {'name': 'Ordens de Serviço', 'url': reverse_lazy('service_orders:list')},
+            {'name': f'OS #{self.object.service_order.pk}', 'url': reverse_lazy('service_orders:detail', kwargs={'pk': self.object.service_order.pk})},
             {'name': self.object.art_number, 'url': reverse_lazy('art:detail', kwargs={'pk': self.object.pk})},
             {'name': 'Editar', 'url': None},
         ]
@@ -196,14 +275,14 @@ class ARTUpdateView(LoginRequiredMixin, UpdateView):
 
 
 class ARTDeleteView(LoginRequiredMixin, View):
-    """Delete an ART (redirects back to budget)."""
+    """Delete an ART (redirects back to service order)."""
 
     def post(self, request, pk):
         art = get_object_or_404(ART, pk=pk)
-        budget_pk = art.budget.pk
+        service_order_pk = art.service_order.pk
         art.delete()
         messages.success(request, 'ART excluída com sucesso.')
-        return redirect('budgets:detail', pk=budget_pk)
+        return redirect('service_orders:detail', pk=service_order_pk)
 
 
 class ARTFileUploadView(LoginRequiredMixin, View):
@@ -218,7 +297,7 @@ class ARTFileUploadView(LoginRequiredMixin, View):
             messages.warning(request, 'Selecione ao menos um arquivo para enviar.')
             if next_url:
                 return redirect(next_url)
-            return redirect('budgets:detail', pk=art.budget.pk)
+            return redirect('service_orders:detail', pk=art.service_order.pk)
 
         created_count = 0
         for uploaded in files:
@@ -233,7 +312,7 @@ class ARTFileUploadView(LoginRequiredMixin, View):
         messages.success(request, f'{created_count} arquivo(s) enviado(s) para a ART com sucesso.')
         if next_url:
             return redirect(next_url)
-        return redirect('budgets:detail', pk=art.budget.pk)
+        return redirect('service_orders:detail', pk=art.service_order.pk)
 
 
 class ARTFileDeleteView(LoginRequiredMixin, View):
@@ -241,10 +320,10 @@ class ARTFileDeleteView(LoginRequiredMixin, View):
 
     def post(self, request, pk):
         art_file = get_object_or_404(ARTFile, pk=pk)
-        budget_pk = art_file.art.budget.pk
+        service_order_pk = art_file.art.service_order.pk
         next_url = request.POST.get('next')
         art_file.delete()
         messages.success(request, 'Arquivo da ART removido com sucesso.')
         if next_url:
             return redirect(next_url)
-        return redirect('budgets:detail', pk=budget_pk)
+        return redirect('service_orders:detail', pk=service_order_pk)

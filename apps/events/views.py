@@ -8,7 +8,7 @@ from django.urls import reverse_lazy, reverse
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.views import View
 from django.db.models import Q
-from django.http import HttpResponseRedirect, JsonResponse
+from django.http import HttpResponseRedirect, JsonResponse, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.core.exceptions import ValidationError
 
@@ -286,6 +286,46 @@ class ContractorAssignRemoveView(LoginRequiredMixin, View):
         assignment = get_object_or_404(EventContractor, pk=assignment_pk, event_id=pk)
         assignment.delete()
         return redirect('events:detail', pk=pk)
+
+
+class EventContractorListPDFView(LoginRequiredMixin, View):
+    """
+    Render an HTML page (same design as the public contractor page) listing
+    all selected members and vehicles from all contractors assigned to the
+    event.  The user can print / save as PDF via the browser.
+    """
+
+    template_name = 'events/event_contractor_list.html'
+
+    def get(self, request, pk):
+        event = get_object_or_404(
+            Event.objects.select_related('client').prefetch_related(
+                'contractors__selected_members__member__nrs',
+                'contractors__contractor__vehicles',
+            ),
+            pk=pk,
+        )
+
+        # Collect all selected members across all assignments
+        members = []
+        for assignment in event.contractors.all():
+            for em in assignment.selected_members.all():
+                members.append(em.member)
+
+        # Collect all vehicles from all assigned contractors (deduplicated by pk)
+        seen_vehicle_ids = set()
+        vehicles = []
+        for assignment in event.contractors.all():
+            for v in assignment.contractor.vehicles.all():
+                if v.pk not in seen_vehicle_ids:
+                    seen_vehicle_ids.add(v.pk)
+                    vehicles.append(v)
+
+        return render(request, self.template_name, {
+            'event': event,
+            'members': members,
+            'vehicles': vehicles,
+        })
 
 
 class PublicContractorView(View):

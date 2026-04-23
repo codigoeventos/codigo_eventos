@@ -255,7 +255,7 @@ class BudgetListView(LoginRequiredMixin, ListView):
         context = super().get_context_data(**kwargs)
         context['search_form'] = BudgetSearchForm(self.request.GET)
         context['breadcrumbs'] = [
-            {'name': 'Orçamentos', 'url': None}
+            {'name': 'Propostas', 'url': None}
         ]
         return context
 
@@ -284,17 +284,12 @@ class BudgetDetailView(LoginRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         """Add breadcrumbs and related data to context."""
         from apps.logistics.models import UrgencyMultiplier
-        from apps.art.models import ART
         context = super().get_context_data(**kwargs)
         context['breadcrumbs'] = [
-            {'name': 'Orçamentos', 'url': reverse_lazy('budgets:list')},
+            {'name': 'Propostas', 'url': reverse_lazy('budgets:list')},
             {'name': self.object.name, 'url': None}
         ]
         context['urgency_options'] = UrgencyMultiplier.objects.order_by('multiplier')
-        try:
-            context['budget_art'] = self.object.art
-        except ART.DoesNotExist:
-            context['budget_art'] = None
         return context
 
 
@@ -304,7 +299,7 @@ class BudgetCreateView(LoginRequiredMixin, AuditMixin, SuccessMessageMixin, Crea
     model = Budget
     form_class = BudgetForm
     template_name = 'budgets/budget_form.html'
-    success_message = "Orçamento %(name)s criado com sucesso!"
+    success_message = "Proposta %(name)s criada com sucesso!"
     
     def get_success_url(self):
         """Redirect to budget detail after creation."""
@@ -322,11 +317,11 @@ class BudgetCreateView(LoginRequiredMixin, AuditMixin, SuccessMessageMixin, Crea
         """Add breadcrumbs and sections context."""
         context = super().get_context_data(**kwargs)
         context['breadcrumbs'] = [
-            {'name': 'Orçamentos', 'url': reverse_lazy('budgets:list')},
-            {'name': 'Novo Orçamento', 'url': None}
+            {'name': 'Propostas', 'url': reverse_lazy('budgets:list')},
+            {'name': 'Nova Proposta', 'url': None}
         ]
-        context['form_title'] = 'Novo Orçamento'
-        context['submit_text'] = 'Criar Orçamento'
+        context['form_title'] = 'Nova Proposta'
+        context['submit_text'] = 'Criar Proposta'
 
         # Pass existing sections JSON (empty for new budget)
         context['sections_json'] = '[]'
@@ -374,7 +369,7 @@ class BudgetUpdateView(LoginRequiredMixin, AuditMixin, SuccessMessageMixin, Upda
     model = Budget
     form_class = BudgetForm
     template_name = 'budgets/budget_form.html'
-    success_message = "Orçamento %(name)s atualizado com sucesso!"
+    success_message = "Proposta %(name)s atualizada com sucesso!"
     
     def get_success_url(self):
         """Redirect to budget detail after update."""
@@ -384,11 +379,11 @@ class BudgetUpdateView(LoginRequiredMixin, AuditMixin, SuccessMessageMixin, Upda
         """Add breadcrumbs and sections context for edit."""
         context = super().get_context_data(**kwargs)
         context['breadcrumbs'] = [
-            {'name': 'Orçamentos', 'url': reverse_lazy('budgets:list')},
+            {'name': 'Propostas', 'url': reverse_lazy('budgets:list')},
             {'name': self.object.name, 'url': reverse_lazy('budgets:detail', kwargs={'pk': self.object.pk})},
             {'name': 'Editar', 'url': None}
         ]
-        context['form_title'] = f'Editar Orçamento: {self.object.name}'
+        context['form_title'] = f'Editar Proposta: {self.object.name}'
         context['submit_text'] = 'Salvar Alterações'
 
         # Serialize existing sections + items as JSON for the JS UI
@@ -458,16 +453,16 @@ class BudgetDeleteView(LoginRequiredMixin, DeleteView):
     
     model = Budget
     success_url = reverse_lazy('budgets:list')
-    success_message = "Orçamento excluído com sucesso!"
+    success_message = "Proposta excluída com sucesso!"
     
     def post(self, request, *args, **kwargs):
         """Handle POST delete request - AJAX only."""
         self.object = self.get_object()
 
         # Delete protected dependents before deleting the budget
-        # ART (OneToOne with PROTECT, related_name='art')
+        # ART (linked to ServiceOrder with PROTECT)
         try:
-            self.object.art.delete()
+            self.object.service_order.art.delete()
         except Exception:
             pass
 
@@ -525,7 +520,7 @@ class PublicBudgetApprovalView(View):
         
         # Check if budget can still be edited
         if not budget.is_editable:
-            messages.error(request, 'Este orçamento já foi processado e não pode mais ser modificado.')
+            messages.error(request, 'Esta proposta já foi processada e não pode mais ser modificada.')
             return redirect('budgets:public_approval', token=token)
         
         action = request.POST.get('action')
@@ -562,7 +557,7 @@ class PublicBudgetApprovalView(View):
             from apps.budgets.signals import sync_service_order_items
             sync_service_order_items(budget)
 
-            messages.success(request, 'Orçamento aprovado com sucesso!')
+            messages.success(request, 'Proposta aprovada com sucesso!')
 
         elif action == 'reject':
             # Mark budget as rejected
@@ -581,7 +576,7 @@ class PublicBudgetApprovalView(View):
             except Exception:
                 pass
 
-            messages.info(request, 'Orçamento rejeitado.')
+            messages.info(request, 'Proposta rejeitada.')
         
         return redirect('budgets:public_approval', token=token)
 
@@ -620,7 +615,7 @@ class PublicBudgetPDFView(View):
             textColor=colors.HexColor('#000000'),
             spaceAfter=30,
         )
-        elements.append(Paragraph(f'Orçamento: {budget.name}', title_style))
+        elements.append(Paragraph(f'Proposta: {budget.name}', title_style))
         elements.append(Spacer(1, 0.5*cm))
         
         # Budget info

@@ -935,14 +935,14 @@
                         </td>
                         <td class="text-right" id="items-total-value" style="opacity:.8;font-size:11px;">R$ {{ budget.total_value|add:budget.extra_charges_total|floatformat:"2g" }}</td>
                         <td class="text-right" id="fiscal-charges-value" style="opacity:.8;font-size:11px;">R$ {{ budget.fiscal_charges_value|floatformat:"2g" }}</td>
-                        <td class="text-right" id="total-value" style="font-size:13px;">R$ {{ budget.total_value|add:budget.extra_charges_total|add:budget.fiscal_charges_value|floatformat:"2g" }}</td>
+                        <td class="text-right" id="total-value" style="font-size:13px;">R$ {{ budget.total_with_freight|floatformat:"2g" }}</td>
                         {% if not is_editable %}<td></td>{% endif %}
                     </tr>
                     {% else %}
                     <tr class="os-total-row">
                         {% if is_editable %}<td class="no-print"></td>{% endif %}
                         <td colspan="2" style="text-align:right;">TOTAIS</td>
-                        <td class="text-right" id="total-value" style="font-size:13px;">R$ {{ budget.total_value|add:budget.extra_charges_total|floatformat:"2g" }}</td>
+                        <td class="text-right" id="total-value" style="font-size:13px;">R$ {{ budget.total_with_freight|floatformat:"2g" }}</td>
                         {% if not is_editable %}<td></td>{% endif %}
                     </tr>
                     {% endif %}
@@ -1096,7 +1096,7 @@
             const bar = document.getElementById('total-bar');
             const fiscalEl = document.getElementById('fiscal-charges-value');
             const itemsEl = document.getElementById('items-total-value');
-            if (el) el.textContent = fmt(totalsRowValue);
+            if (el) el.textContent = fmt(total);
             if (bar) bar.textContent = fmt(total);
             if (fiscalEl) fiscalEl.textContent = fmt(fiscalAll);
             if (itemsEl) itemsEl.textContent = fmt(servicesTotal);
@@ -1130,7 +1130,7 @@
             const discountRO = calcDiscount(sum);
             sum -= discountRO;
             const el = document.getElementById('total-value');
-            if (el) el.textContent = fmt(totalsRowRO);
+            if (el) el.textContent = fmt(sum);
             const fiscalEl = document.getElementById('fiscal-charges-value');
             const itemsElRO = document.getElementById('items-total-value');
             if (fiscalEl) fiscalEl.textContent = fmt(fiscalAllRO);

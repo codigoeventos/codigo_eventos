@@ -39,21 +39,27 @@
                 </div>
 
                 <div>
-                    <dt class="text-sm font-medium text-gray-500">Data do Evento</dt>
-                    <dd class="mt-1 text-sm text-gray-900">{{ event.event_date|date:"d/m/Y" }}</dd>
+                    <dt class="text-sm font-medium text-gray-500">Evento</dt>
+                    <dd class="mt-1 text-sm text-gray-900">
+                        {{ event.event_date|date:"d/m/Y" }}{% if event.event_date_end %} → {{ event.event_date_end|date:"d/m/Y" }}{% endif %}
+                    </dd>
                 </div>
 
                 {% if event.setup_date %}
                 <div>
-                    <dt class="text-sm font-medium text-gray-500">Data de Montagem</dt>
-                    <dd class="mt-1 text-sm text-gray-900">{{ event.setup_date|date:"d/m/Y" }}</dd>
+                    <dt class="text-sm font-medium text-gray-500">Montagem</dt>
+                    <dd class="mt-1 text-sm text-gray-900">
+                        {{ event.setup_date|date:"d/m/Y" }}{% if event.setup_date_end %} → {{ event.setup_date_end|date:"d/m/Y" }}{% endif %}
+                    </dd>
                 </div>
                 {% endif %}
 
                 {% if event.teardown_date %}
                 <div>
-                    <dt class="text-sm font-medium text-gray-500">Data de Desmontagem</dt>
-                    <dd class="mt-1 text-sm text-gray-900">{{ event.teardown_date|date:"d/m/Y" }}</dd>
+                    <dt class="text-sm font-medium text-gray-500">Desmontagem</dt>
+                    <dd class="mt-1 text-sm text-gray-900">
+                        {{ event.teardown_date|date:"d/m/Y" }}{% if event.teardown_date_end %} → {{ event.teardown_date_end|date:"d/m/Y" }}{% endif %}
+                    </dd>
                 </div>
                 {% endif %}
 
@@ -207,13 +213,24 @@
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-lg font-semibold text-gray-900">Empreiteiras</h3>
-                <a href="{% url 'events:contractor_assign' event.pk %}"
-                    class="text-sm text-black hover:underline font-medium flex items-center gap-1">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                    </svg>
-                    Vincular
-                </a>
+                <div class="flex items-center gap-3">
+                    {% if event.contractors.all %}
+                    <a href="{% url 'events:contractor_list_pdf' event.pk %}"
+                        class="text-sm text-black hover:underline font-medium flex items-center gap-1">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                        </svg>
+                        Gerar Lista
+                    </a>
+                    {% endif %}
+                    <a href="{% url 'events:contractor_assign' event.pk %}"
+                        class="text-sm text-black hover:underline font-medium flex items-center gap-1">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                        Vincular
+                    </a>
+                </div>
             </div>
             {% if event.contractors.all %}
             <div class="space-y-3">
