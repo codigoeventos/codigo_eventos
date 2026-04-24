@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,7 +14,14 @@
             --platform-text: #111111;
         }
 
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
         body {
             font-family: Arial, Helvetica, sans-serif;
             font-size: 13px;
@@ -28,7 +36,7 @@
             margin: 0 auto;
             background: #fff;
             border: 1px solid #aaa;
-            box-shadow: 0 4px 20px rgba(0,0,0,.2);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, .2);
         }
 
         .art-page-title {
@@ -57,16 +65,20 @@
             width: 100%;
             border-collapse: collapse;
         }
+
         .art-rows tr {
             border-bottom: 1px solid var(--platform-border);
         }
+
         .art-rows tr:last-child {
             border-bottom: 1px solid #aaa;
         }
+
         .art-rows td {
             padding: 4px 10px;
             vertical-align: middle;
         }
+
         .art-rows td.lbl {
             width: 30%;
             color: var(--platform-dark);
@@ -75,6 +87,7 @@
             border-right: 1px solid var(--platform-border);
             white-space: nowrap;
         }
+
         .art-rows td.val {
             font-size: 12px;
             color: #111;
@@ -99,6 +112,7 @@
             padding: 6px 12px;
             text-transform: uppercase;
         }
+
         .art-obs-body {
             padding: 14px 20px 18px;
             font-size: 13px;
@@ -116,6 +130,7 @@
             display: flex;
             justify-content: flex-end;
         }
+
         .art-btn {
             font-family: Arial, Helvetica, sans-serif;
             font-size: 12px;
@@ -129,83 +144,188 @@
             color: var(--platform-dark);
             transition: all 0.15s;
         }
-        .art-btn:hover { background: var(--platform-dark); color: #fff; }
+
+        .art-btn:hover {
+            background: var(--platform-dark);
+            color: #fff;
+        }
 
         @media print {
-            .no-print { display: none !important; }
-            body { background: #fff !important; padding: 0; }
-            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-            .art-doc { box-shadow: none !important; border: none !important; max-width: 100%; }
+            .no-print {
+                display: none !important;
+            }
+
+            body {
+                background: #fff !important;
+                padding: 0;
+            }
+
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+                color-adjust: exact !important;
+            }
+
+            .art-doc {
+                box-shadow: none !important;
+                border: none !important;
+                max-width: 100%;
+            }
         }
 
         @media (max-width: 600px) {
-            body { background: #f0f0f0; padding: 0; }
-            .art-doc { border: none; box-shadow: none; }
-            .art-rows td.lbl { width: 38%; white-space: normal; }
+            body {
+                background: #f0f0f0;
+                padding: 0;
+            }
+
+            .art-doc {
+                border: none;
+                box-shadow: none;
+            }
+
+            .art-rows td.lbl {
+                width: 38%;
+                white-space: normal;
+            }
         }
     </style>
 </head>
+
 <body>
 
-<div class="art-print-bar no-print">
-    <button class="art-btn" onclick="window.print()">⬇ Imprimir / Salvar PDF</button>
-</div>
+    <div class="art-print-bar no-print">
+        <button class="art-btn" onclick="window.print()">⬇ Imprimir / Salvar PDF</button>
+    </div>
 
-<div class="art-doc">
+    <div class="art-doc">
 
-    <div class="art-section-hdr">DADOS DO CONTRATADO</div>
-    <table class="art-rows">
-        <tr>
-            <td class="lbl">Contratante:</td>
-            <td class="val">{% if art.service_order.budget.proposal.event and art.service_order.budget.proposal.event.client %}{{ art.service_order.budget.proposal.event.client.name }}{% else %}—{% endif %}</td>
-        </tr>
-        <tr>
-            <td class="lbl">CPF/ CNPJ:</td>
-            <td class="val">{% if art.service_order.budget.proposal.event and art.service_order.budget.proposal.event.client %}{{ art.service_order.budget.proposal.event.client.document_number|default:"—" }}{% else %}—{% endif %}</td>
-        </tr>
-        <tr><td class="lbl">Endereço:</td><td class="val">{{ art.client_address|default:"" }}</td></tr>
-        <tr><td class="lbl">N°.:</td><td class="val">{{ art.client_number|default:"" }}</td></tr>
-        <tr><td class="lbl">Complemento:</td><td class="val">{{ art.client_complement|default:"" }}</td></tr>
-        <tr><td class="lbl">Bairro:</td><td class="val">{{ art.client_neighborhood|default:"" }}</td></tr>
-        <tr><td class="lbl">Cidade:</td><td class="val">{{ art.client_city|default:"" }}</td></tr>
-        <tr><td class="lbl">UF:</td><td class="val">{{ art.client_state|default:"" }}</td></tr>
-        <tr><td class="lbl">CEP:</td><td class="val">{{ art.client_zip|default:"" }}</td></tr>
-        <tr><td class="lbl">Celebrado em:</td><td class="val">{{ art.created_at|date:"d/m/Y" }}</td></tr>
-        <tr><td class="lbl">Tipo de Contratante:</td><td class="val">{{ art.get_tipo_contratante_display|default:"" }}</td></tr>
-    </table>
+        <div class="art-section-hdr">DADOS DO CONTRATADO</div>
+        <table class="art-rows">
+            <tr>
+                <td class="lbl">Contratante:</td>
+                <td class="val">{% if art.service_order.budget.proposal.event and art.service_order.budget.proposal.event.client %}{{art.service_order.budget.proposal.event.client.name }}{% else %}—{% endif %}</td>
+            </tr>
+            <tr>
+                <td class="lbl">CPF/ CNPJ:</td>
+                <td class="val">{% if art.service_order.budget.proposal.event and art.service_order.budget.proposal.event.client  %}{{art.service_order.budget.proposal.event.client.document_number|default:"—" }}{% else %}—{% endif %}
+                </td>
+            </tr>
+            <tr>
+                <td class="lbl">Endereço:</td>
+                <td class="val">{{ art.client_address|default:"" }}</td>
+            </tr>
+            <tr>
+                <td class="lbl">N°.:</td>
+                <td class="val">{{ art.client_number|default:"" }}</td>
+            </tr>
+            <tr>
+                <td class="lbl">Complemento:</td>
+                <td class="val">{{ art.client_complement|default:"" }}</td>
+            </tr>
+            <tr>
+                <td class="lbl">Bairro:</td>
+                <td class="val">{{ art.client_neighborhood|default:"" }}</td>
+            </tr>
+            <tr>
+                <td class="lbl">Cidade:</td>
+                <td class="val">{{ art.client_city|default:"" }}</td>
+            </tr>
+            <tr>
+                <td class="lbl">UF:</td>
+                <td class="val">{{ art.client_state|default:"" }}</td>
+            </tr>
+            <tr>
+                <td class="lbl">CEP:</td>
+                <td class="val">{{ art.client_zip|default:"" }}</td>
+            </tr>
+            <tr>
+                <td class="lbl">Celebrado em:</td>
+                <td class="val">{{ art.created_at|date:"d/m/Y" }}</td>
+            </tr>
+            <tr>
+                <td class="lbl">Tipo de Contratante:</td>
+                <td class="val">{{ art.get_tipo_contratante_display|default:"" }}</td>
+            </tr>
+        </table>
 
-    <div class="art-spacer"></div>
-    <div class="art-section-hdr">DADOS DA OBRA / SERVIÇO</div>
-    <table class="art-rows">
-        <tr><td class="lbl">Endereço:</td><td class="val">{{ art.obra_address|default:"" }}</td></tr>
-        <tr><td class="lbl">N°.:</td><td class="val">{{ art.obra_number|default:"" }}</td></tr>
-        <tr><td class="lbl">Complemento:</td><td class="val">{{ art.obra_complement|default:"" }}</td></tr>
-        <tr><td class="lbl">Bairro:</td><td class="val">{{ art.obra_neighborhood|default:"" }}</td></tr>
-        <tr><td class="lbl">Cidade:</td><td class="val">{{ art.obra_city|default:"" }}</td></tr>
-        <tr><td class="lbl">UF:</td><td class="val">{{ art.obra_state|default:"" }}</td></tr>
-        <tr><td class="lbl">CEP:</td><td class="val">{{ art.obra_zip|default:"" }}</td></tr>
-        <tr><td class="lbl">Data de Início:</td><td class="val">{% if art.start_date %}{{ art.start_date|date:"d/m/Y" }}{% endif %}</td></tr>
-        <tr><td class="lbl">Data de Término:</td><td class="val">{% if art.end_date %}{{ art.end_date|date:"d/m/Y" }}{% endif %}</td></tr>
-    </table>
+        <div class="art-spacer"></div>
+        <div class="art-section-hdr">DADOS DA OBRA / SERVIÇO</div>
+        <table class="art-rows">
+            <tr>
+                <td class="lbl">Endereço:</td>
+                <td class="val">{{ art.obra_address|default:"" }}</td>
+            </tr>
+            <tr>
+                <td class="lbl">N°.:</td>
+                <td class="val">{{ art.obra_number|default:"" }}</td>
+            </tr>
+            <tr>
+                <td class="lbl">Complemento:</td>
+                <td class="val">{{ art.obra_complement|default:"" }}</td>
+            </tr>
+            <tr>
+                <td class="lbl">Bairro:</td>
+                <td class="val">{{ art.obra_neighborhood|default:"" }}</td>
+            </tr>
+            <tr>
+                <td class="lbl">Cidade:</td>
+                <td class="val">{{ art.obra_city|default:"" }}</td>
+            </tr>
+            <tr>
+                <td class="lbl">UF:</td>
+                <td class="val">{{ art.obra_state|default:"" }}</td>
+            </tr>
+            <tr>
+                <td class="lbl">CEP:</td>
+                <td class="val">{{ art.obra_zip|default:"" }}</td>
+            </tr>
+            <tr>
+                <td class="lbl">Data de Início:</td>
+                <td class="val">{% if art.start_date %}{{ art.start_date|date:"d/m/Y" }}{% endif %}</td>
+            </tr>
+            <tr>
+                <td class="lbl">Data de Término:</td>
+                <td class="val">{% if art.end_date %}{{ art.end_date|date:"d/m/Y" }}{% endif %}</td>
+            </tr>
+        </table>
 
-    <div class="art-spacer"></div>
-    <div class="art-section-hdr">ATIVIDADES TÉCNICAS</div>
-    <table class="art-rows">
-        <tr><td class="lbl">Nível de Atuação:</td><td class="val" style="font-weight:700;color:var(--platform-dark);">{{ art.nivel_atuacao|default:"" }}</td></tr>
-        <tr><td class="lbl">Atividade:</td><td class="val" style="font-weight:700;color:var(--platform-dark);">{{ art.atividade|default:"" }}</td></tr>
-        <tr><td class="lbl">Complemento:</td><td class="val" style="font-weight:700;color:var(--platform-dark);">{{ art.atividade_complemento|default:"" }}</td></tr>
-        <tr><td class="lbl">Obra / Serviço:</td><td class="val" style="font-weight:700;color:var(--platform-dark);">{{ art.obra_servico|default:"" }}</td></tr>
-        <tr><td class="lbl">Quantidade:</td><td class="val">{{ art.quantity|floatformat:"3g" }}</td></tr>
-        <tr><td class="lbl">Unidade:</td><td class="val">{{ art.get_measurement_unit_display }}</td></tr>
-    </table>
+        <div class="art-spacer"></div>
+        <div class="art-section-hdr">ATIVIDADES TÉCNICAS</div>
+        <table class="art-rows">
+            <tr>
+                <td class="lbl">Nível de Atuação:</td>
+                <td class="val" style="font-weight:700;color:var(--platform-dark);">FISCALIZAÇÃO</td>
+            </tr>
+            <tr>
+                <td class="lbl">Atividade:</td>
+                <td class="val" style="font-weight:700;color:var(--platform-dark);">MONTAGEM</td>
+            </tr>
+            <tr>
+                <td class="lbl">Complemento:</td>
+                <td class="val" style="font-weight:700;color:var(--platform-dark);">INSTALAÇÃO PROVISÓRIA</td>
+            </tr>
+            <tr>
+                <td class="lbl">Obra / Serviço:</td>
+                <td class="val" style="font-weight:700;color:var(--platform-dark);">EDIFICAÇÃO DE MATERIAIS MISTOS</td>
+            </tr>
+            <tr>
+                <td class="lbl">Quantidade:</td>
+                <td class="val">{{ art.quantity|floatformat:"3g" }}</td>
+            </tr>
+            <tr>
+                <td class="lbl">Unidade:</td>
+                <td class="val">{{ art.get_measurement_unit_display }}</td>
+            </tr>
+        </table>
 
-    <div class="art-spacer"></div>
-    <div class="art-obs-hdr">OBSERVAÇÃO:</div>
-    <div class="art-obs-body">{% if art.activity_description %}{{ art.activity_description }}{% endif %}{% if art.notes and art.activity_description %}
+        <div class="art-spacer"></div>
+        <div class="art-obs-hdr">OBSERVAÇÃO:</div>
+        <div class="art-obs-body">{% if art.activity_description %}{{ art.activity_description }}{% endif %}{% if             art.notes and art.activity_description %}
+            {{ art.notes }}{% elif art.notes %}{{ art.notes }}{% endif %}</div>
 
-{{ art.notes }}{% elif art.notes %}{{ art.notes }}{% endif %}</div>
-
-</div>
+    </div>
 
 </body>
+
 </html>
