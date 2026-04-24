@@ -220,6 +220,10 @@ class ART(BaseModel):
         if project and project.description:
             activity_parts.append(project.description)
 
+        atividade = budget.name or (project.title if project else '') or (event.name if event else '')
+        obra_servico = (project.title if project and project.title else '') or (event.name if event else '') or budget.name
+        atividade_complemento = event.location if event and event.location else ''
+
         tipo_contratante = None
         if client and client.document_type == 'cpf':
             tipo_contratante = 'pf_privado'
@@ -244,10 +248,10 @@ class ART(BaseModel):
             'obra_city': '',
             'obra_state': '',
             'obra_zip': '',
-            'nivel_atuacao': '',
-            'atividade': '',
-            'atividade_complemento': '',
-            'obra_servico': '',
+            'nivel_atuacao': 'Execução',
+            'atividade': atividade,
+            'atividade_complemento': atividade_complemento,
+            'obra_servico': obra_servico,
             'activity_description': '\n'.join(activity_parts),
             'location': event.location if event else '',
             'quantity': quantity,

@@ -309,22 +309,11 @@
 
             <div>
                 <h4 class="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">Atividades Técnicas</h4>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div><label class="block text-xs font-medium text-gray-600 mb-1">Nível de Atuação</label><input type="text" name="nivel_atuacao" value="{{ art_initial.nivel_atuacao|default:'' }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg"></div>
-                    <div><label class="block text-xs font-medium text-gray-600 mb-1">Atividade</label><input type="text" name="atividade" value="{{ art_initial.atividade|default:'' }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg"></div>
-                    <div><label class="block text-xs font-medium text-gray-600 mb-1">Complemento</label><input type="text" name="atividade_complemento" value="{{ art_initial.atividade_complemento|default:'' }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg"></div>
-                    <div><label class="block text-xs font-medium text-gray-600 mb-1">Obra / Serviço</label><input type="text" name="obra_servico" value="{{ art_initial.obra_servico|default:'' }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg"></div>
-                    <div class="md:col-span-2">
-                        <label class="block text-xs font-medium text-gray-600 mb-1">Descrição da Atividade</label>
-                        <textarea name="activity_description" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg">{{ art_initial.activity_description|default:'' }}</textarea>
-                    </div>
-                </div>
-            </div>
-
-            <div>
-                <h4 class="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">Contrato e Prazo</h4>
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div><label class="block text-xs font-medium text-gray-600 mb-1">Metragem</label><input type="text" name="quantity" value="{{ art_initial.quantity|default:'0' }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg"></div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Quantidade</label>
+                        <input type="text" name="quantity" value="{{ art_initial.quantity|default:'0' }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                    </div>
                     <div>
                         <label class="block text-xs font-medium text-gray-600 mb-1">Unidade</label>
                         <select name="measurement_unit" class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white">
@@ -334,6 +323,12 @@
                             <option value="un" {% if art_initial.measurement_unit == 'un' %}selected{% endif %}>unidades (un)</option>
                         </select>
                     </div>
+                </div>
+            </div>
+
+            <div>
+                <h4 class="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">Contrato e Prazo</h4>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div><label class="block text-xs font-medium text-gray-600 mb-1">Valor do Contrato</label><input type="text" name="contract_value" value="{{ art_initial.contract_value|default:'' }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg"></div>
                     <div><label class="block text-xs font-medium text-gray-600 mb-1">Data Início</label><input type="date" name="start_date" value="{% if art_initial.start_date %}{{ art_initial.start_date|date:'Y-m-d' }}{% endif %}" class="w-full px-3 py-2 border border-gray-300 rounded-lg"></div>
                     <div><label class="block text-xs font-medium text-gray-600 mb-1">Data Conclusão</label><input type="date" name="end_date" value="{% if art_initial.end_date %}{{ art_initial.end_date|date:'Y-m-d' }}{% endif %}" class="w-full px-3 py-2 border border-gray-300 rounded-lg"></div>

@@ -78,11 +78,18 @@ class ARTGenerateView(LoginRequiredMixin, View):
             'client_neighborhood', 'client_city', 'client_state', 'client_zip',
             'obra_address', 'obra_number', 'obra_complement',
             'obra_neighborhood', 'obra_city', 'obra_state', 'obra_zip',
-            'nivel_atuacao', 'atividade', 'atividade_complemento', 'obra_servico',
-            'activity_description', 'notes',
+            'notes',
         ]
 
         data = defaults.copy()
+
+        # Technical activity fields are always backend-driven.
+        last_art = ART.all_objects.filter(service_order=service_order).order_by('-updated_at', '-created_at').first()
+        if last_art:
+            for field in ['nivel_atuacao', 'atividade', 'atividade_complemento', 'obra_servico', 'activity_description']:
+                value = getattr(last_art, field, None)
+                if value not in (None, ''):
+                    data[field] = value
 
         for field in text_fields:
             if field in request.POST:
@@ -216,7 +223,6 @@ class ARTDetailView(LoginRequiredMixin, DetailView):
             {'name': f'OS #{self.object.service_order.pk}', 'url': reverse_lazy('service_orders:detail', kwargs={'pk': self.object.service_order.pk})},
             {'name': self.object.art_number, 'url': None},
         ]
-        context['calculated_quantity'] = ART.calculate_quantity(self.object.service_order)
         return context
 
 
@@ -240,10 +246,8 @@ class PublicARTView(View):
             ),
             public_token=token,
         )
-        calculated_quantity = ART.calculate_quantity(art.service_order)
         return render(request, 'art/public_art.html', {
             'art': art,
-            'calculated_quantity': calculated_quantity,
         })
 
 
