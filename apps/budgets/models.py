@@ -227,8 +227,16 @@ class Budget(BaseModel):
 
     @property
     def has_item_fiscal(self):
-        """True if at least one item has include_fiscal=True."""
-        return self.items.filter(include_fiscal=True).exists()
+        """True if at least one item or extra charge row has fiscal charges."""
+        if self.items.filter(include_fiscal=True).exists():
+            return True
+        charges = self.extra_charges or {}
+        for rows in charges.values():
+            if isinstance(rows, list):
+                for row in rows:
+                    if row.get('fiscal'):
+                        return True
+        return False
 
     @property
     def fiscal_charges_value(self):

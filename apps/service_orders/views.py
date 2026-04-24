@@ -86,7 +86,6 @@ class ServiceOrderDetailView(LoginRequiredMixin, DetailView):
             'budget__proposal',
             'event',
             'event__client',
-            'art',
             'created_by',
             'updated_by'
         ).prefetch_related(
@@ -100,8 +99,28 @@ class ServiceOrderDetailView(LoginRequiredMixin, DetailView):
             {'name': 'Ordens de Serviço', 'url': reverse_lazy('service_orders:list')},
             {'name': f'OS #{self.object.pk}', 'url': None}
         ]
-        context['service_order_art'] = getattr(self.object, 'art', None)
-        context['art_initial'] = ART.build_initial_data(self.object)
+        service_order_art = ART.objects.filter(service_order=self.object).first()
+        context['service_order_art'] = service_order_art
+
+        art_initial = ART.build_initial_data(self.object)
+        if not service_order_art:
+            last_art = ART.all_objects.filter(service_order=self.object).order_by('-updated_at', '-created_at').first()
+            if last_art:
+                # Keep fallback defaults and override with last saved ART values when present.
+                for field in [
+                    'client_address', 'client_number', 'client_complement', 'client_neighborhood',
+                    'client_city', 'client_state', 'client_zip', 'tipo_contratante',
+                    'obra_address', 'obra_number', 'obra_complement', 'obra_neighborhood',
+                    'obra_city', 'obra_state', 'obra_zip',
+                    'nivel_atuacao', 'atividade', 'atividade_complemento', 'obra_servico',
+                    'activity_description', 'quantity', 'measurement_unit', 'contract_value',
+                    'start_date', 'end_date', 'notes',
+                ]:
+                    value = getattr(last_art, field, None)
+                    if value not in (None, ''):
+                        art_initial[field] = value
+
+        context['art_initial'] = art_initial
         return context
 
 

@@ -777,7 +777,7 @@
                     {% with rows=budget.extra_charges.logistica %}
                     {% if rows %}
                     {% for row in rows %}
-                    <tr>
+                    <tr class="item-row" data-unit-total="{{ row.value|floatformat:'2' }}" data-fiscal="{% if row.fiscal %}1{% else %}0{% endif %}">
                         {% if is_editable %}<td class="no-print"></td>{% endif %}
                         {% if forloop.first %}<td class="os-item-name" rowspan="{{ rows|length }}">Logística</td>{% endif %}
                         <td class="os-item-desc" data-label="Descritivo">{{ row.label|default:"—" }}</td>
@@ -795,7 +795,7 @@
                     {% with rows=budget.extra_charges.apoio %}
                     {% if rows %}
                     {% for row in rows %}
-                    <tr>
+                    <tr class="item-row" data-unit-total="{{ row.value|floatformat:'2' }}" data-fiscal="{% if row.fiscal %}1{% else %}0{% endif %}">
                         {% if is_editable %}<td class="no-print"></td>{% endif %}
                         {% if forloop.first %}<td class="os-item-name" rowspan="{{ rows|length }}">Apoio</td>{% endif %}
                         <td class="os-item-desc" data-label="Descritivo">{{ row.label|default:"—" }}</td>
@@ -813,7 +813,7 @@
                     {% with rows=budget.extra_charges.mao_de_obra %}
                     {% if rows %}
                     {% for row in rows|dictsortreversed:"label" %}
-                    <tr>
+                    <tr class="item-row" data-unit-total="{{ row.value|floatformat:'2' }}" data-fiscal="{% if row.fiscal %}1{% else %}0{% endif %}">
                         {% if is_editable %}<td class="no-print"></td>{% endif %}
                         {% if forloop.first %}<td class="os-item-name" rowspan="{{ rows|length }}">Extra Mão de Obra</td>{% endif %}
                         <td class="os-item-desc" data-label="Descritivo">{{ row.label|default:"—" }}</td>
@@ -831,7 +831,7 @@
                     {% with rows=budget.extra_charges.documentacao %}
                     {% if rows %}
                     {% for row in rows %}
-                    <tr>
+                    <tr class="item-row" data-unit-total="{{ row.value|floatformat:'2' }}" data-fiscal="{% if row.fiscal %}1{% else %}0{% endif %}">
                         {% if is_editable %}<td class="no-print"></td>{% endif %}
                         {% if forloop.first %}<td class="os-item-name" rowspan="{{ rows|length }}">Documentação Legal</td>{% endif %}
                         <td class="os-item-desc" data-label="Descritivo">{{ row.label|default:"—" }}</td>
@@ -849,7 +849,7 @@
                     {% with rows=budget.extra_charges.taxa_feira %}
                     {% if rows %}
                     {% for row in rows %}
-                    <tr>
+                    <tr class="item-row" data-unit-total="{{ row.value|floatformat:'2' }}" data-fiscal="{% if row.fiscal %}1{% else %}0{% endif %}">
                         {% if is_editable %}<td class="no-print"></td>{% endif %}
                         {% if forloop.first %}<td class="os-item-name" rowspan="{{ rows|length }}">Taxa Feira</td>{% endif %}
                         <td class="os-item-desc" data-label="Descritivo">{{ row.label|default:"—" }}</td>
@@ -867,7 +867,7 @@
                     {% with rows=budget.extra_charges.outros %}
                     {% if rows %}
                     {% for row in rows %}
-                    <tr>
+                    <tr class="item-row" data-unit-total="{{ row.value|floatformat:'2' }}" data-fiscal="{% if row.fiscal %}1{% else %}0{% endif %}">
                         {% if is_editable %}<td class="no-print"></td>{% endif %}
                         {% if forloop.first %}<td class="os-item-name" rowspan="{{ rows|length }}">Outros</td>{% endif %}
                         <td class="os-item-desc" data-label="Descritivo">{{ row.label|default:"—" }}</td>
