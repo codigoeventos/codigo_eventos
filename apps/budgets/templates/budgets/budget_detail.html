@@ -143,7 +143,7 @@
         <div class="approval-link-card bg-gradient-to-r from-black to-gray-800 rounded-lg shadow-sm p-6 mt-6">
             <div class="flex items-start justify-between">
                 <div class="flex-1">
-                    <h3 class="text-lg font-semibold text-white mb-2">🔗 Link de Aprovação do Cliente</h3>
+                    <h3 class="text-lg font-semibold text-white mb-2">Link de Aprovação do Cliente</h3>
                     <p class="text-gray-300 text-sm mb-4">Compartilhe este link com o cliente para aprovação do proposta</p>
                     
                     <div class="flex items-center gap-2 mb-3">
@@ -153,12 +153,12 @@
                             class="flex-1 px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm text-gray-900 focus:ring-2 focus:ring-white">
                         <button onclick="copyApprovalLink()" 
                             class="px-4 py-2 bg-white text-black rounded-lg hover:bg-gray-100 transition-all font-medium text-sm">
-                            📋 Copiar
+                            Copiar
                         </button>
                         <a href="{{ request.scheme }}://{{ request.get_host }}{% url 'budgets:public_approval' budget.approval_token %}"
                             target="_blank" rel="noopener noreferrer"
                             class="px-4 py-2 bg-white text-black rounded-lg hover:bg-gray-100 transition-all font-medium text-sm whitespace-nowrap">
-                            🔗 Abrir
+                            Abrir
                         </a>
                     </div>
                     
@@ -179,7 +179,7 @@
                     <div class="mt-4 p-3 bg-white/10 border border-white/20 rounded-lg">
                         <div class="flex items-center justify-between gap-3">
                             <div>
-                                <p class="text-sm font-medium text-white">🔔 Notificação por e-mail</p>
+                                <p class="text-sm font-medium text-white">Notificação por e-mail</p>
                                 <p class="text-xs text-gray-300">Avisar quando o proposta for aprovado</p>
                             </div>
                             <label for="approval-email-notification-toggle" class="inline-flex items-center cursor-pointer">
@@ -187,7 +187,7 @@
                                 <div class="relative w-11 h-6 bg-gray-600 rounded-full peer peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-white/60 peer-checked:bg-green-500 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:border-gray-300 after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full peer-checked:after:border-white"></div>
                             </label>
                         </div>
-                        <p id="approval-email-notification-status" class="mt-2 text-xs text-gray-300">🔕 Notificação desativada</p>
+                        <p id="approval-email-notification-status" class="mt-2 text-xs text-gray-300">Notificação desativada</p>
                     </div>
                     
                     {% if budget.approval_status == 'approved' %}
@@ -564,7 +564,7 @@ function copyApprovalLink() {
         // Show success message
         const button = event.target;
         const originalText = button.innerHTML;
-        button.innerHTML = '✅ Copiado!';
+        button.innerHTML = 'Copiado!';
         button.classList.add('bg-green-500', 'text-white');
         button.classList.remove('bg-white', 'text-black');
         
@@ -600,8 +600,8 @@ function initApprovalEmailNotificationToggle() {
 
 function updateApprovalEmailNotificationStatus(enabled, statusElement) {
     statusElement.textContent = enabled
-        ? '🔔 Notificação ativada'
-        : '🔕 Notificação desativada';
+        ? 'Notificação ativada'
+        : 'Notificação desativada';
     statusElement.classList.toggle('text-green-300', enabled);
     statusElement.classList.toggle('text-gray-300', !enabled);
 }

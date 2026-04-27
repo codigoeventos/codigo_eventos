@@ -508,19 +508,19 @@
             </div>
             <div class="flex-row">
                 <button type="button" onclick="window.print()" class="os-btn os-btn-outline">
-                    🖨 Imprimir / PDF
+                    Imprimir / PDF
                 </button>
                 <button type="button" data-confirm-action="reject" class="os-btn os-btn-outline">
-                    ✗ Rejeitar
+                    Rejeitar
                 </button>
                 <button type="button" data-confirm-action="approve" class="os-btn os-btn-filled">
-                    ✓ Aprovar Selecionados
+                    Aprovar Selecionados
                 </button>
             </div>
             {% else %}
             <div></div>
             <button type="button" onclick="window.print()" class="os-btn os-btn-outline">
-                🖨 Imprimir / PDF
+                Imprimir / PDF
             </button>
             {% endif %}
         </div>
@@ -1178,12 +1178,12 @@
                 mBody.innerHTML = `
                     <p style="margin-bottom:8px;">Após confirmar, este proposta ficará <strong>bloqueado para edição</strong>.</p>
                     <div style="border:1px solid #c0c0c0;padding:8px;margin-bottom:8px;">
-                        <div style="font-size:9px;font-weight:700;text-transform:uppercase;color:#3f3f3f;margin-bottom:4px;">✓ Serão aprovados (${approved.length})</div>
-                        ${list(approved, '✓')}
+                        <div style="font-size:9px;font-weight:700;text-transform:uppercase;color:#3f3f3f;margin-bottom:4px;">Serão aprovados (${approved.length})</div>
+                        ${list(approved, '-')}
                     </div>
                     ${not.length ? `<div style="border:1px solid #c0c0c0;padding:8px;">
-                        <div style="font-size:9px;font-weight:700;text-transform:uppercase;color:#999;margin-bottom:4px;">✗ Não aprovados (${not.length})</div>
-                        ${list(not, '✗')}
+                        <div style="font-size:9px;font-weight:700;text-transform:uppercase;color:#999;margin-bottom:4px;">Não aprovados (${not.length})</div>
+                        ${list(not, '-')}
                     </div>` : ''}`;
             } else {
                 mBody.innerHTML = '<p>Você está prestes a <strong>rejeitar</strong> este proposta. Esta ação não poderá ser desfeita.</p>';

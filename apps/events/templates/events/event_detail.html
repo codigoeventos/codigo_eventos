@@ -110,7 +110,7 @@
                                 {% elif project.status == 'rejected' %}bg-red-100 text-red-800
                                 {% elif project.status == 'sent' %}bg-yellow-100 text-yellow-800
                                 {% elif project.status == 'in_development' %}bg-purple-100 text-purple-800
-                                {% else %}bg-gray-200 text-gray-700{% endif %}">
+                                {% else %}bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-100{% endif %}">
                                 {{ project.get_status_display }}
                             </span>
                         </p>
@@ -153,7 +153,7 @@
                                 {% if order.status == 'completed' %}bg-green-100 text-green-800
                                 {% elif order.status == 'cancelled' %}bg-red-100 text-red-800
                                 {% elif order.status == 'in_progress' %}bg-blue-100 text-blue-800
-                                {% else %}bg-gray-200 text-gray-700{% endif %}">
+                                {% else %}bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-100{% endif %}">
                                 {{ order.get_status_display }}
                             </span>
                         </p>
@@ -193,7 +193,7 @@
                                 {% if visit.status == 'completed' %}bg-green-100 text-green-800
                                 {% elif visit.status == 'cancelled' %}bg-red-100 text-red-800
                                 {% elif visit.status == 'scheduled' %}bg-blue-100 text-blue-800
-                                {% else %}bg-gray-200 text-gray-700{% endif %}">
+                                {% else %}bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-100{% endif %}">
                                 {{ visit.get_status_display }}
                             </span>
                         </p>
