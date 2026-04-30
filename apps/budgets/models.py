@@ -94,7 +94,7 @@ class Budget(BaseModel):
     # ── Logistics / Freight ──────────────────────────────────────────────
     freight_cost = models.DecimalField(
         'Custo de Frete (R$)',
-        max_digits=10,
+        max_digits=15,
         decimal_places=2,
         blank=True,
         null=True,
@@ -110,7 +110,7 @@ class Budget(BaseModel):
     )
     freight_distance_km = models.DecimalField(
         'Distância para Entrega (km)',
-        max_digits=8,
+        max_digits=12,
         decimal_places=2,
         blank=True,
         null=True,
@@ -153,7 +153,7 @@ class Budget(BaseModel):
 
     discount_value = models.DecimalField(
         'Valor do Desconto',
-        max_digits=10,
+        max_digits=15,
         decimal_places=2,
         default=Decimal('0'),
         help_text='Percentual (%) ou valor fixo (R$), conforme o tipo selecionado',
@@ -382,7 +382,7 @@ class BudgetItem(models.Model):
     
     measurement = models.DecimalField(
         'Metragem / Volume (m³)',
-        max_digits=10,
+        max_digits=15,
         decimal_places=3,
         blank=True,
         null=True,
@@ -405,7 +405,7 @@ class BudgetItem(models.Model):
     # Dimensions for automatic volume calculation
     dim_length = models.DecimalField(
         'Comprimento (m)',
-        max_digits=8,
+        max_digits=12,
         decimal_places=3,
         blank=True,
         null=True,
@@ -413,7 +413,7 @@ class BudgetItem(models.Model):
     )
     dim_width = models.DecimalField(
         'Largura (m)',
-        max_digits=8,
+        max_digits=12,
         decimal_places=3,
         blank=True,
         null=True,
@@ -421,7 +421,7 @@ class BudgetItem(models.Model):
     )
     dim_height = models.DecimalField(
         'Altura (m)',
-        max_digits=8,
+        max_digits=12,
         decimal_places=3,
         blank=True,
         null=True,
@@ -430,7 +430,7 @@ class BudgetItem(models.Model):
 
     weight = models.DecimalField(
         'Peso Unitário (kg)',
-        max_digits=10,
+        max_digits=15,
         decimal_places=3,
         blank=True,
         null=True,
@@ -439,13 +439,13 @@ class BudgetItem(models.Model):
     
     unit_price = models.DecimalField(
         'Preço Unitário',
-        max_digits=10,
+        max_digits=15,
         decimal_places=2
     )
     
     total_price = models.DecimalField(
         'Preço Total',
-        max_digits=10,
+        max_digits=15,
         decimal_places=2,
         editable=False
     )
