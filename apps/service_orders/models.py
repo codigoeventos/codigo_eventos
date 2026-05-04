@@ -126,28 +126,28 @@ class ServiceOrderItem(models.Model):
     # ── Dimensões e Logística (copiados do orçamento, sem preços) ─────────
     dim_length = models.DecimalField(
         'Comprimento (m)',
-        max_digits=8,
+        max_digits=12,
         decimal_places=3,
         blank=True,
         null=True,
     )
     dim_width = models.DecimalField(
         'Largura (m)',
-        max_digits=8,
+        max_digits=12,
         decimal_places=3,
         blank=True,
         null=True,
     )
     dim_height = models.DecimalField(
         'Altura (m)',
-        max_digits=8,
+        max_digits=12,
         decimal_places=3,
         blank=True,
         null=True,
     )
     measurement = models.DecimalField(
         'Metragem / Volume (m³)',
-        max_digits=10,
+        max_digits=15,
         decimal_places=3,
         blank=True,
         null=True,
@@ -165,7 +165,7 @@ class ServiceOrderItem(models.Model):
     )
     weight = models.DecimalField(
         'Peso Unitário (kg)',
-        max_digits=10,
+        max_digits=15,
         decimal_places=3,
         blank=True,
         null=True,
