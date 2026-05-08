@@ -20,6 +20,15 @@ urlpatterns = [
     path('payment-info-templates/', views.PaymentInfoTemplateListCreateView.as_view(), name='payment-info-templates'),
     path('payment-info-templates/<int:pk>/', views.PaymentInfoTemplateDetailView.as_view(), name='payment-info-templates-detail'),
     
+    # Notifications
+    path('notifications/', views.NotificationsView.as_view(), name='notifications'),
+
+    # Version history
+    path('<int:pk>/versions/', views.BudgetVersionListView.as_view(), name='version-list'),
+    path('<int:pk>/versions/<int:version_id>/', views.BudgetVersionDetailView.as_view(), name='version-detail'),
+    path('<int:pk>/versions/<int:version_id>/restore/', views.BudgetVersionRestoreView.as_view(), name='version-restore'),
+    path('<int:pk>/versions/<int:version_id>/preview/', views.BudgetVersionPublicPreviewView.as_view(), name='version-preview'),
+
     # Public approval URLs (no login required)
     path('approval/<uuid:token>/', views.PublicBudgetApprovalView.as_view(), name='public_approval'),
     path('approval/<uuid:token>/pdf/', views.PublicBudgetPDFView.as_view(), name='public_pdf'),

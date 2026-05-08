@@ -33,7 +33,7 @@ class Client(BaseModel):
         null=True,
         help_text='Nome da pessoa de contato responsável'
     )
-    
+
     document_type = models.CharField(
         'Tipo de Documento',
         max_length=4,
@@ -58,7 +58,9 @@ class Client(BaseModel):
     
     phone = models.CharField(
         'Telefone',
-        max_length=20
+        max_length=20,
+        blank=True,
+        null=True
     )
     
     class Meta:

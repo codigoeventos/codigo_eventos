@@ -1,0 +1,413 @@
+{% load static %}
+{% load budget_filters %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proposta v{{ version.version_number }} — {{ budget.name }}</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 15px;
+            color: #000;
+            background: #d4d4d4;
+            line-height: 1.4;
+            padding: 32px 16px;
+            min-height: 100vh;
+        }
+        :root {
+            --os-dark:   #3f3f3f;
+            --os-cream:  #eeece1;
+            --os-white:  #ffffff;
+            --os-black:  #000000;
+            --os-border: #3f3f3f;
+        }
+        .os-doc {
+            max-width: 794px;
+            margin: 0 auto;
+            background: var(--os-white);
+            border: 1px solid #999;
+            box-shadow: 0 4px 24px rgba(0,0,0,.25);
+        }
+        .os-header {
+            background: var(--os-white);
+            padding: 8px 10px 6px;
+        }
+        .os-header-meta { font-size: 13px; font-weight: 400; color: #000; line-height: 1.5; }
+        .os-header-meta strong { font-weight: 700; }
+        .os-section-bar {
+            background: var(--os-dark);
+            color: var(--os-white);
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 5px 16px;
+        }
+        .os-info-table { width: 100%; border-collapse: collapse; }
+        .os-info-table td { border: 1px solid #000; padding: 5px 10px; vertical-align: top; font-size: 13px; }
+        .os-info-label { font-weight: 700; font-size: 12px; color: var(--os-black); }
+        .os-info-value { font-weight: 400; font-size: 13px; color: var(--os-black); min-height: 18px; }
+        .os-description { font-style: italic; font-size: 13px; text-align: center; padding: 10px 16px; color: var(--os-black); }
+        .os-items-table-wrap { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        .os-items-table { width: 100%; min-width: 520px; border-collapse: collapse; }
+        .os-items-table thead th {
+            background: var(--os-white);
+            border: 1px solid #000;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            padding: 7px 10px;
+            color: var(--os-black);
+            text-align: center;
+        }
+        .os-items-table thead th.th-left { text-align: left; }
+        .os-items-table tbody td { border: 1px solid #000; padding: 7px 10px; font-size: 13px; color: var(--os-black); vertical-align: top; }
+        .os-items-table tbody td.os-item-num {
+            background: var(--os-dark) !important;
+            color: var(--os-white) !important;
+            font-weight: 700;
+            text-align: center;
+            width: 40px;
+        }
+        .os-items-table tbody td.os-item-name {
+            background: var(--os-dark) !important;
+            color: var(--os-white) !important;
+            font-weight: 700;
+            font-size: 13px;
+            width: 14%;
+            text-align: center;
+            vertical-align: middle;
+        }
+        .os-items-table tbody td.os-item-desc { color: #000; font-size: 12px; white-space: pre-wrap; }
+        .os-total-row td {
+            background: var(--os-dark) !important;
+            color: var(--os-white) !important;
+            font-weight: 700;
+            font-size: 13px;
+            padding: 7px 10px;
+            border: 1px solid #000 !important;
+        }
+        .os-footer {
+            font-size: 11px;
+            font-weight: 700;
+            text-align: right;
+            padding: 6px 16px;
+            color: var(--os-black);
+            border-top: 1px solid var(--os-border);
+        }
+        .os-payment {
+            border: 1px solid #000;
+            padding: 5px 8px;
+            margin: 8px 10px;
+            font-size: 11px;
+        }
+        .text-right { text-align: right; }
+        .text-center { text-align: center; }
+
+        /* ── Version banner ─────────────────────────────────────────── */
+        .version-banner {
+            background: #1e3a5f;
+            color: #fff;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            font-size: 13px;
+            flex-wrap: wrap;
+        }
+        .version-banner .vb-left { display: flex; align-items: center; gap: 10px; }
+        .version-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+        .version-banner a {
+            color: #93c5fd;
+            text-decoration: none;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+        .version-banner a:hover { text-decoration: underline; }
+
+        /* ── Floating action bar ──────────────────────────────────── */
+        .os-action-bar {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            z-index: 100;
+            background: var(--os-white);
+            border-top: 2px solid var(--os-dark);
+            box-shadow: 0 -4px 16px rgba(0,0,0,.15);
+            padding: 8px 16px;
+        }
+        .os-action-inner {
+            max-width: 810px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .os-action-total { font-size: 11px; color: #555; }
+        .os-action-total strong { font-size: 16px; color: var(--os-black); }
+        .os-btn {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 10px 20px;
+            border: 2px solid var(--os-dark);
+            cursor: pointer;
+            transition: all 0.15s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .os-btn-outline { background: var(--os-white); color: var(--os-dark); }
+        .os-btn-outline:hover { background: var(--os-dark); color: var(--os-white); }
+        .os-btn-filled { background: var(--os-dark); color: var(--os-white); }
+        .os-btn-filled:hover { background: #2a2a2a; }
+
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white !important; padding: 0; }
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            .os-doc { box-shadow: none !important; border: none !important; margin: 0 !important; max-width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ── Floating action bar ─────────────────────────────────── -->
+    <div class="os-action-bar no-print">
+        <div class="os-action-inner">
+            <div class="os-action-total">
+                Total da proposta: <strong>R$ {{ total_with_freight|floatformat:"2g" }}</strong>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <button type="button" onclick="window.print()" class="os-btn os-btn-outline">
+                    Imprimir / PDF
+                </button>
+                <a href="{{ back_url }}" class="os-btn os-btn-filled">
+                    ← Voltar à Proposta
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="os-doc" id="version-preview-doc">
+
+        <!-- ── Version banner ────────────────────────────────────── -->
+        <div class="version-banner no-print">
+            <div class="vb-left">
+                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="flex-shrink:0;">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 8v4l3 2m6-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <span class="version-badge">
+                    v{{ version.version_number }}{% if version.label %} — {{ version.label }}{% endif %}
+                </span>
+                <span>Versão histórica — salva em {{ version.created_at|date:"d/m/Y H:i" }}
+                {% if version.created_by %}por {{ version.created_by.get_full_name|default:version.created_by.email }}{% endif %}
+                </span>
+            </div>
+            <a href="{{ back_url }}">← Voltar à proposta atual</a>
+        </div>
+
+        <!-- ── Header ────────────────────────────────────────────── -->
+        <div class="os-header">
+            <div style="display:grid;grid-template-columns:1fr auto 1fr;align-items:start;gap:10px;">
+                <div class="os-header-meta" style="align-self:start;">
+                    <div><strong>Data Proposta:</strong> {{ budget.created_at|date:"d/m/Y" }}</div>
+                    <div><strong>Proposta nº</strong> {{ version.version_number|to_roman }}</div>
+                </div>
+                <div style="text-align:center;align-self:center;">
+                    <img src="{% static 'assets/logo_black.png' %}" alt="Código Eventos"
+                         style="height:120px;width:auto;object-fit:contain;display:inline-block;">
+                </div>
+                <div style="text-align:right;align-self:start;">
+                    <img src="{% static 'assets/qr_code_codigo_eventos.png' %}" alt="QR Code"
+                         style="display:block;width:70px;height:70px;object-fit:contain;margin-left:auto;">
+                    <div style="margin-top:4px;">
+                        <span style="display:inline-block;font-size:11px;font-weight:700;text-transform:uppercase;
+                                     padding:3px 8px;border:1px solid #555;color:#555;">
+                            VERSÃO HISTÓRICA
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Client / Event info ───────────────────────────────── -->
+        <table class="os-info-table">
+            <tr>
+                <td class="os-section-bar" style="width:50%;text-align:center;border:1px solid #000;">DADOS CLIENTE</td>
+                <td class="os-section-bar" style="width:50%;text-align:center;border:1px solid #000;">DADOS DO EVENTO</td>
+            </tr>
+            <tr>
+                <td style="width:50%"><span class="os-info-label">Cliente: </span><span class="os-info-value">{% if budget.proposal.event.client %}{{ budget.proposal.event.client.name }}{% else %}—{% endif %}</span></td>
+                <td style="width:50%"><span class="os-info-label">Montagem: </span><span class="os-info-value">{% if budget.proposal.event.setup_date %}{{ budget.proposal.event.setup_date|date:"d/m/Y" }}{% else %}—{% endif %}</span></td>
+            </tr>
+            <tr>
+                <td><span class="os-info-label">Contato: </span><span class="os-info-value">{% if budget.proposal.event.client %}{{ budget.proposal.event.client.contact_name|default:budget.proposal.event.client.name|default:"—" }}{% else %}—{% endif %}</span></td>
+                <td><span class="os-info-label">Data do Evento: </span><span class="os-info-value">{% if budget.proposal.event.event_date %}{{ budget.proposal.event.event_date|date:"d/m/Y" }}{% else %}—{% endif %}</span></td>
+            </tr>
+            <tr>
+                <td><span class="os-info-label">E-mail: </span><span class="os-info-value">{% if budget.proposal.event.client %}{{ budget.proposal.event.client.email|default:"—" }}{% else %}—{% endif %}</span></td>
+                <td><span class="os-info-label">Desmontagem: </span><span class="os-info-value">{% if budget.proposal.event.teardown_date %}{{ budget.proposal.event.teardown_date|date:"d/m/Y" }}{% else %}—{% endif %}</span></td>
+            </tr>
+            <tr>
+                <td><span class="os-info-label">Telefones: </span><span class="os-info-value">{% if budget.proposal.event.client %}{{ budget.proposal.event.client.phone|default:"—" }}{% else %}—{% endif %}</span></td>
+                <td><span class="os-info-label">Local do Evento: </span><span class="os-info-value">{% if budget.proposal.event.location %}{{ budget.proposal.event.location }}{% else %}—{% endif %}</span></td>
+            </tr>
+        </table>
+
+        <div class="os-description">
+            <em>Conforme solicitação, segue abaixo descritivo e custos de locação, das seguintes estruturas:</em>
+        </div>
+
+        <!-- ── Items table ──────────────────────────────────────── -->
+        <div class="os-items-table-wrap">
+        <table class="os-items-table">
+            <thead>
+                <tr>
+                    <th class="th-left" style="width:14%;">Item</th>
+                    <th class="th-left">Descritivo</th>
+                    {% if has_fiscal %}
+                    <th style="width:80px;">Valor dos Serviços</th>
+                    <th style="width:80px;">Encargos Fiscais</th>
+                    <th style="width:80px;">Valor Total</th>
+                    {% else %}
+                    <th style="width:80px;">Valor dos Serviços</th>
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for sec in sections %}
+                <!-- Section header row -->
+                <tr>
+                    <td colspan="{% if has_fiscal %}5{% else %}3{% endif %}"
+                        style="background:#3f3f3f;color:#eeece1;font-weight:700;font-size:10px;
+                               text-transform:uppercase;letter-spacing:.05em;padding:6px 8px;text-align:center;">
+                        {{ sec.title }}
+                    </td>
+                </tr>
+                {% for item in sec.items %}
+                <tr>
+                    <td class="os-item-name">{{ item.name }}</td>
+                    <td class="os-item-desc">
+                        <span>{{ item.description|default:"—" }}</span>
+                        {% if item.dim_width and item.dim_height %}
+                        <span style="display:block;margin-top:6px;font-size:11px;">
+                            Dimensão {{ item.dim_width }} × {{ item.dim_height }}
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td class="text-right">R$ {{ item.total_price|floatformat:"2g" }}</td>
+                    {% if has_fiscal %}
+                    <td class="text-right">
+                        {% if item.include_fiscal %}
+                        R$ {% widthratio item.total_price|add:"0" 100 17 %}
+                        {% else %}—{% endif %}
+                    </td>
+                    <td class="text-right" style="font-weight:700;">
+                        R$ {{ item.total_price|floatformat:"2g" }}
+                    </td>
+                    {% endif %}
+                </tr>
+                {% empty %}
+                <tr><td colspan="{% if has_fiscal %}5{% else %}3{% endif %}"
+                        style="text-align:center;padding:12px;color:#888;">Nenhum item nesta seção</td></tr>
+                {% endfor %}
+                {% endfor %}
+
+                {% for item in unsectioned_items %}
+                <tr>
+                    <td class="os-item-name">{{ item.name }}</td>
+                    <td class="os-item-desc">{{ item.description|default:"—" }}</td>
+                    <td class="text-right">R$ {{ item.total_price|floatformat:"2g" }}</td>
+                    {% if has_fiscal %}
+                    <td class="text-right">—</td>
+                    <td class="text-right" style="font-weight:700;">R$ {{ item.total_price|floatformat:"2g" }}</td>
+                    {% endif %}
+                </tr>
+                {% endfor %}
+
+                {% if not sections and not unsectioned_items %}
+                <tr><td colspan="{% if has_fiscal %}5{% else %}3{% endif %}"
+                        style="text-align:center;padding:16px;color:#888;">Nenhum item cadastrado nesta versão</td></tr>
+                {% endif %}
+
+                <!-- Extra charges -->
+                {% for group_key, rows in extra_charges.items %}
+                {% if rows %}
+                {% for row in rows %}
+                <tr>
+                    {% if forloop.first %}
+                    <td class="os-item-name" rowspan="{{ rows|length }}" style="text-transform:capitalize;">{{ group_key }}</td>
+                    {% endif %}
+                    <td class="os-item-desc">{{ row.label|default:"—" }}</td>
+                    <td class="text-right">R$ {{ row.value|floatformat:"2g" }}</td>
+                    {% if has_fiscal %}
+                    <td class="text-right">{% if row.fiscal %}17%{% else %}—{% endif %}</td>
+                    <td class="text-right" style="font-weight:700;">R$ {{ row.value|floatformat:"2g" }}</td>
+                    {% endif %}
+                </tr>
+                {% endfor %}
+                {% endif %}
+                {% endfor %}
+
+                <!-- Freight -->
+                {% if freight_cost %}
+                <tr>
+                    <td class="os-item-name">Frete</td>
+                    <td class="os-item-desc">Logística e transporte</td>
+                    <td class="text-right">R$ {{ freight_cost|floatformat:"2g" }}</td>
+                    {% if has_fiscal %}<td>—</td><td class="text-right" style="font-weight:700;">R$ {{ freight_cost|floatformat:"2g" }}</td>{% endif %}
+                </tr>
+                {% endif %}
+
+                <!-- Total row -->
+                <tr class="os-total-row">
+                    <td colspan="{% if has_fiscal %}4{% else %}2{% endif %}" class="text-right">TOTAL DA PROPOSTA</td>
+                    <td class="text-right">R$ {{ total_with_freight|floatformat:"2g" }}</td>
+                </tr>
+
+            </tbody>
+        </table>
+        </div>
+
+        <!-- Payment info from snapshot -->
+        {% with snap.payment_info as pi %}
+        {% if pi %}
+        <div class="os-payment">
+            <strong>Condições de Pagamento:</strong><br>
+            <span style="white-space:pre-line;">{{ pi }}</span>
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        <div class="os-footer">
+            Proposta {{ budget.id }} — Versão v{{ version.version_number }}
+            &nbsp;|&nbsp; {{ budget.name }}
+            &nbsp;|&nbsp; Gerado em {% now "d/m/Y" %}
+        </div>
+
+    </div>
+
+    <!-- bottom padding for fixed action bar -->
+    <div style="height:80px;"></div>
+
+</body>
+</html>

@@ -139,7 +139,6 @@
                             <div class="flex flex-col gap-2 md:flex-row md:items-center md:justify-between mb-2">
                                 <span class="text-xs font-semibold text-gray-700">Apoio</span>
                                 <div class="flex items-center justify-between md:justify-start gap-3">
-                                    <span class="extra-group-subtotal text-xs font-mono text-gray-500">R$ 0,00</span>
                                     <button type="button" class="add-extra-row text-xs px-3 py-1 bg-gray-800 text-white rounded-lg hover:bg-gray-600 transition-all">+ Adicionar</button>
                                 </div>
                             </div>
@@ -151,7 +150,6 @@
                             <div class="flex flex-col gap-2 md:flex-row md:items-center md:justify-between mb-2">
                                 <span class="text-xs font-semibold text-gray-700">Extra mão de obra</span>
                                 <div class="flex items-center justify-between md:justify-start gap-3">
-                                    <span class="extra-group-subtotal text-xs font-mono text-gray-500">R$ 0,00</span>
                                     <button type="button" class="add-extra-row text-xs px-3 py-1 bg-gray-800 text-white rounded-lg hover:bg-gray-600 transition-all">+ Adicionar</button>
                                 </div>
                             </div>
@@ -163,7 +161,6 @@
                             <div class="flex flex-col gap-2 md:flex-row md:items-center md:justify-between mb-2">
                                 <span class="text-xs font-semibold text-gray-700">Documentação legal</span>
                                 <div class="flex items-center justify-between md:justify-start gap-3">
-                                    <span class="extra-group-subtotal text-xs font-mono text-gray-500">R$ 0,00</span>
                                     <button type="button" class="add-extra-row text-xs px-3 py-1 bg-gray-800 text-white rounded-lg hover:bg-gray-600 transition-all">+ Adicionar</button>
                                 </div>
                             </div>
@@ -175,7 +172,6 @@
                             <div class="flex flex-col gap-2 md:flex-row md:items-center md:justify-between mb-2">
                                 <span class="text-xs font-semibold text-gray-700">Taxa feira</span>
                                 <div class="flex items-center justify-between md:justify-start gap-3">
-                                    <span class="extra-group-subtotal text-xs font-mono text-gray-500">R$ 0,00</span>
                                     <button type="button" class="add-extra-row text-xs px-3 py-1 bg-gray-800 text-white rounded-lg hover:bg-gray-600 transition-all">+ Adicionar</button>
                                 </div>
                             </div>
@@ -288,7 +284,6 @@
                     placeholder="Título da seção (ex.: Estrutura, AV, Decoração…)" value="">
             </div>
             <div class="flex items-center justify-end gap-2 md:ml-3 flex-shrink-0 w-full md:w-auto">
-                <span class="section-subtotal text-xs text-gray-400 font-mono">R$ 0,00</span>
                 <button type="button" class="add-item-btn add-item-btn-header text-xs px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors">
                     + Item
                 </button>
@@ -331,7 +326,6 @@
                 </button>
                 <span class="item-summary-name text-sm font-semibold text-gray-800 truncate">Novo item</span>
             </div>
-            <span class="item-summary-total text-xs text-gray-500 font-mono">R$ 0,00</span>
         </div>
 
         <div class="item-body mt-3">
@@ -413,9 +407,7 @@
                     </button>
                 </div>
                 <div class="subitems-list space-y-2"></div>
-                <p class="subitems-warning mt-1.5 text-xs text-red-500 hidden">
-                    Atenção: a soma das quantidades dos subitens (<span class="subitems-sum-text">0</span>) deve ser igual à quantidade total do item (<span class="subitems-total-text">0</span>).
-                </p>
+
                 <div class="subitems-add-bottom mt-2 hidden flex justify-center">
                     <button type="button" class="add-subitem add-subitem-bottom text-xs px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-600 transition-all flex items-center gap-1">
                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
@@ -429,14 +421,62 @@
         <div class="item-dimensions-block mt-3 pt-3 border-t border-gray-100">
             <p class="text-xs font-medium text-gray-500 mb-2">Dimensões (opcional)</p>
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+
+                <!-- LARGURA -->
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">Largura (m)</label>
-                    <input type="number" class="item-dim item-dim-width w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-sm" step="0.001" min="0" placeholder="0.000">
+                    <div class="flex gap-1 items-center">
+                        <input type="number" class="item-dim item-dim-width flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-sm" step="0.001" min="0" placeholder="0.000">
+                        <button type="button" class="dim-sum-toggle dim-sum-toggle-width flex-shrink-0 flex items-center gap-1 px-2 py-2 text-xs font-semibold rounded-lg border border-blue-300 text-blue-600 bg-blue-50 hover:bg-blue-100 transition-all" title="Somar múltiplos valores">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                            Somar
+                        </button>
+                    </div>
+                    <!-- Painel somador de largura -->
+                    <div class="dim-sum-panel dim-sum-panel-width hidden mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                        <p class="text-xs font-semibold text-blue-700 mb-2">&#8721; Somar Larguras</p>
+                        <div class="dim-sum-entries space-y-1.5"></div>
+                        <button type="button" class="dim-sum-add-entry mt-2 text-xs text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                            Adicionar valor
+                        </button>
+                        <div class="mt-2 pt-2 border-t border-blue-200 flex items-center justify-between gap-2">
+                            <span class="text-xs text-blue-700">Total: <strong class="dim-sum-total">0.000</strong> m</span>
+                            <button type="button" class="dim-sum-apply dim-sum-apply-width px-3 py-1 bg-blue-600 text-white text-xs rounded-lg hover:bg-blue-700 transition-all font-semibold">
+                                Aplicar
+                            </button>
+                        </div>
+                    </div>
                 </div>
+
+                <!-- ALTURA -->
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">Altura (m)</label>
-                    <input type="number" class="item-dim item-dim-height w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-sm" step="0.001" min="0" placeholder="0.000">
+                    <div class="flex gap-1 items-center">
+                        <input type="number" class="item-dim item-dim-height flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-sm" step="0.001" min="0" placeholder="0.000">
+                        <button type="button" class="dim-sum-toggle dim-sum-toggle-height flex-shrink-0 flex items-center gap-1 px-2 py-2 text-xs font-semibold rounded-lg border border-blue-300 text-blue-600 bg-blue-50 hover:bg-blue-100 transition-all" title="Somar múltiplos valores">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                            Somar
+                        </button>
+                    </div>
+                    <!-- Painel somador de altura -->
+                    <div class="dim-sum-panel dim-sum-panel-height hidden mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                        <p class="text-xs font-semibold text-blue-700 mb-2">&#8721; Somar Alturas</p>
+                        <div class="dim-sum-entries space-y-1.5"></div>
+                        <button type="button" class="dim-sum-add-entry mt-2 text-xs text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                            Adicionar valor
+                        </button>
+                        <div class="mt-2 pt-2 border-t border-blue-200 flex items-center justify-between gap-2">
+                            <span class="text-xs text-blue-700">Total: <strong class="dim-sum-total">0.000</strong> m</span>
+                            <button type="button" class="dim-sum-apply dim-sum-apply-height px-3 py-1 bg-blue-600 text-white text-xs rounded-lg hover:bg-blue-700 transition-all font-semibold">
+                                Aplicar
+                            </button>
+                        </div>
+                    </div>
                 </div>
+
+                <!-- L × A -->
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">L × A (m²)</label>
                     <input type="number" class="item-measurement w-full px-3 py-2 bg-green-50 border border-green-300 rounded-lg focus:ring-2 focus:ring-green-400 focus:border-transparent text-sm" step="0.001" min="0" placeholder="automático">
@@ -1152,7 +1192,7 @@
         const s = String(v || '0').trim();
         if (s.includes(',')) return parseFloat(s.replace(/\./g, '').replace(',', '.')) || 0;
         // Dot as thousands separator: "10.200" or "1.000.000" (dot before exactly 3 digits, possibly repeated)
-        if (/^\d{1,3}(\.\d{3})+$/.test(s)) return parseFloat(s.replace(/\./g, '')) || 0;
+        if (/^\d{1,3}(\.\d{3}){2,}$/.test(s)) return parseFloat(s.replace(/\./g, '')) || 0;
         return parseFloat(s) || 0;
     };
     const formatBR = v => new Intl.NumberFormat('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2}).format(v);
@@ -1336,15 +1376,15 @@
         if (!qDiv) return;
         qDiv.dataset.answered = answer;
         if (answer === 'yes') {
-            yesBtn?.classList.add('bg-green-600', 'text-white', 'border-green-600');
-            yesBtn?.classList.remove('bg-white', 'text-amber-800', 'border-amber-300');
-            noBtn?.classList.remove('bg-amber-600', 'text-white', 'border-amber-600');
-            noBtn?.classList.add('bg-white', 'text-amber-800', 'border-amber-300');
+            yesBtn?.classList.add('bg-green-600', 'text-white', 'border-green-600', 'hover:bg-green-700', 'hover:border-green-700');
+            yesBtn?.classList.remove('bg-white', 'text-amber-800', 'border-amber-300', 'hover:bg-amber-50');
+            noBtn?.classList.remove('bg-amber-600', 'text-white', 'border-amber-600', 'hover:bg-amber-700', 'hover:border-amber-700');
+            noBtn?.classList.add('bg-white', 'text-amber-800', 'border-amber-300', 'hover:bg-amber-50');
         } else {
-            noBtn?.classList.add('bg-amber-600', 'text-white', 'border-amber-600');
-            noBtn?.classList.remove('bg-white', 'text-amber-800', 'border-amber-300');
-            yesBtn?.classList.remove('bg-green-600', 'text-white', 'border-green-600');
-            yesBtn?.classList.add('bg-white', 'text-amber-800', 'border-amber-300');
+            noBtn?.classList.add('bg-amber-600', 'text-white', 'border-amber-600', 'hover:bg-amber-700', 'hover:border-amber-700');
+            noBtn?.classList.remove('bg-white', 'text-amber-800', 'border-amber-300', 'hover:bg-amber-50');
+            yesBtn?.classList.remove('bg-green-600', 'text-white', 'border-green-600', 'hover:bg-green-700', 'hover:border-green-700');
+            yesBtn?.classList.add('bg-white', 'text-amber-800', 'border-amber-300', 'hover:bg-amber-50');
         }
     }
 
@@ -1588,12 +1628,31 @@
         // Same-measures buttons
         node.querySelector('.same-measures-yes')?.addEventListener('click', () => {
             updateSameMeasuresButtons(node, 'yes');
+            node.querySelector('.same-measures-question')?.classList.add('hidden');
             node.querySelector('.subitems-panel')?.classList.add('hidden');
+            // Unlock item dimensions
+            const dimW = node.querySelector('.item-dim-width');
+            const dimH = node.querySelector('.item-dim-height');
+            const sumW = node.querySelector('.dim-sum-toggle-width');
+            const sumH = node.querySelector('.dim-sum-toggle-height');
+            if (dimW) { dimW.disabled = false; dimW.classList.remove('bg-gray-100', 'cursor-not-allowed'); }
+            if (dimH) { dimH.disabled = false; dimH.classList.remove('bg-gray-100', 'cursor-not-allowed'); }
+            if (sumW) { sumW.disabled = false; sumW.classList.remove('cursor-not-allowed', 'opacity-50'); }
+            if (sumH) { sumH.disabled = false; sumH.classList.remove('cursor-not-allowed', 'opacity-50'); }
             recalcAll();
         });
         node.querySelector('.same-measures-no')?.addEventListener('click', () => {
             updateSameMeasuresButtons(node, 'no');
             node.querySelector('.subitems-panel')?.classList.remove('hidden');
+            // Lock and zero item dimensions
+            const dimW = node.querySelector('.item-dim-width');
+            const dimH = node.querySelector('.item-dim-height');
+            const sumW = node.querySelector('.dim-sum-toggle-width');
+            const sumH = node.querySelector('.dim-sum-toggle-height');
+            if (dimW) { dimW.disabled = true; dimW.value = ''; dimW.classList.add('bg-gray-100', 'cursor-not-allowed'); }
+            if (dimH) { dimH.disabled = true; dimH.value = ''; dimH.classList.add('bg-gray-100', 'cursor-not-allowed'); }
+            if (sumW) { sumW.disabled = true; sumW.classList.add('cursor-not-allowed', 'opacity-50'); }
+            if (sumH) { sumH.disabled = true; sumH.classList.add('cursor-not-allowed', 'opacity-50'); }
             updateSubitemsCounter(node);
             recalcAll();
         });
@@ -1701,22 +1760,34 @@
         const billingType  = row.dataset.billingType || 'qty';
         const qty          = billingType === 'meter' ? 1 : (num(row.querySelector('.qty-panel .item-quantity')?.value) || 1);
 
-        const w = num(row.querySelector('.item-dim-width')?.value);
-        const h = num(row.querySelector('.item-dim-height')?.value);
-        let vol = 0;
         const measInput  = row.querySelector('.item-measurement');
         const unitSelect = row.querySelector('.item-measurement-unit');
+        let vol = 0;
 
-        if (w > 0 && h > 0) {
-            vol = w * h;
-            if (measInput)  measInput.value  = vol.toFixed(3);
-            if (unitSelect) unitSelect.value = 'm2';
-        } else if (w > 0 || h > 0) {
-            vol = w || h;
+        // If subitems exist (user chose "Não"), sum their volumes
+        const subRows = row.querySelectorAll('.subitems-list .subitem-row');
+        if (subRows.length > 0) {
+            subRows.forEach(sr => {
+                const subVol = calcSubitem(sr);
+                const subQty = parseInt(sr.querySelector('.subitem-qty')?.value) || 1;
+                vol += subVol * subQty;
+            });
             if (measInput)  measInput.value  = vol.toFixed(3);
             if (unitSelect) unitSelect.value = 'm2';
         } else {
-            vol = num(measInput?.value);
+            const w = num(row.querySelector('.item-dim-width')?.value);
+            const h = num(row.querySelector('.item-dim-height')?.value);
+            if (w > 0 && h > 0) {
+                vol = w * h * qty;
+                if (measInput)  measInput.value  = vol.toFixed(3);
+                if (unitSelect) unitSelect.value = 'm2';
+            } else if (w > 0 || h > 0) {
+                vol = (w || h) * qty;
+                if (measInput)  measInput.value  = vol.toFixed(3);
+                if (unitSelect) unitSelect.value = 'm2';
+            } else {
+                vol = num(measInput?.value);
+            }
         }
 
         // Total is entered directly by the user — just read it
@@ -1954,6 +2025,97 @@
             if (groupEl) rows.forEach(r => addExtraChargeRow(groupEl, r));
         });
     }
+
+    // ── Calculadora Σ de Largura / Altura ─────────────────────────────────
+    function initDimSumPanel(panel, targetInput, itemRow) {
+        const entriesContainer = panel.querySelector('.dim-sum-entries');
+        const totalEl          = panel.querySelector('.dim-sum-total');
+        const addBtn           = panel.querySelector('.dim-sum-add-entry');
+        const applyBtn         = panel.querySelector('[class*="dim-sum-apply"]');
+
+        function addEntry(value) {
+            const row = document.createElement('div');
+            row.className = 'flex items-center gap-1';
+            row.innerHTML = `
+                <input type="number" step="0.001" min="0" placeholder="0.000"
+                    class="dim-sum-entry flex-1 px-2 py-1 border border-blue-300 rounded-md text-xs focus:ring-1 focus:ring-blue-400 bg-white" value="${value || ''}">
+                <button type="button" class="dim-sum-remove-entry flex-shrink-0 w-5 h-5 flex items-center justify-center rounded text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all text-xs font-bold">&times;</button>
+            `;
+            row.querySelector('.dim-sum-remove-entry').addEventListener('click', () => {
+                row.remove();
+                recalcPanel();
+            });
+            row.querySelector('.dim-sum-entry').addEventListener('input', recalcPanel);
+            entriesContainer.appendChild(row);
+            row.querySelector('.dim-sum-entry').focus();
+            recalcPanel();
+        }
+
+        function recalcPanel() {
+            let sum = 0;
+            entriesContainer.querySelectorAll('.dim-sum-entry').forEach(inp => {
+                sum += parseFloat(inp.value) || 0;
+            });
+            totalEl.textContent = sum.toFixed(3);
+        }
+
+        addBtn.addEventListener('click', () => addEntry(''));
+
+        applyBtn.addEventListener('click', () => {
+            const total = parseFloat(totalEl.textContent) || 0;
+            targetInput.value = total.toFixed(3);
+            panel.classList.add('hidden');
+            // dispara o recalc do item
+            targetInput.dispatchEvent(new Event('input', { bubbles: true }));
+        });
+
+        // Inicia com 2 entradas vazias
+        if (entriesContainer.children.length === 0) {
+            addEntry('');
+            addEntry('');
+        }
+    }
+
+    function bindDimSumPanels(itemNode) {
+        // Largura
+        const toggleW = itemNode.querySelector('.dim-sum-toggle-width');
+        const panelW  = itemNode.querySelector('.dim-sum-panel-width');
+        const inputW  = itemNode.querySelector('.item-dim-width');
+        if (toggleW && panelW && inputW) {
+            initDimSumPanel(panelW, inputW, itemNode);
+            toggleW.addEventListener('click', () => {
+                panelW.classList.toggle('hidden');
+            });
+        }
+        // Altura
+        const toggleH = itemNode.querySelector('.dim-sum-toggle-height');
+        const panelH  = itemNode.querySelector('.dim-sum-panel-height');
+        const inputH  = itemNode.querySelector('.item-dim-height');
+        if (toggleH && panelH && inputH) {
+            initDimSumPanel(panelH, inputH, itemNode);
+            toggleH.addEventListener('click', () => {
+                panelH.classList.toggle('hidden');
+            });
+        }
+    }
+
+    // Bind em todos os item-forms já existentes
+    document.querySelectorAll('.item-form').forEach(bindDimSumPanels);
+
+    // Bind nos item-forms criados dinamicamente (via MutationObserver existente ou após addItem)
+    // Usa um observer global para pegar novos .item-form
+    new MutationObserver(mutations => {
+        mutations.forEach(m => {
+            m.addedNodes.forEach(node => {
+                if (node.nodeType !== 1) return;
+                if (node.classList?.contains('item-form')) {
+                    bindDimSumPanels(node);
+                } else {
+                    node.querySelectorAll?.('.item-form').forEach(bindDimSumPanels);
+                }
+            });
+        });
+    }).observe(document.body, { childList: true, subtree: true });
 
     recalcAll();
 })();

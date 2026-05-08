@@ -65,3 +65,32 @@ def format_payment_info(value):
             rendered_lines.append(escape(text))
 
     return mark_safe('<br>'.join(rendered_lines))
+
+
+@register.filter
+def to_roman(value):
+    """
+    Convert a positive integer to its Roman numeral representation.
+    Returns '—' for values that cannot be converted.
+
+    E.g.: 1 → I, 4 → IV, 9 → IX, 14 → XIV, 40 → XL, 2024 → MMXXIV
+    """
+    try:
+        n = int(value)
+    except (TypeError, ValueError):
+        return '—'
+    if n <= 0 or n > 3999:
+        return str(value)
+
+    val_map = [
+        (1000, 'M'), (900, 'CM'), (500, 'D'), (400, 'CD'),
+        (100,  'C'), (90,  'XC'), (50,  'L'), (40,  'XL'),
+        (10,   'X'), (9,   'IX'), (5,   'V'), (4,   'IV'),
+        (1,    'I'),
+    ]
+    result = ''
+    for arabic, roman in val_map:
+        while n >= arabic:
+            result += roman
+            n -= arabic
+    return result

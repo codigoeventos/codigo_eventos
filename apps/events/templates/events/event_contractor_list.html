@@ -196,8 +196,7 @@
                 <th style="text-align:left;">Função</th>
                 <th style="text-align:center;">CPF</th>
                 <th style="text-align:center;">RG</th>
-                <th style="text-align:center;">ASO</th>
-                <th style="text-align:center;">NR</th>
+                <th style="text-align:center;">Nascimento</th>
             </tr>
         </thead>
         <tbody>
@@ -208,33 +207,10 @@
                 <td>{{ member.role|default:"—" }}</td>
                 <td style="text-align:center;">{{ member.cpf|default:"—" }}</td>
                 <td style="text-align:center;">{{ member.rg|default:"—" }}</td>
-                <td style="text-align:center;">
-                    {% if member.aso_expiry_date %}
-                        {% if member.aso_doc_status == 'expired' %}
-                            <span class="badge badge-expired">Vencido {{ member.aso_expiry_date|date:"d/m/Y" }}</span>
-                        {% elif member.aso_doc_status == 'expiring_soon' %}
-                            <span class="badge badge-expiring">Vence {{ member.aso_expiry_date|date:"d/m/Y" }}</span>
-                        {% else %}
-                            <span class="badge badge-valid">{{ member.aso_expiry_date|date:"d/m/Y" }}</span>
-                        {% endif %}
-                    {% else %}
-                        <span class="badge badge-nodoc">Sem ASO</span>
-                    {% endif %}
-                </td>
-                <td style="text-align:center;">
-                    {% if member.nr_doc_status == 'expired' %}
-                        <span class="badge badge-expired">Vencido</span>
-                    {% elif member.nr_doc_status == 'expiring_soon' %}
-                        <span class="badge badge-expiring">A vencer</span>
-                    {% elif member.nr_doc_status == 'valid' %}
-                        <span class="badge badge-valid">OK</span>
-                    {% else %}
-                        <span class="badge badge-nodoc">Sem NR</span>
-                    {% endif %}
-                </td>
+                <td style="text-align:center;">{{ member.birth_date|date:"d/m/Y"|default:"—" }}</td>
             </tr>
             {% empty %}
-            <tr><td colspan="7" class="empty-msg">Nenhum membro selecionado para este evento.</td></tr>
+            <tr><td colspan="6" class="empty-msg">Nenhum membro selecionado para este evento.</td></tr>
             {% endfor %}
         </tbody>
     </table>

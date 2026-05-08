@@ -43,6 +43,33 @@
                 </div>
             </div>
 
+            <!-- Contratante -->
+            <div class="mb-6">
+                <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-4 pb-1 border-b border-gray-200">
+                    Dados do Contratante
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            {{ form.contratante_nome.label }}
+                        </label>
+                        {{ form.contratante_nome }}
+                        {% if form.contratante_nome.errors %}
+                        <p class="mt-1 text-xs text-red-600">{{ form.contratante_nome.errors|join:", " }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            {{ form.contratante_cnpj.label }}
+                        </label>
+                        {{ form.contratante_cnpj }}
+                        {% if form.contratante_cnpj.errors %}
+                        <p class="mt-1 text-xs text-red-600">{{ form.contratante_cnpj.errors|join:", " }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
             <!-- Serviço -->
             <div class="mb-6">
                 <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-4 pb-1 border-b border-gray-200">

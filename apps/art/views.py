@@ -74,6 +74,7 @@ class ARTGenerateView(LoginRequiredMixin, View):
 
         text_fields = [
             'engineer_name', 'engineer_crea',
+            'contratante_nome', 'contratante_cnpj',
             'client_address', 'client_number', 'client_complement',
             'client_neighborhood', 'client_city', 'client_state', 'client_zip',
             'obra_address', 'obra_number', 'obra_complement',
@@ -126,6 +127,8 @@ class ARTGenerateView(LoginRequiredMixin, View):
             deleted_art.undelete()
             deleted_art.engineer_name = data.get('engineer_name')
             deleted_art.engineer_crea = data.get('engineer_crea')
+            deleted_art.contratante_nome = data.get('contratante_nome')
+            deleted_art.contratante_cnpj = data.get('contratante_cnpj')
             deleted_art.client_address = data.get('client_address')
             deleted_art.client_number = data.get('client_number')
             deleted_art.client_complement = data.get('client_complement')
@@ -161,6 +164,8 @@ class ARTGenerateView(LoginRequiredMixin, View):
                 service_order=service_order,
                 engineer_name=data.get('engineer_name'),
                 engineer_crea=data.get('engineer_crea'),
+                contratante_nome=data.get('contratante_nome'),
+                contratante_cnpj=data.get('contratante_cnpj'),
                 client_address=data.get('client_address'),
                 client_number=data.get('client_number'),
                 client_complement=data.get('client_complement'),

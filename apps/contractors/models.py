@@ -677,22 +677,7 @@ class EventContractor(models.Model):
         return reverse('events:public_contractor', kwargs={'token': str(self.public_token)})
 
     def clean(self):
-        """Block assignment when the contractor has members with expired docs."""
         super().clean()
-        # Only enforce on new (first-time) assignments to avoid retro-locking
-        if self.pk or not self.contractor_id:
-            return
-        blocked = [
-            m for m in self.contractor.members.all()
-            if m.is_blocked_from_events
-        ]
-        if blocked:
-            names = ', '.join(m.name for m in blocked)
-            raise ValidationError(
-                f'Não é possível vincular {self.contractor.name} a este evento: '
-                f'os seguintes profissionais possuem documentação vencida — {names}. '
-                'Atualize a documentação antes de prosseguir.'
-            )
 
     def save(self, *args, **kwargs):
         self.full_clean()

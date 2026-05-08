@@ -4,6 +4,7 @@ Budget models for event cost estimation.
 
 import uuid
 from decimal import Decimal
+from django.conf import settings
 from django.db import models
 from django.db.models import Sum
 from django.utils import timezone
@@ -573,3 +574,92 @@ class PaymentInfoTemplate(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class BudgetNotification(models.Model):
+    """
+    Notification created when a client approves or rejects a budget via the public link.
+    Displayed as a bell icon badge in the internal dashboard header.
+    """
+
+    ACTION_CHOICES = [
+        ('approved', 'Aprovado'),
+        ('rejected', 'Rejeitado'),
+    ]
+
+    budget = models.ForeignKey(
+        'Budget',
+        on_delete=models.CASCADE,
+        related_name='notifications',
+        verbose_name='Proposta',
+    )
+
+    action = models.CharField(
+        'Ação',
+        max_length=20,
+        choices=ACTION_CHOICES,
+    )
+
+    is_read = models.BooleanField('Lida', default=False)
+
+    created_at = models.DateTimeField('Criado em', auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Notificação de Proposta'
+        verbose_name_plural = 'Notificações de Propostas'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.budget.name} – {self.get_action_display()}"
+
+
+class BudgetVersion(models.Model):
+    """
+    Snapshot of a budget at a specific point in time.
+
+    Created automatically every time a budget is saved via the edit form.
+    Stores a full JSON snapshot of the budget data (fields + sections + items)
+    so editors can browse the history and restore a previous version.
+    """
+
+    budget = models.ForeignKey(
+        'Budget',
+        on_delete=models.CASCADE,
+        related_name='versions',
+        verbose_name='Proposta',
+    )
+
+    version_number = models.PositiveIntegerField('Número da Versão')
+
+    label = models.CharField(
+        'Rótulo',
+        max_length=255,
+        blank=True,
+        help_text='Nome curto opcional para identificar esta versão',
+    )
+
+    snapshot = models.JSONField(
+        'Snapshot',
+        help_text='Cópia completa dos dados da proposta neste momento',
+    )
+
+    created_at = models.DateTimeField('Criado em', auto_now_add=True)
+
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='budget_versions_created',
+        verbose_name='Criado por',
+    )
+
+    class Meta:
+        verbose_name = 'Versão da Proposta'
+        verbose_name_plural = 'Versões da Proposta'
+        ordering = ['-version_number']
+        unique_together = [('budget', 'version_number')]
+
+    def __str__(self):
+        label = f' — {self.label}' if self.label else ''
+        return f"{self.budget.name} v{self.version_number}{label}"

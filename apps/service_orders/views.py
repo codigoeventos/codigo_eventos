@@ -281,9 +281,22 @@ class PublicServiceOrderView(View):
             else:
                 unsectioned.append(item)
 
+        # Compute current version number using the same logic as PublicBudgetApprovalView:
+        # the live state is always one ahead of the last saved snapshot.
+        # 0 snapshots → v1 (I); 1 snapshot → v2 (II); etc.
+        budget = service_order.budget
+        latest_version = (
+            budget.versions
+            .order_by('-version_number')
+            .values_list('version_number', flat=True)
+            .first()
+        ) if budget else None
+        current_version_number = (latest_version or 0) + 1
+
         context = {
             'service_order': service_order,
             'sections': sections,
             'unsectioned': unsectioned,
+            'current_version_number': current_version_number,
         }
         return render(request, self.template_name, context)

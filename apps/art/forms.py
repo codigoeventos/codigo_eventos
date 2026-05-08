@@ -20,6 +20,8 @@ class ARTEditForm(forms.ModelForm):
         fields = [
             # Engenheiro
             'engineer_name', 'engineer_crea',
+            # Contratante – nome e documento
+            'contratante_nome', 'contratante_cnpj',
             # Contratado
             'client_address', 'client_number', 'client_complement',
             'client_neighborhood', 'client_city', 'client_state', 'client_zip',
@@ -39,6 +41,9 @@ class ARTEditForm(forms.ModelForm):
         widgets = {
             'engineer_name': forms.TextInput(attrs={'class': _cls, 'placeholder': 'Nome completo do engenheiro responsável'}),
             'engineer_crea': forms.TextInput(attrs={'class': _cls, 'placeholder': 'Ex: CREA-SP 1234567/D'}),
+            # Contratante – nome e documento
+            'contratante_nome': forms.TextInput(attrs={'class': _cls, 'placeholder': 'Nome ou razão social do contratante'}),
+            'contratante_cnpj': forms.TextInput(attrs={'class': _cls, 'placeholder': '00.000.000/0000-00'}),
             # Contratado
             'client_address':      forms.TextInput(attrs={'class': _cls, 'placeholder': 'Rua / Avenida'}),
             'client_number':       forms.TextInput(attrs={'class': _cls, 'placeholder': 'N°'}),
@@ -74,6 +79,8 @@ class ARTEditForm(forms.ModelForm):
         labels = {
             'engineer_name': 'Nome do Engenheiro',
             'engineer_crea': 'CREA',
+            'contratante_nome': 'Nome do Contratante',
+            'contratante_cnpj': 'CNPJ do Contratante',
             'client_address': 'Endereço', 'client_number': 'N°', 'client_complement': 'Complemento',
             'client_neighborhood': 'Bairro', 'client_city': 'Cidade', 'client_state': 'UF', 'client_zip': 'CEP',
             'tipo_contratante': 'Tipo de Contratante',

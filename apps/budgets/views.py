@@ -10,18 +10,99 @@ from django.contrib.messages.views import SuccessMessageMixin
 from django.urls import reverse_lazy
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.views import View
-from django.db.models import Q
+from django.db import models
+from django.db.models import Q, Max
 from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils import timezone
 from django.contrib import messages
 
 from apps.common.mixins import AuditMixin
-from .models import Budget, BudgetItem, BudgetSection, ItemDescription, PaymentInfoTemplate
+from .models import Budget, BudgetItem, BudgetSection, ItemDescription, PaymentInfoTemplate, BudgetNotification, BudgetVersion
 from .forms import BudgetForm, BudgetSearchForm, BudgetItemFormSet
 
 
 # ── Helper: save sections + items from JSON payload ─────────────────────────
+
+
+def _snapshot_budget(budget):
+    """
+    Build a JSON-serialisable dict representing the full state of *budget*
+    (all scalar fields + sections + items).  Used to create BudgetVersion rows.
+    """
+    from decimal import Decimal
+
+    def _dec(v):
+        return str(v) if isinstance(v, Decimal) else v
+
+    sections = []
+    for section in budget.sections.prefetch_related('section_items').all():
+        items = []
+        for item in section.section_items.all():
+            items.append({
+                'id': item.pk,
+                'name': item.name,
+                'description': item.description or '',
+                'quantity': item.quantity,
+                'dim_length': _dec(item.dim_length),
+                'dim_width': _dec(item.dim_width),
+                'dim_height': _dec(item.dim_height),
+                'measurement': _dec(item.measurement),
+                'measurement_unit': item.measurement_unit or '',
+                'weight': _dec(item.weight),
+                'unit_price': _dec(item.unit_price),
+                'total_price': _dec(item.total_price),
+                'billing_type': item.billing_type,
+                'include_fiscal': item.include_fiscal,
+                'is_approved': item.is_approved,
+            })
+        sections.append({'id': section.pk, 'title': section.title, 'order': section.order, 'items': items})
+
+    # Legacy unsectioned items
+    unsectioned = []
+    for item in budget.items.filter(section__isnull=True):
+        unsectioned.append({
+            'id': item.pk,
+            'name': item.name,
+            'description': item.description or '',
+            'quantity': item.quantity,
+            'unit_price': _dec(item.unit_price),
+            'total_price': _dec(item.total_price),
+            'billing_type': item.billing_type,
+            'include_fiscal': item.include_fiscal,
+            'is_approved': item.is_approved,
+        })
+
+    return {
+        'name': budget.name,
+        'status': budget.status,
+        'approval_status': budget.approval_status,
+        'freight_cost': _dec(budget.freight_cost),
+        'freight_distance_km': _dec(budget.freight_distance_km),
+        'freight_urgency_id': budget.freight_urgency_id,
+        'include_fiscal_charges': budget.include_fiscal_charges,
+        'extra_charges': budget.extra_charges,
+        'discount_type': budget.discount_type,
+        'discount_value': _dec(budget.discount_value),
+        'payment_info': budget.payment_info,
+        'sections': sections,
+        'unsectioned_items': unsectioned,
+        'total_with_freight': _dec(budget.total_with_freight),
+    }
+
+
+def _create_budget_version(budget, user=None, label=''):
+    """Persist a BudgetVersion snapshot for the current state of *budget*."""
+    last_version = budget.versions.aggregate(
+        max_v=models.Max('version_number'))['max_v'] or 0
+    BudgetVersion.objects.create(
+        budget=budget,
+        version_number=last_version + 1,
+        label=label,
+        snapshot=_snapshot_budget(budget),
+        created_by=user,
+    )
+
 
 def _save_sections_from_json(budget, sections_data_json):
     """
@@ -402,6 +483,17 @@ class BudgetUpdateView(LoginRequiredMixin, AuditMixin, SuccessMessageMixin, Upda
 
     def form_valid(self, form):
         """Save budget then process sections + items from JSON."""
+        # Snapshot the CURRENT state (before overwriting) so the version history
+        # records what existed before this edit.
+        from django.db import models as _models
+        pre_save_snapshot_needed = self.object.pk is not None
+        if pre_save_snapshot_needed:
+            _create_budget_version(
+                self.object,
+                user=self.request.user,
+                label=self.request.POST.get('version_label', '').strip(),
+            )
+
         # Check if budget was approved before saving so we can reset it afterwards
         was_approved = self.object.approval_status == 'approved'
 
@@ -504,12 +596,20 @@ class PublicBudgetApprovalView(View):
         # Fall back to unsectioned items if no sections defined
         unsectioned_items = budget.items.filter(section__isnull=True)
 
+        # The version history stores snapshots of the state *before* each edit.
+        # So the current live state is always one version ahead of the latest snapshot.
+        # 0 snapshots → current is v1 (I)
+        # 1 snapshot  → current is v2 (II), etc.
+        latest_version = budget.versions.order_by('-version_number').values_list('version_number', flat=True).first()
+        current_version_number = (latest_version or 0) + 1
+
         context = {
             'budget': budget,
             'sections': sections,
             'unsectioned_items': unsectioned_items,
             'is_editable': budget.is_editable,
             'show_pdf_button': True,
+            'current_version_number': current_version_number,
         }
 
         return render(request, self.template_name, context)
@@ -559,6 +659,9 @@ class PublicBudgetApprovalView(View):
 
             messages.success(request, 'Proposta aprovada com sucesso!')
 
+            # Create internal notification
+            BudgetNotification.objects.create(budget=budget, action='approved')
+
         elif action == 'reject':
             # Mark budget as rejected
             budget.approval_status = 'rejected'
@@ -577,7 +680,10 @@ class PublicBudgetApprovalView(View):
                 pass
 
             messages.info(request, 'Proposta rejeitada.')
-        
+
+            # Create internal notification
+            BudgetNotification.objects.create(budget=budget, action='rejected')
+
         return redirect('budgets:public_approval', token=token)
 
 
@@ -959,3 +1065,238 @@ class PaymentInfoTemplateDetailView(LoginRequiredMixin, View):
         template = get_object_or_404(PaymentInfoTemplate, pk=pk)
         template.delete()
         return JsonResponse({'ok': True})
+
+
+class NotificationsView(LoginRequiredMixin, View):
+    """
+    AJAX endpoint to:
+    - GET: list unread budget notifications (last 20)
+    - POST: mark all as read
+    """
+
+    def get(self, request):
+        notifications = BudgetNotification.objects.select_related('budget').filter(is_read=False).order_by('-created_at')[:20]
+        data = [
+            {
+                'id': n.id,
+                'budget_name': n.budget.name,
+                'action': n.action,
+                'action_label': n.get_action_display(),
+                'created_at': n.created_at.strftime('%d/%m/%Y %H:%M'),
+                'budget_url': n.budget.get_approval_url(),
+                'budget_detail_url': str(reverse_lazy('budgets:detail', kwargs={'pk': n.budget.pk})),
+            }
+            for n in notifications
+        ]
+        unread_count = BudgetNotification.objects.filter(is_read=False).count()
+        return JsonResponse({'notifications': data, 'unread_count': unread_count})
+
+    def post(self, request):
+        BudgetNotification.objects.filter(is_read=False).update(is_read=True)
+        return JsonResponse({'ok': True})
+
+
+# ── Budget Version History ───────────────────────────────────────────────────
+
+class BudgetVersionListView(LoginRequiredMixin, View):
+    """
+    GET  /budgets/<pk>/versions/   → JSON list of versions for a budget
+    """
+
+    def get(self, request, pk):
+        budget = get_object_or_404(Budget, pk=pk)
+        versions = budget.versions.select_related('created_by').all()
+        data = []
+        for v in versions:
+            snapshot = v.snapshot or {}
+            data.append({
+                'id': v.pk,
+                'version_number': v.version_number,
+                'label': v.label,
+                'created_at': v.created_at.strftime('%d/%m/%Y %H:%M'),
+                'created_by': (
+                    v.created_by.get_full_name() or v.created_by.email
+                    if v.created_by else '—'
+                ),
+                'total': snapshot.get('total_with_freight', '—'),
+                'status': snapshot.get('status', '—'),
+            })
+        return JsonResponse({'versions': data})
+
+
+class BudgetVersionDetailView(LoginRequiredMixin, View):
+    """
+    GET  /budgets/<pk>/versions/<version_id>/  → JSON snapshot for a single version
+    """
+
+    def get(self, request, pk, version_id):
+        budget = get_object_or_404(Budget, pk=pk)
+        version = get_object_or_404(BudgetVersion, pk=version_id, budget=budget)
+        return JsonResponse({
+            'id': version.pk,
+            'version_number': version.version_number,
+            'label': version.label,
+            'created_at': version.created_at.strftime('%d/%m/%Y %H:%M'),
+            'snapshot': version.snapshot,
+        })
+
+
+class BudgetVersionRestoreView(LoginRequiredMixin, View):
+    """
+    POST /budgets/<pk>/versions/<version_id>/restore/
+    Restores the budget to the state captured in the given version snapshot.
+    The current state is first snapshotted as a new version before overwriting.
+    """
+
+    def post(self, request, pk, version_id):
+        from decimal import Decimal, InvalidOperation
+
+        budget = get_object_or_404(Budget, pk=pk)
+        version = get_object_or_404(BudgetVersion, pk=version_id, budget=budget)
+        snap = version.snapshot
+
+        # 1. Snapshot the current state before restoring
+        _create_budget_version(
+            budget,
+            user=request.user,
+            label=f'Antes de restaurar v{version.version_number}',
+        )
+
+        # 2. Restore scalar fields
+        def _dec(v, default=None):
+            if v is None or str(v).strip() == '':
+                return default
+            try:
+                return Decimal(str(v))
+            except (InvalidOperation, ValueError):
+                return default
+
+        budget.name = snap.get('name', budget.name)
+        budget.status = snap.get('status', budget.status)
+        budget.include_fiscal_charges = snap.get('include_fiscal_charges', budget.include_fiscal_charges)
+        budget.extra_charges = snap.get('extra_charges', budget.extra_charges or {})
+        budget.discount_type = snap.get('discount_type', budget.discount_type)
+        budget.discount_value = _dec(snap.get('discount_value'), budget.discount_value)
+        budget.freight_cost = _dec(snap.get('freight_cost'))
+        budget.freight_distance_km = _dec(snap.get('freight_distance_km'))
+        budget.payment_info = snap.get('payment_info', budget.payment_info)
+        if snap.get('freight_urgency_id'):
+            budget.freight_urgency_id = snap['freight_urgency_id']
+        budget.save()
+
+        # 3. Restore sections + items
+        import json as _json
+        sections_data = snap.get('sections', [])
+        # Rebuild sections_data JSON and reuse existing helper (drop ids so new rows are created)
+        for sec in sections_data:
+            sec['id'] = None
+            for item in sec.get('items', []):
+                item['id'] = None
+
+        # Wipe existing sections/items and rebuild from snapshot
+        budget.sections.all().delete()  # cascades to section_items
+        budget.items.filter(section__isnull=True).delete()
+        _save_sections_from_json(budget, _json.dumps(sections_data))
+
+        # Restore unsectioned items (legacy)
+        for item_data in snap.get('unsectioned_items', []):
+            BudgetItem.objects.create(
+                budget=budget,
+                section=None,
+                name=item_data.get('name', ''),
+                description=item_data.get('description', ''),
+                quantity=int(item_data.get('quantity', 1)),
+                unit_price=_dec(item_data.get('unit_price'), Decimal('0')),
+                billing_type=item_data.get('billing_type', 'qty'),
+                include_fiscal=bool(item_data.get('include_fiscal', False)),
+                is_approved=bool(item_data.get('is_approved', True)),
+            )
+
+        messages.success(
+            request,
+            f'Proposta restaurada para v{version.version_number}'
+            + (f' — {version.label}' if version.label else '') + '.'
+        )
+        return redirect('budgets:detail', pk=budget.pk)
+
+
+class BudgetVersionPublicPreviewView(LoginRequiredMixin, View):
+    """
+    GET /budgets/<pk>/versions/<version_id>/preview/
+
+    Renders a read-only, public-style preview of a historical version snapshot.
+    The page looks like the client-facing approval page but is clearly marked as
+    a historical version and has no approve/reject actions.
+    """
+
+    def get(self, request, pk, version_id):
+        from decimal import Decimal, InvalidOperation
+
+        budget  = get_object_or_404(Budget, pk=pk)
+        version = get_object_or_404(BudgetVersion, pk=version_id, budget=budget)
+        snap    = version.snapshot or {}
+
+        def _dec(v, default=Decimal('0')):
+            if v is None or str(v).strip() == '':
+                return default
+            try:
+                return Decimal(str(v))
+            except (InvalidOperation, ValueError):
+                return default
+
+        # Build lightweight context from snapshot — no live DB queries for items
+        sections = snap.get('sections', [])
+        unsectioned = snap.get('unsectioned_items', [])
+
+        # Calculate totals from snapshot
+        items_total = Decimal('0')
+        has_fiscal  = False
+        for sec in sections:
+            for it in sec.get('items', []):
+                items_total += _dec(it.get('total_price'))
+                if it.get('include_fiscal'):
+                    has_fiscal = True
+        for it in unsectioned:
+            items_total += _dec(it.get('total_price'))
+            if it.get('include_fiscal'):
+                has_fiscal = True
+
+        # Extra charges
+        extra_charges = snap.get('extra_charges') or {}
+        extra_total = Decimal('0')
+        for rows in extra_charges.values():
+            if isinstance(rows, list):
+                for row in rows:
+                    try:
+                        extra_total += Decimal(str(row.get('value') or 0))
+                    except Exception:
+                        pass
+
+        freight_cost = _dec(snap.get('freight_cost'))
+        total_with_freight = _dec(snap.get('total_with_freight')) or (items_total + freight_cost + extra_total)
+
+        status_labels = {
+            'draft':     'Em andamento',
+            'sent':      'Enviado',
+            'approved':  'Aprovado',
+            'rejected':  'Rejeitado',
+            'confirmed': 'Confirmado',
+        }
+
+        context = {
+            'budget':     budget,   # for header info (client / event / proposal number)
+            'version':    version,
+            'snap':       snap,
+            'sections':   sections,
+            'unsectioned_items': unsectioned,
+            'extra_charges': extra_charges,
+            'has_fiscal': has_fiscal,
+            'items_total': items_total,
+            'extra_total': extra_total,
+            'freight_cost': freight_cost,
+            'total_with_freight': total_with_freight,
+            'status_label': status_labels.get(snap.get('status', ''), snap.get('status', '—')),
+            'back_url': reverse_lazy('budgets:detail', kwargs={'pk': budget.pk}),
+        }
+        return render(request, 'budgets/budget_version_preview.html', context)
+

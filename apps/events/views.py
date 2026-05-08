@@ -211,20 +211,35 @@ class ContractorAssignView(LoginRequiredMixin, View):
         if not contractor_id:
             error = 'Selecione uma empreiteira.'
         else:
-            try:
-                assignment, _ = EventContractor.objects.get_or_create(
-                    event=event,
-                    contractor_id=contractor_id,
-                    defaults={'notes': notes},
-                )
-                assignment.notes = notes
-                assignment.save(update_fields=['notes'])
-                assignment.selected_members.all().delete()
-                for mid in member_ids:
-                    EventContractorMember.objects.create(assignment=assignment, member_id=mid)
-                return redirect('events:detail', pk=pk)
-            except ValidationError as e:
-                error = ' '.join(e.messages)
+            # Validate only the selected members for blocked docs
+            if member_ids:
+                selected_members = ContractorMember.objects.filter(
+                    pk__in=member_ids, contractor_id=contractor_id
+                ).prefetch_related('nrs')
+                blocked = [m for m in selected_members if m.is_blocked_from_events]
+                if blocked:
+                    names = ', '.join(m.name for m in blocked)
+                    error = (
+                        f'Não é possível selecionar os seguintes profissionais pois '
+                        f'possuíem documentação vencida: {names}. '
+                        'Atualize a documentação antes de prosseguir.'
+                    )
+
+            if not error:
+                try:
+                    assignment, _ = EventContractor.objects.get_or_create(
+                        event=event,
+                        contractor_id=contractor_id,
+                        defaults={'notes': notes},
+                    )
+                    assignment.notes = notes
+                    assignment.save(update_fields=['notes'])
+                    assignment.selected_members.all().delete()
+                    for mid in member_ids:
+                        EventContractorMember.objects.create(assignment=assignment, member_id=mid)
+                    return redirect('events:detail', pk=pk)
+                except ValidationError as e:
+                    error = ' '.join(e.messages)
 
         assigned_ids = event.contractors.values_list('contractor_id', flat=True)
         contractors = Contractor.objects.exclude(pk__in=assigned_ids).order_by('name')
@@ -271,6 +286,37 @@ class ContractorAssignEditView(LoginRequiredMixin, View):
         event, assignment = self._get_objects(pk, assignment_pk)
         member_ids = request.POST.getlist('members')
         notes = request.POST.get('notes', '')
+        error = None
+
+        # Validate only the selected members for blocked docs
+        if member_ids:
+            selected_members = ContractorMember.objects.filter(
+                pk__in=member_ids, contractor=assignment.contractor
+            ).prefetch_related('nrs')
+            blocked = [m for m in selected_members if m.is_blocked_from_events]
+            if blocked:
+                names = ', '.join(m.name for m in blocked)
+                error = (
+                    f'Não é possível selecionar os seguintes profissionais pois '
+                    f'possuíem documentação vencida: {names}. '
+                    'Atualize a documentação antes de prosseguir.'
+                )
+
+        if error:
+            selected_ids = list(map(int, member_ids)) if member_ids else []
+            return render(request, self.template_name, {
+                'event': event,
+                'contractors': [assignment.contractor],
+                'assignment': assignment,
+                'selected_member_ids': selected_ids,
+                'error': error,
+                'breadcrumbs': [
+                    {'name': 'Eventos', 'url': reverse('events:list')},
+                    {'name': event.name, 'url': reverse('events:detail', kwargs={'pk': pk})},
+                    {'name': 'Editar Membros', 'url': None},
+                ],
+            })
+
         assignment.notes = notes
         assignment.save(update_fields=['notes'])
         assignment.selected_members.all().delete()

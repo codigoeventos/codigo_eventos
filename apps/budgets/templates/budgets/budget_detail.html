@@ -176,20 +176,7 @@
                         {% endif %}
                     </div>
 
-                    <div class="mt-4 p-3 bg-white/10 border border-white/20 rounded-lg">
-                        <div class="flex items-center justify-between gap-3">
-                            <div>
-                                <p class="text-sm font-medium text-white">Notificação por e-mail</p>
-                                <p class="text-xs text-gray-300">Avisar quando o proposta for aprovado</p>
-                            </div>
-                            <label for="approval-email-notification-toggle" class="inline-flex items-center cursor-pointer">
-                                <input id="approval-email-notification-toggle" type="checkbox" class="sr-only peer">
-                                <div class="relative w-11 h-6 bg-gray-600 rounded-full peer peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-white/60 peer-checked:bg-green-500 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:border-gray-300 after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full peer-checked:after:border-white"></div>
-                            </label>
-                        </div>
-                        <p id="approval-email-notification-status" class="mt-2 text-xs text-gray-300">Notificação desativada</p>
-                    </div>
-                    
+
                     {% if budget.approval_status == 'approved' %}
                     <div class="mt-3 p-3 bg-green-900 bg-opacity-30 border border-green-500 rounded-lg">
                         <p class="text-sm text-green-100">
@@ -528,11 +515,105 @@
             </a>
         </div>
         {% endif %}
+
+        <!-- ── Version History Card ──────────────────────────────── -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6" id="version-history-card">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 8v4l3 2m6-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Histórico de Versões
+                </h3>
+                <button onclick="loadVersionHistory()" id="btn-refresh-versions"
+                    class="text-xs text-gray-400 hover:text-black transition-colors" title="Atualizar">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Loading state -->
+            <div id="versions-loading" class="text-center py-4 text-gray-400 text-sm hidden">
+                <svg class="animate-spin w-5 h-5 mx-auto mb-1" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                </svg>
+                Carregando...
+            </div>
+
+            <!-- Version list -->
+            <div id="versions-list" class="space-y-2">
+                <p class="text-sm text-gray-400 text-center py-3" id="versions-empty-msg">
+                    Nenhuma versão salva ainda.<br>
+                    <span class="text-xs">As versões são criadas automaticamente a cada edição.</span>
+                </p>
+            </div>
+        </div>
     </div>
 </div>
 
 <!-- Delete Modal -->
 {% include 'components/delete_modal.html' %}
+
+<!-- ── Version Preview Modal ──────────────────────────────────────── -->
+<div id="version-modal" class="fixed inset-0 z-50 hidden" aria-modal="true" role="dialog">
+    <!-- backdrop -->
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeVersionModal()"></div>
+
+    <!-- panel -->
+    <div class="relative z-10 flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
+
+            <!-- header -->
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+                <div>
+                    <h2 class="text-lg font-bold text-gray-900" id="vm-title">Versão</h2>
+                    <p class="text-xs text-gray-400" id="vm-meta"></p>
+                </div>
+                <button onclick="closeVersionModal()" class="text-gray-400 hover:text-gray-700 transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <!-- body -->
+            <div class="overflow-y-auto flex-1 px-6 py-4" id="vm-body">
+                <div class="animate-pulse space-y-3">
+                    <div class="h-4 bg-gray-200 rounded w-3/4"></div>
+                    <div class="h-4 bg-gray-200 rounded w-1/2"></div>
+                    <div class="h-4 bg-gray-200 rounded w-2/3"></div>
+                </div>
+            </div>
+
+            <!-- footer -->
+            <div class="px-6 py-4 border-t border-gray-200 flex justify-between items-center gap-3 flex-wrap">
+                <button onclick="closeVersionModal()" class="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">Fechar</button>
+                <div class="flex items-center gap-2 flex-wrap">
+                    <a id="vm-preview-link" href="#" target="_blank" rel="noopener noreferrer"
+                        class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-1.5">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                        </svg>
+                        Ver como link público
+                    </a>
+                    <form id="vm-restore-form" method="post" action="#">
+                        {% csrf_token %}
+                        <button type="submit"
+                            class="px-4 py-2 bg-black text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition-colors"
+                            onclick="return confirm('Restaurar esta versão? O estado atual será salvo antes como nova versão.')">
+                            ↩ Restaurar esta versão
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 {% csrf_token %}
 
@@ -579,33 +660,136 @@ function copyApprovalLink() {
     });
 }
 
-function initApprovalEmailNotificationToggle() {
-    const toggle = document.getElementById('approval-email-notification-toggle');
-    const status = document.getElementById('approval-email-notification-status');
-    if (!toggle || !status) return;
 
-    const storageKey = 'budget-{{ budget.pk }}-approval-email-notification';
-    const saved = localStorage.getItem(storageKey);
-    const enabled = saved === '1';
+// ── Version History ────────────────────────────────────────────────────
 
-    toggle.checked = enabled;
-    updateApprovalEmailNotificationStatus(enabled, status);
+const VERSIONS_URL = "{% url 'budgets:version-list' budget.pk %}";
+const VERSION_DETAIL_BASE = "/budgets/{{ budget.pk }}/versions/";
+const VERSION_RESTORE_BASE = "/budgets/{{ budget.pk }}/versions/";
 
-    toggle.addEventListener('change', function() {
-        const isEnabled = toggle.checked;
-        localStorage.setItem(storageKey, isEnabled ? '1' : '0');
-        updateApprovalEmailNotificationStatus(isEnabled, status);
-    });
+async function loadVersionHistory() {
+    const loading = document.getElementById('versions-loading');
+    const list    = document.getElementById('versions-list');
+    const empty   = document.getElementById('versions-empty-msg');
+
+    loading.classList.remove('hidden');
+    list.innerHTML = '';
+
+    try {
+        const res  = await fetch(VERSIONS_URL, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+        const data = await res.json();
+        loading.classList.add('hidden');
+
+        if (!data.versions || data.versions.length === 0) {
+            list.innerHTML = `<p class="text-sm text-gray-400 text-center py-3">Nenhuma versão salva ainda.<br><span class="text-xs">As versões são criadas automaticamente a cada edição.</span></p>`;
+            return;
+        }
+
+        list.innerHTML = data.versions.map(v => `
+            <div class="group flex items-center justify-between p-3 rounded-lg border border-gray-100 hover:border-gray-300 hover:bg-gray-50 transition-all cursor-pointer"
+                 onclick="openVersionModal(${v.id}, ${v.version_number})">
+                <div class="min-w-0">
+                    <div class="flex items-center gap-2">
+                        <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-gray-900 text-white text-xs font-bold flex-shrink-0">v${v.version_number}</span>
+                        <span class="text-sm font-medium text-gray-800 truncate">${v.label || 'Edição automática'}</span>
+                    </div>
+                    <div class="mt-1 flex items-center gap-2 pl-8 text-xs text-gray-400">
+                        <span>${v.created_at}</span>
+                        <span>·</span>
+                        <span>${v.created_by}</span>
+                        ${v.total !== '—' ? `<span>·</span><span class="font-mono text-gray-500">R$ ${parseFloat(v.total).toLocaleString('pt-BR', {minimumFractionDigits:2})}</span>` : ''}
+                    </div>
+                </div>
+                <svg class="w-4 h-4 text-gray-300 group-hover:text-gray-600 flex-shrink-0 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+            </div>
+        `).join('');
+
+    } catch (err) {
+        loading.classList.add('hidden');
+        list.innerHTML = `<p class="text-sm text-red-500 text-center py-2">Erro ao carregar versões.</p>`;
+        console.error(err);
+    }
 }
 
-function updateApprovalEmailNotificationStatus(enabled, statusElement) {
-    statusElement.textContent = enabled
-        ? 'Notificação ativada'
-        : 'Notificação desativada';
-    statusElement.classList.toggle('text-green-300', enabled);
-    statusElement.classList.toggle('text-gray-300', !enabled);
+async function openVersionModal(versionId, versionNumber) {
+    const modal     = document.getElementById('version-modal');
+    const title     = document.getElementById('vm-title');
+    const meta      = document.getElementById('vm-meta');
+    const body      = document.getElementById('vm-body');
+    const restoreForm = document.getElementById('vm-restore-form');
+
+    // Reset & show modal
+    title.textContent = `Versão v${versionNumber}`;
+    meta.textContent  = 'Carregando...';
+    body.innerHTML    = `<div class="animate-pulse space-y-3"><div class="h-4 bg-gray-200 rounded w-3/4"></div><div class="h-4 bg-gray-200 rounded w-1/2"></div><div class="h-4 bg-gray-200 rounded w-2/3"></div></div>`;
+    restoreForm.action = `${VERSION_RESTORE_BASE}${versionId}/restore/`;
+    document.getElementById('vm-preview-link').href = `${VERSION_DETAIL_BASE}${versionId}/preview/`;
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+
+    try {
+        const res  = await fetch(`${VERSION_DETAIL_BASE}${versionId}/`, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+        const data = await res.json();
+        const snap = data.snapshot || {};
+
+        title.textContent = `Versão v${data.version_number}${data.label ? ' — ' + data.label : ''}`;
+        meta.textContent  = `Salva em ${data.created_at}`;
+
+        // Build snapshot preview
+        const sections = (snap.sections || []);
+        const sectionsHtml = sections.length === 0
+            ? '<p class="text-sm text-gray-400">Sem seções registradas nesta versão.</p>'
+            : sections.map(sec => {
+                const items = (sec.items || []).map(it => `
+                    <tr class="border-t border-gray-100">
+                        <td class="py-1.5 text-sm text-gray-800">${it.name || '—'}</td>
+                        <td class="py-1.5 text-sm text-gray-500 text-right">${it.quantity || 1}</td>
+                        <td class="py-1.5 text-sm text-gray-500 text-right">R$ ${parseFloat(it.unit_price || 0).toLocaleString('pt-BR',{minimumFractionDigits:2})}</td>
+                        <td class="py-1.5 text-sm font-medium text-gray-800 text-right">R$ ${parseFloat(it.total_price || 0).toLocaleString('pt-BR',{minimumFractionDigits:2})}</td>
+                    </tr>`).join('');
+                return `
+                    <div class="mb-4">
+                        <div class="bg-gray-900 text-white text-xs font-semibold px-3 py-1.5 rounded-t">${sec.title || 'Seção'}</div>
+                        <table class="w-full border border-t-0 border-gray-200 rounded-b overflow-hidden">
+                            <thead><tr class="bg-gray-50 text-xs text-gray-500">
+                                <th class="px-3 py-1.5 text-left font-medium">Item</th>
+                                <th class="px-3 py-1.5 text-right font-medium">Qtd</th>
+                                <th class="px-3 py-1.5 text-right font-medium">Unit.</th>
+                                <th class="px-3 py-1.5 text-right font-medium">Total</th>
+                            </tr></thead>
+                            <tbody class="divide-y divide-gray-50 px-3">${items || '<tr><td colspan="4" class="text-center text-xs text-gray-400 py-2">Sem itens</td></tr>'}</tbody>
+                        </table>
+                    </div>`;
+            }).join('');
+
+        const totalVal = parseFloat(snap.total_with_freight || 0).toLocaleString('pt-BR', {minimumFractionDigits:2});
+        const statusLabel = { draft: 'Em andamento', sent: 'Enviado', approved: 'Aprovado', rejected: 'Rejeitado', confirmed: 'Confirmado' };
+
+        body.innerHTML = `
+            <div class="mb-4 p-3 bg-gray-50 rounded-lg grid grid-cols-2 gap-2 text-sm">
+                <div><span class="text-gray-500 text-xs">Status</span><br><span class="font-medium">${statusLabel[snap.status] || snap.status || '—'}</span></div>
+                <div class="text-right"><span class="text-gray-500 text-xs">Total</span><br><span class="font-bold text-lg">R$ ${totalVal}</span></div>
+            </div>
+            <div>${sectionsHtml}</div>
+        `;
+    } catch (err) {
+        body.innerHTML = `<p class="text-sm text-red-500 text-center py-4">Erro ao carregar detalhes.</p>`;
+        console.error(err);
+    }
 }
 
-initApprovalEmailNotificationToggle();
+function closeVersionModal() {
+    document.getElementById('version-modal').classList.add('hidden');
+    document.body.style.overflow = '';
+}
+
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeVersionModal();
+});
+
+// Load versions on page load
+loadVersionHistory();
 </script>
 {% endblock %}

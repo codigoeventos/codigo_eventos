@@ -61,6 +61,10 @@ class ART(BaseModel):
     )
 
     # ── Serviço ───────────────────────────────────────────────────────────
+    # ── Contratado – nome e doc ───────────────────────────────────────────
+    contratante_nome = models.CharField('Nome do Contratante', max_length=255, blank=True, null=True)
+    contratante_cnpj = models.CharField('CNPJ do Contratante', max_length=18, blank=True, null=True)
+
     # ── Contratado – endereço ─────────────────────────────────────────────
     client_address = models.CharField('Endereço (Contratado)', max_length=300, blank=True, null=True)
     client_number  = models.CharField('N° (Contratado)',       max_length=20,  blank=True, null=True)
@@ -230,9 +234,14 @@ class ART(BaseModel):
         elif client and client.document_type == 'cnpj':
             tipo_contratante = 'pj_privado'
 
+        contratante_nome = client.name if client else ''
+        contratante_cnpj = client.document_number if client and client.document_type == 'cnpj' else ''
+
         return {
             'engineer_name': '',
             'engineer_crea': '',
+            'contratante_nome': contratante_nome,
+            'contratante_cnpj': contratante_cnpj,
             'client_address': '',
             'client_number': '',
             'client_complement': '',
