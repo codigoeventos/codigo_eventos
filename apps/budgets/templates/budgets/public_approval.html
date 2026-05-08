@@ -131,7 +131,7 @@
             padding: 7px 10px;
             font-size: 13px;
             color: var(--os-black);
-            vertical-align: top;
+            vertical-align: middle;
         }
         .os-items-table tbody td.os-item-num {
             background: var(--os-dark) !important;
@@ -406,7 +406,7 @@
         }
 
         /* ── Utility ────────────────────────────────── */
-        .text-right { text-align: right; }
+        .text-right { text-align: right; white-space: nowrap; }
         .text-center { text-align: center; }
         .flex-row { display: flex; gap: 8px; }
         .flex-between { display: flex; justify-content: space-between; align-items: center; }
@@ -599,7 +599,7 @@
 
             {% if is_editable %}
             <div class="os-section-bar no-print" style="display:flex;justify-content:space-between;align-items:center;">
-                <span>Itens do Proposta</span>
+                <span>Itens da Proposta</span>
                 <label style="cursor:pointer;display:flex;align-items:center;gap:4px;">
                     <input type="checkbox" id="select-all" checked class="os-check" style="width:13px;height:13px;">
                     <span style="font-size:8px;text-transform:uppercase;">Selecionar todos</span>
