@@ -204,7 +204,7 @@
                                 <span id="discount-prefix" class="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-gray-500 pointer-events-none">R$</span>
                                 <input type="number" id="discount-value-input" name="discount_value" step="0.01" min="0"
                                     class="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-sm"
-                                    value="{{ object.discount_value|unlocalize }}">
+                                    value="{{ object.discount_value|unlocalize|default:'0' }}">
                             </div>
                         </div>
                     </div>

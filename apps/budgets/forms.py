@@ -9,7 +9,11 @@ from .models import Budget, BudgetItem, BudgetSection
 
 class BudgetForm(forms.ModelForm):
     """Form for creating and updating budgets."""
-    
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['discount_value'].required = False
+
     class Meta:
         model = Budget
         fields = ['proposal', 'name', 'status', 'payment_info', 'include_fiscal_charges', 'freight_cost', 'discount_type', 'discount_value']
