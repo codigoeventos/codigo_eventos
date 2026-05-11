@@ -304,6 +304,44 @@
     <div class="empty">Nenhum projeto encontrado para o período selecionado.</div>
     {% endif %}
 
+    <!-- Budgets (Proposals) -->
+    <div class="section-bar">Propostas Confirmadas</div>
+
+    {% if budget_rows %}
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th style="width:32px">#</th>
+                <th>Proposta</th>
+                <th>Projeto</th>
+                <th>Evento</th>
+                <th class="num">Valor Total</th>
+                <th>Criada em</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in budget_rows %}
+            <tr>
+                <td class="row-num">{{ forloop.counter }}</td>
+                <td>{{ row.budget.name }}</td>
+                <td>{% if row.budget.proposal %}{{ row.budget.proposal.title }}{% else %}—{% endif %}</td>
+                <td>{% if row.budget.proposal.event %}{{ row.budget.proposal.event.name }}{% else %}—{% endif %}</td>
+                <td class="num">R$ {{ row.total_value|floatformat:"2g" }}</td>
+                <td>{{ row.budget.created_at|date:"d/m/Y" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="5">Total ({{ budget_rows|length }} proposta{{ budget_rows|length|pluralize:"s" }})</td>
+                <td class="num">R$ {{ total_budget_value|floatformat:"2g" }}</td>
+            </tr>
+        </tfoot>
+    </table>
+    {% else %}
+    <div class="empty">Nenhuma proposta confirmada encontrada para o período selecionado.</div>
+    {% endif %}
+
     <!-- Footer -->
     <div class="doc-footer">
         Relatório gerado em {{ generated_at|date:"d/m/Y \à\s H:i" }} · Sistema de Gestão de Eventos

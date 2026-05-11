@@ -129,46 +129,6 @@
 
     <!-- Sidebar -->
     <div class="space-y-6">
-        <!-- Service Orders -->
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-semibold text-gray-900">Ordens de Serviço</h3>
-                <a href="{% url 'service_orders:create' %}"
-                    class="text-sm text-black hover:underline font-medium flex items-center gap-1">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                    </svg>
-                    Nova
-                </a>
-            </div>
-            {% if event.service_orders.all %}
-            <div class="space-y-3">
-                {% for order in event.service_orders.all %}
-                <a href="{% url 'service_orders:detail' order.pk %}"
-                    class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors group">
-                    <div>
-                        <p class="text-sm font-medium text-gray-900">OS #{{ order.pk }}</p>
-                        <p class="text-xs text-gray-500 mt-0.5">
-                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium
-                                {% if order.status == 'completed' %}bg-green-100 text-green-800
-                                {% elif order.status == 'cancelled' %}bg-red-100 text-red-800
-                                {% elif order.status == 'in_progress' %}bg-blue-100 text-blue-800
-                                {% else %}bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-100{% endif %}">
-                                {{ order.get_status_display }}
-                            </span>
-                        </p>
-                    </div>
-                    <svg class="w-5 h-5 text-gray-400 group-hover:text-gray-700 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                    </svg>
-                </a>
-                {% endfor %}
-            </div>
-            {% else %}
-            <p class="text-sm text-gray-500 text-center py-4">Nenhuma OS</p>
-            {% endif %}
-        </div>
-
         <!-- Technical Visits -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <div class="flex justify-between items-center mb-4">

@@ -4,51 +4,91 @@
 {% block page_title %}Dashboard Financeiro{% endblock %}
 
 {% block content %}
-<!-- Filter Bar -->
-<form method="get" class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 mb-6 flex flex-wrap items-end gap-4">
-    <div>
-        <label for="id_month" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Mês</label>
-        <select id="id_month" name="month"
-            class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
-            <option value="">Todos os meses</option>
-            {% for num, name in month_choices %}
-            <option value="{{ num }}" {% if selected_month == num %}selected{% endif %}>{{ name }}</option>
-            {% endfor %}
-        </select>
-    </div>
+<!-- Header Actions -->
+<div class="mb-6 space-y-2">
+    <form method="get" id="financial-filter-form" class="flex items-center gap-2 min-w-0">
+        <!-- Search bar -->
+        <div class="relative flex-1 min-w-0">
+            <input type="text" name="search" placeholder="Buscar projeto ou proposta..."
+                value="{{ search }}"
+                class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400">
+        </div>
 
-    <div>
-        <label for="id_year" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Ano</label>
-        <select id="id_year" name="year"
-            class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
-            <option value="">Todos os anos</option>
-            {% for date in year_choices %}
-            <option value="{{ date.year }}" {% if selected_year == date.year %}selected{% endif %}>{{ date.year }}</option>
-            {% endfor %}
-        </select>
-    </div>
-
-    <div class="flex gap-2">
+        <!-- Submit button -->
         <button type="submit"
-            class="px-5 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors text-sm font-medium">
-            Filtrar
+            class="hidden md:flex flex-shrink-0 px-4 py-2 bg-black dark:bg-gray-700 text-white rounded-lg hover:bg-gray-800 dark:hover:bg-gray-600 transition-all duration-200 items-center gap-2 text-sm font-medium">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <span>Buscar</span>
         </button>
-        <a href="{% url 'dashboard:home' %}"
-            class="px-5 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors text-sm font-medium">
-            Limpar
-        </a>
+
+        <!-- Filters dropdown -->
+        <div class="relative flex-shrink-0">
+            <button type="button" id="filter-toggle-financial"
+                class="px-3 md:px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200 flex items-center gap-2 text-sm">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z" />
+                </svg>
+                <span class="hidden md:inline">Filtros</span>
+                {% if selected_month or selected_year %}
+                <span class="w-2 h-2 bg-black dark:bg-gray-300 rounded-full"></span>
+                {% endif %}
+            </button>
+            <!-- Filter panel -->
+            <div id="filter-panel-financial"
+                class="hidden fixed inset-x-4 top-20 bottom-4 overflow-y-auto bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg z-50 p-4 md:absolute md:inset-auto md:right-0 md:top-full md:mt-2 md:w-80 md:bottom-auto">
+                <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Filtros</p>
+                <div class="space-y-3">
+                    <div>
+                        <label for="id_month" class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Mês</label>
+                        <select id="id_month" name="month"
+                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
+                            <option value="">Todos os meses</option>
+                            {% for num, name in month_choices %}
+                            <option value="{{ num }}" {% if selected_month == num %}selected{% endif %}>{{ name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label for="id_year" class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Ano</label>
+                        <select id="id_year" name="year"
+                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
+                            <option value="">Todos os anos</option>
+                            {% for date in year_choices %}
+                            <option value="{{ date.year }}" {% if selected_year == date.year %}selected{% endif %}>{{ date.year }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="flex gap-2 mt-4 pt-3 border-t border-gray-100 dark:border-gray-700">
+                    <a href="{% url 'dashboard:home' %}"
+                        class="flex-1 text-center px-3 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-all">
+                        Limpar filtros
+                    </a>
+                    <button type="button" id="apply-filters-financial"
+                        class="flex-1 px-3 py-2 text-sm bg-black dark:bg-gray-700 text-white rounded-lg hover:bg-gray-800 dark:hover:bg-gray-600 transition-all">
+                        Aplicar
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Export PDF button -->
         <a id="export-link"
-            href="{% url 'dashboard:financial_export' %}{% if selected_month or selected_year %}?{% if selected_month %}month={{ selected_month }}{% endif %}{% if selected_month and selected_year %}&{% endif %}{% if selected_year %}year={{ selected_year }}{% endif %}{% endif %}"
+            href="{% url 'dashboard:financial_export' %}"
             target="_blank"
-            class="px-5 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors text-sm font-medium flex items-center gap-1.5">
+            class="flex-shrink-0 px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-all duration-200 flex items-center gap-2 text-sm font-medium">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                     d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
             </svg>
-            Exportar PDF
+            <span class="hidden md:inline">Exportar PDF</span>
         </a>
-    </div>
-</form>
+    </form>
+</div>
 
 <!-- Summary Cards -->
 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
@@ -151,25 +191,128 @@
     </div>
     {% endif %}
 </div>
+
+<!-- Budgets (Proposals) Table -->
+<div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 mt-6">
+    <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+        <h3 class="text-base font-semibold text-gray-900 dark:text-white">
+            Propostas Confirmadas
+            {% if selected_month or selected_year %}
+            <span class="text-sm font-normal text-gray-500 dark:text-gray-400">
+                — filtrado por
+                {% if selected_month %}
+                {% for num, name in month_choices %}{% if num == selected_month %}{{ name }}{% endif %}{% endfor %}
+                {% endif %}
+                {% if selected_year %}{{ selected_year }}{% endif %}
+            </span>
+            {% endif %}
+        </h3>
+    </div>
+
+    {% if budget_rows %}
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead class="bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Proposta</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Projeto</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Evento</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Valor Total</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Criada em</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                {% for row in budget_rows %}
+                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                    <td class="px-6 py-4">
+                        <a href="{% url 'budgets:detail' row.budget.pk %}"
+                            class="font-medium text-gray-900 dark:text-white hover:text-black dark:hover:text-gray-200 hover:underline">
+                            {{ row.budget.name }}
+                        </a>
+                    </td>
+                    <td class="px-6 py-4 text-gray-600 dark:text-gray-400">
+                        {% if row.budget.proposal %}
+                        <a href="{% url 'projects:detail' row.budget.proposal.pk %}"
+                            class="hover:underline">
+                            {{ row.budget.proposal.title }}
+                        </a>
+                        {% else %}
+                        <span class="text-gray-400 dark:text-gray-500">—</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 text-gray-600 dark:text-gray-400">
+                        {% if row.budget.proposal.event %}
+                        {{ row.budget.proposal.event.name }}
+                        {% else %}
+                        <span class="text-gray-400 dark:text-gray-500">—</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 text-right text-gray-900 dark:text-gray-100">R$ {{ row.total_value|floatformat:"2g" }}</td>
+                    <td class="px-6 py-4 text-gray-500 dark:text-gray-400">{{ row.budget.created_at|date:"d/m/Y" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <!-- Totals row -->
+            <tfoot class="bg-gray-50 dark:bg-gray-700 border-t-2 border-gray-300 dark:border-gray-600">
+                <tr class="font-semibold text-gray-900 dark:text-white">
+                    <td class="px-6 py-4" colspan="4">Total ({{ budget_rows|length }} proposta{{ budget_rows|length|pluralize:"s" }})</td>
+                    <td class="px-6 py-4 text-right">R$ {{ total_budget_value|floatformat:"2g" }}</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+    {% else %}
+    <div class="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+        Nenhuma proposta confirmada encontrada para o período selecionado.
+    </div>
+    {% endif %}
 {% endblock %}
 
 {% block extra_js %}
 <script>
 (function () {
-    const baseUrl = "{% url 'dashboard:financial_export' %}";
+    const filterToggle = document.getElementById('filter-toggle-financial');
+    const filterPanel = document.getElementById('filter-panel-financial');
+    const applyFilterBtn = document.getElementById('apply-filters-financial');
+    const financialForm = document.getElementById('financial-filter-form');
     const monthSel = document.getElementById('id_month');
-    const yearSel  = document.getElementById('id_year');
-    const link     = document.getElementById('export-link');
+    const yearSel = document.getElementById('id_year');
+    const exportLink = document.getElementById('export-link');
+    const searchInput = financialForm.querySelector('input[name="search"]');
 
-    function updateLink() {
+    // Toggle filter panel
+    filterToggle.addEventListener('click', function (e) {
+        e.stopPropagation();
+        filterPanel.classList.toggle('hidden');
+    });
+
+    // Close filter panel when clicking outside
+    document.addEventListener('click', function (e) {
+        if (!filterPanel.contains(e.target) && !filterToggle.contains(e.target)) {
+            filterPanel.classList.add('hidden');
+        }
+    });
+
+    // Apply filters
+    applyFilterBtn.addEventListener('click', function () {
+        filterPanel.classList.add('hidden');
+        financialForm.submit();
+    });
+
+    // Update export link when filters change
+    function updateExportLink() {
         const params = new URLSearchParams();
+        if (searchInput && searchInput.value) params.set('search', searchInput.value);
         if (monthSel && monthSel.value) params.set('month', monthSel.value);
-        if (yearSel  && yearSel.value)  params.set('year',  yearSel.value);
-        link.href = baseUrl + (params.toString() ? '?' + params.toString() : '');
+        if (yearSel && yearSel.value) params.set('year', yearSel.value);
+        const baseUrl = "{% url 'dashboard:financial_export' %}";
+        exportLink.href = baseUrl + (params.toString() ? '?' + params.toString() : '');
     }
 
-    if (monthSel) monthSel.addEventListener('change', updateLink);
-    if (yearSel)  yearSel .addEventListener('change', updateLink);
+    if (monthSel) monthSel.addEventListener('change', updateExportLink);
+    if (yearSel) yearSel.addEventListener('change', updateExportLink);
+    if (searchInput) searchInput.addEventListener('input', updateExportLink);
+    updateExportLink();
 })();
 </script>
 {% endblock %}

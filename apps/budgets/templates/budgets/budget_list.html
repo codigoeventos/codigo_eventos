@@ -25,7 +25,7 @@
         <input type="hidden" name="status" id="hidden-bud-status" value="{{ request.GET.status }}">
         <input type="hidden" name="proposal" id="hidden-bud-proposal" value="{{ request.GET.proposal }}">
 
-        <!-- Search bar --
+        <!-- Search bar -->
         <div class="relative flex-1 min-w-0">{{ search_form.search }}</div>
 
         <!-- Submit button -->
@@ -150,18 +150,17 @@
                     </div>
                 </td>
                 <td class="px-6 py-4">
-                    <div class="text-sm text-gray-900">{{ budget.proposal.title }}</div>
+                    <div class="text-sm text-gray-900">{{ budget.proposal.title|default:"—" }}</div>
                 </td>
                 <td class="px-6 py-4">
-                    <div class="text-sm text-gray-500">{{ budget.proposal.event.name }}</div>
+                    <div class="text-sm text-gray-500">{{ budget.proposal.event.name|default:"—" }}</div>
                 </td>
                 <td class="px-6 py-4">
                     <div class="text-sm text-gray-900">R$ {{ budget.total_with_freight|floatformat:"2g" }}</div>
                 </td>
                 <td class="px-6 py-4">
                     <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                        {% if budget.status == 'approved' %}bg-green-100 text-green-800
-                        {% elif budget.status == 'confirmed' %}bg-purple-100 text-purple-800
+                        {% if budget.status == 'confirmed' %}bg-green-100 text-green-800
                         {% elif budget.status == 'rejected' %}bg-red-100 text-red-800
                         {% elif budget.status == 'sent' %}bg-blue-100 text-blue-800
                         {% else %}bg-gray-100 text-gray-800{% endif %}">
@@ -196,7 +195,7 @@
                         </svg>
                     </a>
 
-                    <button onclick="openBudgetDeleteModal({{ budget.pk }}, '{{ budget.name|escapejs }}', '{{ budget.proposal.title|escapejs }}', {{ budget.items.count }})" 
+                    <button onclick="openBudgetDeleteModal({{ budget.pk }}, '{{ budget.name|escapejs }}', '{{ budget.proposal.title|default:"-"|escapejs }}', {{ budget.items.count }})" 
                         class="text-red-600 hover:text-red-900"
                         title="Excluir">
                         <svg class="w-5 h-5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">

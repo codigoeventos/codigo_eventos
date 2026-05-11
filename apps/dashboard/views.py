@@ -95,7 +95,9 @@ class DashboardView(LoginRequiredMixin, TemplateView):
     # ------------------------------------------------------------------
     def _financial_context(self, context):
         from apps.projects.models import Project
+        from apps.budgets.models import Budget
         from decimal import Decimal
+        from django.db.models import Q
 
         today = timezone.now().date()
 
@@ -107,11 +109,18 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             year = int(self.request.GET.get('year', ''))
         except (ValueError, TypeError):
             year = None
+        
+        search = self.request.GET.get('search', '').strip()
 
         projects = Project.objects.select_related(
             'event', 'contractor'
-        ).prefetch_related('budgets__items')
+        ).prefetch_related('budgets__items').filter(
+            budgets__status='confirmed'
+        ).distinct()
 
+        if search:
+            projects = projects.filter(title__icontains=search)
+        
         if month:
             projects = projects.filter(created_at__month=month)
         if year:
@@ -140,6 +149,32 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         context['total_project_value'] = total_project_value
         context['total_contractor_spend'] = total_contractor_spend
         context['total_profit'] = total_profit
+        
+        # Get confirmed budgets
+        from apps.budgets.models import Budget
+        budgets = Budget.objects.filter(
+            status='confirmed'
+        ).select_related('proposal__event').order_by('-created_at')
+        
+        if month:
+            budgets = budgets.filter(created_at__month=month)
+        if year:
+            budgets = budgets.filter(created_at__year=year)
+        
+        budget_rows = []
+        total_budget_value = Decimal('0')
+        
+        for budget in budgets:
+            total = Decimal(str(budget.total_value)) if budget.total_value else Decimal('0')
+            total_budget_value += total
+            budget_rows.append({
+                'budget': budget,
+                'total_value': total,
+            })
+        
+        context['budget_rows'] = budget_rows
+        context['total_budget_value'] = total_budget_value
+        context['search'] = search
         context['year_choices'] = Project.objects.dates('created_at', 'year')
         context['month_choices'] = [
             (1, 'Janeiro'), (2, 'Fevereiro'), (3, 'Março'),
@@ -165,7 +200,9 @@ class FinancialExportView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         from apps.projects.models import Project
+        from apps.budgets.models import Budget
         from decimal import Decimal
+        from django.db.models import Q
 
         today = timezone.now().date()
 
@@ -177,11 +214,18 @@ class FinancialExportView(LoginRequiredMixin, TemplateView):
             year = int(self.request.GET.get('year', ''))
         except (ValueError, TypeError):
             year = None
+        
+        search = self.request.GET.get('search', '').strip()
 
         projects = Project.objects.select_related(
             'event', 'contractor'
-        ).prefetch_related('budgets__items')
+        ).prefetch_related('budgets__items').filter(
+            budgets__status='confirmed'
+        ).distinct()
 
+        if search:
+            projects = projects.filter(title__icontains=search)
+        
         if month:
             projects = projects.filter(created_at__month=month)
         if year:
@@ -210,6 +254,38 @@ class FinancialExportView(LoginRequiredMixin, TemplateView):
         context['total_project_value'] = total_project_value
         context['total_contractor_spend'] = total_contractor_spend
         context['total_profit'] = total_profit
+        
+        # Get confirmed budgets
+        budgets = Budget.objects.filter(
+            status='confirmed'
+        ).select_related('proposal__event').order_by('-created_at')
+        
+        if search:
+            budgets = budgets.filter(
+                Q(name__icontains=search) | 
+                Q(proposal__title__icontains=search) |
+                Q(proposal__event__name__icontains=search)
+            )
+        
+        if month:
+            budgets = budgets.filter(created_at__month=month)
+        if year:
+            budgets = budgets.filter(created_at__year=year)
+        
+        budget_rows = []
+        total_budget_value = Decimal('0')
+        
+        for budget in budgets:
+            total = Decimal(str(budget.total_value)) if budget.total_value else Decimal('0')
+            total_budget_value += total
+            budget_rows.append({
+                'budget': budget,
+                'total_value': total,
+            })
+        
+        context['budget_rows'] = budget_rows
+        context['total_budget_value'] = total_budget_value
+        context['search'] = search
         context['month_choices'] = [
             (1, 'Janeiro'), (2, 'Fevereiro'), (3, 'Março'),
             (4, 'Abril'), (5, 'Maio'), (6, 'Junho'),

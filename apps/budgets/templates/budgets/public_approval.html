@@ -515,7 +515,7 @@
                     Rejeitar
                 </button>
                 <button type="button" data-confirm-action="approve" class="os-btn os-btn-filled">
-                    Aprovar Selecionados
+                    Confirmar Selecionados
                 </button>
             </div>
             {% else %}
@@ -544,7 +544,11 @@
         <div class="os-header">
             <div style="display:grid;grid-template-columns:1fr auto 1fr;align-items:start;gap:10px;" class="os-header-flex">
                 <div class="os-header-meta" style="align-self:start;">
+                    {% if budget.approval_status == 'approved' and budget.approved_at %}
+                    <div><strong>Data Confirmação:</strong> {{ budget.approved_at|date:"d/m/Y" }}</div>
+                    {% else %}
                     <div><strong>Data Proposta:</strong> {{ budget.created_at|date:"d/m/Y" }}</div>
+                    {% endif %}
                     <div><strong>Proposta nº</strong> {% if current_version_number %}{{ current_version_number|to_roman }}{% else %}—{% endif %}</div>
                 </div>
                 <div class="os-header-logo" style="text-align:center;align-self:center;">
@@ -694,8 +698,7 @@
                         {% if not forloop.last %}
                         <tr class="os-separator-row" aria-hidden="true">
                             {% if is_editable %}<td class="no-print" style="height:10px;padding:0;background:#fff;border:0;"></td>{% endif %}
-                            <td colspan="{% if budget.has_item_fiscal %}5{% else %}3{% endif %}" style="height:10px;padding:0;background:#fff;border:0;"></td>
-                            {% if not is_editable %}<td style="border:0;"></td>{% endif %}
+                            <td colspan="{% if is_editable %}{% if budget.has_item_fiscal %}5{% else %}3{% endif %}{% else %}{% if budget.has_item_fiscal %}6{% else %}4{% endif %}{% endif %}" style="height:10px;padding:0;background:#fff;border:0;"></td>
                         </tr>
                         {% endif %}
                         {% endfor %}
@@ -778,7 +781,7 @@
                     {% with rows=budget.extra_charges.logistica %}
                     {% if rows %}
                     {% for row in rows %}
-                    <tr class="item-row" data-unit-total="{{ row.value|floatformat:'2' }}" data-fiscal="{% if row.fiscal %}1{% else %}0{% endif %}">
+                    <tr class="item-row" data-unit-total="{{ row.value|floatformat:'2' }}" data-approved="1" data-fiscal="{% if row.fiscal %}1{% else %}0{% endif %}">
                         {% if is_editable %}<td class="no-print"></td>{% endif %}
                         {% if forloop.first %}<td class="os-item-name" rowspan="{{ rows|length }}">Logística</td>{% endif %}
                         <td class="os-item-desc" data-label="Descritivo">{{ row.label|default:"—" }}</td>
@@ -796,7 +799,7 @@
                     {% with rows=budget.extra_charges.apoio %}
                     {% if rows %}
                     {% for row in rows %}
-                    <tr class="item-row" data-unit-total="{{ row.value|floatformat:'2' }}" data-fiscal="{% if row.fiscal %}1{% else %}0{% endif %}">
+                    <tr class="item-row" data-unit-total="{{ row.value|floatformat:'2' }}" data-approved="1" data-fiscal="{% if row.fiscal %}1{% else %}0{% endif %}">
                         {% if is_editable %}<td class="no-print"></td>{% endif %}
                         {% if forloop.first %}<td class="os-item-name" rowspan="{{ rows|length }}">Apoio</td>{% endif %}
                         <td class="os-item-desc" data-label="Descritivo">{{ row.label|default:"—" }}</td>
@@ -814,7 +817,7 @@
                     {% with rows=budget.extra_charges.mao_de_obra %}
                     {% if rows %}
                     {% for row in rows|dictsortreversed:"label" %}
-                    <tr class="item-row" data-unit-total="{{ row.value|floatformat:'2' }}" data-fiscal="{% if row.fiscal %}1{% else %}0{% endif %}">
+                    <tr class="item-row" data-unit-total="{{ row.value|floatformat:'2' }}" data-approved="1" data-fiscal="{% if row.fiscal %}1{% else %}0{% endif %}">
                         {% if is_editable %}<td class="no-print"></td>{% endif %}
                         {% if forloop.first %}<td class="os-item-name" rowspan="{{ rows|length }}">Extra Mão de Obra</td>{% endif %}
                         <td class="os-item-desc" data-label="Descritivo">{{ row.label|default:"—" }}</td>
@@ -832,7 +835,7 @@
                     {% with rows=budget.extra_charges.documentacao %}
                     {% if rows %}
                     {% for row in rows %}
-                    <tr class="item-row" data-unit-total="{{ row.value|floatformat:'2' }}" data-fiscal="{% if row.fiscal %}1{% else %}0{% endif %}">
+                    <tr class="item-row" data-unit-total="{{ row.value|floatformat:'2' }}" data-approved="1" data-fiscal="{% if row.fiscal %}1{% else %}0{% endif %}">
                         {% if is_editable %}<td class="no-print"></td>{% endif %}
                         {% if forloop.first %}<td class="os-item-name" rowspan="{{ rows|length }}">Documentação Legal</td>{% endif %}
                         <td class="os-item-desc" data-label="Descritivo">{{ row.label|default:"—" }}</td>
@@ -850,7 +853,7 @@
                     {% with rows=budget.extra_charges.taxa_feira %}
                     {% if rows %}
                     {% for row in rows %}
-                    <tr class="item-row" data-unit-total="{{ row.value|floatformat:'2' }}" data-fiscal="{% if row.fiscal %}1{% else %}0{% endif %}">
+                    <tr class="item-row" data-unit-total="{{ row.value|floatformat:'2' }}" data-approved="1" data-fiscal="{% if row.fiscal %}1{% else %}0{% endif %}">
                         {% if is_editable %}<td class="no-print"></td>{% endif %}
                         {% if forloop.first %}<td class="os-item-name" rowspan="{{ rows|length }}">Taxa Feira</td>{% endif %}
                         <td class="os-item-desc" data-label="Descritivo">{{ row.label|default:"—" }}</td>
@@ -868,7 +871,7 @@
                     {% with rows=budget.extra_charges.outros %}
                     {% if rows %}
                     {% for row in rows %}
-                    <tr class="item-row" data-unit-total="{{ row.value|floatformat:'2' }}" data-fiscal="{% if row.fiscal %}1{% else %}0{% endif %}">
+                    <tr class="item-row" data-unit-total="{{ row.value|floatformat:'2' }}" data-approved="1" data-fiscal="{% if row.fiscal %}1{% else %}0{% endif %}">
                         {% if is_editable %}<td class="no-print"></td>{% endif %}
                         {% if forloop.first %}<td class="os-item-name" rowspan="{{ rows|length }}">Outros</td>{% endif %}
                         <td class="os-item-desc" data-label="Descritivo">{{ row.label|default:"—" }}</td>
@@ -891,7 +894,6 @@
                         <td colspan="{% if budget.has_item_fiscal %}3{% else %}2{% endif %}" style="text-align:right;text-decoration:line-through;">TOTAL ORIGINAL</td>
                         {% if budget.has_item_fiscal %}<td></td>{% endif %}
                         <td class="text-right" style="text-decoration:line-through;">R$ {{ budget.total_value|floatformat:"2g" }}</td>
-                        <td></td>
                     </tr>
                     {% endif %}
 
@@ -909,41 +911,35 @@
                             {% if budget.freight_distance_km %}<span style="font-size:8px;font-weight:400;"> ({{ budget.freight_distance_km }} km)</span>{% endif %}
                             {% if is_editable %}<span style="font-size:8px;font-weight:400;color:#aaa;"> (opcional)</span>{% endif %}
                         </td>
-                        {% if budget.has_item_fiscal %}<td></td>{% endif %}
                         <td class="text-right" id="freight-value">R$ {{ budget.freight_cost|floatformat:"2g" }}</td>
-                        {% if not is_editable %}<td></td>{% endif %}
                     </tr>
                     {% endif %}
 
                     {% if budget.discount_type != 'none' and budget.discount_value > 0 %}
                     <tr class="os-total-row" style="font-size:10px;font-weight:400;opacity:.85;" id="discount-row-main">
                         {% if is_editable %}<td class="no-print"></td>{% endif %}
-                        <td colspan="{% if budget.has_item_fiscal %}3{% else %}2{% endif %}" style="text-align:right;font-weight:600;white-space:nowrap;">
+                        <td colspan="{% if is_editable %}{% if budget.has_item_fiscal %}3{% else %}2{% endif %}{% else %}{% if budget.has_item_fiscal %}4{% else %}3{% endif %}{% endif %}" style="text-align:right;font-weight:600;white-space:nowrap;">
                             Desconto {% if budget.discount_type == 'percent' %}({{ budget.discount_value|floatformat:"2g" }}%){% else %}(R$){% endif %}
                         </td>
-                        {% if budget.has_item_fiscal %}<td></td>{% endif %}
                         <td class="text-right" id="discount-value-main" style="white-space:nowrap;font-size:11px;font-weight:400;opacity:.8;">-R$ {{ budget.discount_amount|floatformat:"2g" }}</td>
-                        {% if not is_editable %}<td></td>{% endif %}
                     </tr>
                     {% endif %}
 
                     {% if budget.has_item_fiscal %}
                     <tr class="os-total-row">
                         {% if is_editable %}<td class="no-print"></td>{% endif %}
-                        <td colspan="2" style="text-align:center;">
+                        <td colspan="{% if is_editable %}2{% else %}3{% endif %}" style="text-align:right;font-weight:600;">
                             TOTAIS
                         </td>
                         <td class="text-right" id="items-total-value" style="opacity:.8;font-size:11px;">R$ {{ budget.total_value|add:budget.extra_charges_total|floatformat:"2g" }}</td>
                         <td class="text-right" id="fiscal-charges-value" style="opacity:.8;font-size:11px;">R$ {{ budget.fiscal_charges_value|floatformat:"2g" }}</td>
                         <td class="text-right" id="total-value" style="font-size:13px;">R$ {{ budget.total_with_freight|floatformat:"2g" }}</td>
-                        {% if not is_editable %}<td></td>{% endif %}
                     </tr>
                     {% else %}
                     <tr class="os-total-row">
                         {% if is_editable %}<td class="no-print"></td>{% endif %}
-                        <td colspan="2" style="text-align:right;">TOTAIS</td>
+                        <td colspan="{% if is_editable %}2{% else %}3{% endif %}" style="text-align:right;font-weight:600;">TOTAIS</td>
                         <td class="text-right" id="total-value" style="font-size:13px;">R$ {{ budget.total_with_freight|floatformat:"2g" }}</td>
-                        {% if not is_editable %}<td></td>{% endif %}
                     </tr>
                     {% endif %}
                 </tbody>
@@ -1161,7 +1157,7 @@
 
         function openConfirm(action) {
             const isApprove = action === 'approve';
-            mTitle.textContent = isApprove ? 'Confirmar aprovação' : 'Confirmar rejeição';
+            mTitle.textContent = isApprove ? 'Confirmar confirmação' : 'Confirmar rejeição';
 
             if (isApprove) {
                 const approved = [], not = [];
@@ -1178,11 +1174,11 @@
                 mBody.innerHTML = `
                     <p style="margin-bottom:8px;">Após confirmar, este proposta ficará <strong>bloqueado para edição</strong>.</p>
                     <div style="border:1px solid #c0c0c0;padding:8px;margin-bottom:8px;">
-                        <div style="font-size:9px;font-weight:700;text-transform:uppercase;color:#3f3f3f;margin-bottom:4px;">Serão aprovados (${approved.length})</div>
+                        <div style="font-size:9px;font-weight:700;text-transform:uppercase;color:#3f3f3f;margin-bottom:4px;">Serão confirmados (${approved.length})</div>
                         ${list(approved, '-')}
                     </div>
                     ${not.length ? `<div style="border:1px solid #c0c0c0;padding:8px;">
-                        <div style="font-size:9px;font-weight:700;text-transform:uppercase;color:#999;margin-bottom:4px;">Não aprovados (${not.length})</div>
+                        <div style="font-size:9px;font-weight:700;text-transform:uppercase;color:#999;margin-bottom:4px;">Não confirmados (${not.length})</div>
                         ${list(not, '-')}
                     </div>` : ''}`;
             } else {
@@ -1200,7 +1196,7 @@
                 const action = btn.getAttribute('data-confirm-action');
                 if (action === 'approve') {
                     const checked = document.querySelectorAll('.item-checkbox:checked');
-                    if (!checked.length) { alert('Selecione ao menos um item para aprovar.'); return; }
+                    if (!checked.length) { alert('Selecione ao menos um item para confirmar.'); return; }
                 }
                 openConfirm(action);
             });

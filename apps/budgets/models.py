@@ -20,16 +20,16 @@ class Budget(BaseModel):
     """
     
     STATUS_CHOICES = [
-        ('draft', 'Em andamento'),
         ('sent', 'Enviado'),
-        ('approved', 'Aprovado'),
         ('rejected', 'Rejeitado'),
         ('confirmed', 'Confirmado'),
     ]
     
     proposal = models.ForeignKey(
         'projects.Project',
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
         related_name='budgets',
         verbose_name='Projeto'
     )
@@ -44,7 +44,7 @@ class Budget(BaseModel):
         'Status',
         max_length=10,
         choices=STATUS_CHOICES,
-        default='draft'
+        default='sent'
     )
     
     is_selected = models.BooleanField(
@@ -66,7 +66,7 @@ class Budget(BaseModel):
         max_length=20,
         choices=[
             ('pending', 'Pendente'),
-            ('approved', 'Aprovado pelo Cliente'),
+            ('approved', 'Confirmado pelo Cliente'),
             ('rejected', 'Rejeitado pelo Cliente'),
         ],
         default='pending'
@@ -166,7 +166,9 @@ class Budget(BaseModel):
         ordering = ['-created_at']
     
     def __str__(self):
-        return f"{self.name} - {self.proposal.title}"
+        if self.proposal_id:
+            return f"{self.name} - {self.proposal.title}"
+        return self.name
     
     def get_approval_url(self):
         """Generate public approval URL."""
@@ -452,9 +454,9 @@ class BudgetItem(models.Model):
     )
     
     is_approved = models.BooleanField(
-        'Aprovado pelo Cliente',
+        'Confirmado pelo Cliente',
         default=True,
-        help_text='Item selecionado para aprovação pelo cliente'
+        help_text='Item selecionado para confirmação pelo cliente'
     )
 
     BILLING_CHOICES = [
@@ -583,7 +585,7 @@ class BudgetNotification(models.Model):
     """
 
     ACTION_CHOICES = [
-        ('approved', 'Aprovado'),
+        ('approved', 'Confirmado'),
         ('rejected', 'Rejeitado'),
     ]
 

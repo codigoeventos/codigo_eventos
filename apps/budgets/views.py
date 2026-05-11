@@ -520,7 +520,7 @@ class BudgetUpdateView(LoginRequiredMixin, AuditMixin, SuccessMessageMixin, Upda
             self.object.approval_status = 'pending'
             self.object.approved_at = None
             self.object.client_notes = ''
-            if self.object.status == 'approved':
+            if self.object.status == 'confirmed':
                 self.object.status = 'sent'
             self.object.save(update_fields=['approval_status', 'approved_at', 'client_notes', 'status'])
             # Reset per-item approval so the selection panel reopens for the client
@@ -726,7 +726,8 @@ class PublicBudgetPDFView(View):
         
         # Budget info
         info_style = styles['Normal']
-        elements.append(Paragraph(f'<b>Projeto:</b> {budget.proposal.title}', info_style))
+        if budget.proposal_id:
+            elements.append(Paragraph(f'<b>Projeto:</b> {budget.proposal.title}', info_style))
         elements.append(Paragraph(f'<b>Status:</b> {budget.get_approval_status_display()}', info_style))
         if budget.approved_at:
             elements.append(Paragraph(f'<b>Data de Aprovação:</b> {budget.approved_at.strftime("%d/%m/%Y %H:%M")}', info_style))

@@ -21,7 +21,7 @@
                         class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
                         Editar
                     </a>
-                    <button onclick="openBudgetDeleteModal({{ budget.pk }}, '{{ budget.name|escapejs }}', '{{ budget.proposal.title|escapejs }}', {{ budget.items.count }})"
+                    <button onclick="openBudgetDeleteModal({{ budget.pk }}, '{{ budget.name|escapejs }}', '{{ budget.proposal.title|default:"-"|escapejs }}', {{ budget.items.count }})"
                         class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all">
                         Excluir
                     </button>
@@ -32,16 +32,20 @@
                 <div>
                     <dt class="text-sm font-medium text-gray-500">Projeto</dt>
                     <dd class="mt-1 text-sm text-gray-900">
+                        {% if budget.proposal %}
                         <a href="{% url 'projects:detail' budget.proposal.pk %}" class="text-blue-600 hover:underline">
                             {{ budget.proposal.title }}
                         </a>
+                        {% else %}
+                        <span class="text-gray-400">Sem projeto vinculado</span>
+                        {% endif %}
                     </dd>
                 </div>
 
                 <div>
                     <dt class="text-sm font-medium text-gray-500">Evento</dt>
                     <dd class="mt-1 text-sm text-gray-900">
-                        {% if budget.proposal.event %}
+                        {% if budget.proposal and budget.proposal.event %}
                             <a href="{% url 'events:detail' budget.proposal.event.pk %}" class="text-blue-600 hover:underline">
                                 {{ budget.proposal.event.name }}
                             </a>
@@ -55,8 +59,7 @@
                     <dt class="text-sm font-medium text-gray-500">Status</dt>
                     <dd class="mt-1">
                         <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                            {% if budget.status == 'approved' %}bg-green-100 text-green-800
-                            {% elif budget.status == 'confirmed' %}bg-purple-100 text-purple-800
+                            {% if budget.status == 'confirmed' %}bg-green-100 text-green-800
                             {% elif budget.status == 'rejected' %}bg-red-100 text-red-800
                             {% elif budget.status == 'sent' %}bg-blue-100 text-blue-800
                             {% else %}bg-gray-100 text-gray-800{% endif %}">
@@ -143,8 +146,8 @@
         <div class="approval-link-card bg-gradient-to-r from-black to-gray-800 rounded-lg shadow-sm p-6 mt-6">
             <div class="flex items-start justify-between">
                 <div class="flex-1">
-                    <h3 class="text-lg font-semibold text-white mb-2">Link de Aprovação do Cliente</h3>
-                    <p class="text-gray-300 text-sm mb-4">Compartilhe este link com o cliente para aprovação do proposta</p>
+                    <h3 class="text-lg font-semibold text-white mb-2">Link de Confirmação do Cliente</h3>
+                    <p class="text-gray-300 text-sm mb-4">Compartilhe este link com o cliente para confirmação do proposta</p>
                     
                     <div class="flex items-center gap-2 mb-3">
                         <input type="text" readonly 
@@ -180,7 +183,7 @@
                     {% if budget.approval_status == 'approved' %}
                     <div class="mt-3 p-3 bg-green-900 bg-opacity-30 border border-green-500 rounded-lg">
                         <p class="text-sm text-green-100">
-                            <strong>Valor Aprovado:</strong> R$ {{ budget.approved_value|floatformat:"2g" }}
+                            <strong>Valor Confirmado:</strong> R$ {{ budget.approved_value|floatformat:"2g" }}
                         </p>
                     </div>
                     {% endif %}
@@ -765,7 +768,7 @@ async function openVersionModal(versionId, versionNumber) {
             }).join('');
 
         const totalVal = parseFloat(snap.total_with_freight || 0).toLocaleString('pt-BR', {minimumFractionDigits:2});
-        const statusLabel = { draft: 'Em andamento', sent: 'Enviado', approved: 'Aprovado', rejected: 'Rejeitado', confirmed: 'Confirmado' };
+        const statusLabel = { draft: 'Em andamento', sent: 'Enviado', approved: 'Confirmado', rejected: 'Rejeitado', confirmed: 'Confirmado' };
 
         body.innerHTML = `
             <div class="mb-4 p-3 bg-gray-50 rounded-lg grid grid-cols-2 gap-2 text-sm">

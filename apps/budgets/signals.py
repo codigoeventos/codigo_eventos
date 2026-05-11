@@ -27,7 +27,7 @@ def sync_service_order_items(budget):
         return
 
     # Atualiza event na OS se o projeto ganhou evento após a criação do orçamento
-    event = getattr(budget.proposal, 'event', None)
+    event = getattr(budget.proposal, 'event', None) if budget.proposal_id else None
     if event is not None and service_order.event_id != event.pk:
         service_order.event = event
         service_order.save(update_fields=['event'])

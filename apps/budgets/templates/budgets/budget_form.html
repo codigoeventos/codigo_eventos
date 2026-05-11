@@ -560,6 +560,10 @@
                 </div>
             </div>
         </div>
+        <div class="mt-3 pt-3 border-t border-gray-300">
+            <label class="block text-xs font-medium text-gray-500 mb-1">Observações (opcional)</label>
+            <textarea class="subitem-observations w-full px-2 py-1.5 border border-gray-300 rounded-md text-xs focus:ring-2 focus:ring-black focus:border-transparent" rows="2" placeholder="Anotações sobre este subitem..."></textarea>
+        </div>
         <div class="mt-2 flex items-center gap-3 flex-wrap">
             <select class="subitem-measurement-unit px-2 py-1.5 border border-gray-300 rounded-md text-xs focus:ring-2 focus:ring-black">
                 <option value="m2">m²</option>
@@ -679,8 +683,8 @@
                     <input id="payment-info-favored" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-sm" placeholder="Nome do favorecido">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">CPF</label>
-                    <input id="payment-info-cpf" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-sm" placeholder="000.000.000-00">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">CPF / CNPJ</label>
+                    <input id="payment-info-cpf" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-sm" placeholder="000.000.000-00 ou 00.000.000/0000-00">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Banco</label>
@@ -1465,6 +1469,7 @@
             if (data.measurement_unit) {
                 row.querySelector('.subitem-measurement-unit').value = data.measurement_unit;
             }
+            if (data.observations)     row.querySelector('.subitem-observations').value    = data.observations;
         }
 
         row.querySelectorAll('.subitem-dim').forEach(el => el.addEventListener('input', () => {
@@ -1902,6 +1907,21 @@
             secNode.querySelectorAll('.item-form').forEach(itemNode => {
                 const deleted = itemNode.dataset.deleted === 'true';
                 const bType      = itemNode.dataset.billingType || 'qty';
+                
+                // Collect subitems
+                const subitems = [];
+                itemNode.querySelectorAll('.subitems-list .subitem-row').forEach(subRow => {
+                    subitems.push({
+                        name:             subRow.querySelector('.subitem-name')?.value || '',
+                        qty:              subRow.querySelector('.subitem-qty')?.value || '1',
+                        dim_width:        subRow.querySelector('.subitem-dim-width')?.value || '',
+                        dim_height:       subRow.querySelector('.subitem-dim-height')?.value || '',
+                        measurement:      subRow.querySelector('.subitem-measurement')?.value || '',
+                        measurement_unit: subRow.querySelector('.subitem-measurement-unit')?.value || 'm2',
+                        observations:     subRow.querySelector('.subitem-observations')?.value || '',
+                    });
+                });
+                
                 items.push({
                     id:               itemNode.dataset.itemId || null,
                     delete:           deleted,
@@ -1921,6 +1941,7 @@
                     })(),
                     billing_type:     bType,
                     include_fiscal:   itemNode.querySelector('.item-fiscal-btn')?.ariaPressed === 'true',
+                    subitems:         subitems,
                 });
             });
             sections.push({

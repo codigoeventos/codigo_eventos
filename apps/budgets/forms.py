@@ -13,6 +13,8 @@ class BudgetForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['discount_value'].required = False
+        self.fields['proposal'].required = False
+        self.fields['proposal'].empty_label = '— Sem projeto vinculado —'
 
     class Meta:
         model = Budget
