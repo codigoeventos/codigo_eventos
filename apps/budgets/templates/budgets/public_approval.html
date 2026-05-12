@@ -679,6 +679,9 @@
                                     <span class="os-item-dimension-line">Dimensão {{ item.measurement|floatformat:"2g" }} {{ item.get_measurement_unit_display|default:"" }}</span>
                                 </span>
                                 {% endif %}
+                                {% if item.observations %}
+                                <span class="os-item-dimension-line" style="display:block;margin-top:5px;white-space:pre-wrap;">{{ item.observations }}</span>
+                                {% endif %}
                             </td>
                             <td class="text-right" data-label="Valor (Qtd.)">R$ {{ item.total_price|floatformat:"2g" }}</td>
                             {% if budget.has_item_fiscal %}
@@ -739,6 +742,9 @@
                                 <span class="os-item-dimensions">
                                     <span class="os-item-dimension-line">Dimensão {{ item.measurement|floatformat:"2g" }} {{ item.get_measurement_unit_display|default:"" }}</span>
                                 </span>
+                                {% endif %}
+                                {% if item.observations %}
+                                <span class="os-item-dimension-line" style="display:block;margin-top:5px;white-space:pre-wrap;">{{ item.observations }}</span>
                                 {% endif %}
                             </td>
                             <td class="text-right" data-label="Valor (Qtd.)">R$ {{ item.total_price|floatformat:"2g" }}</td>
