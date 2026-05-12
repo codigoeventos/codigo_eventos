@@ -505,6 +505,12 @@
             <input type="hidden" class="item-quantity" value="1">
         </div>
 
+        <!-- Observations -->
+        <div class="mt-3 pt-3 border-t border-gray-200">
+            <label class="block text-xs font-medium text-gray-600 mb-1">Observações (opcional)</label>
+            <textarea class="item-observations w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-sm" rows="2" placeholder="Anotações sobre este item..."></textarea>
+        </div>
+
         <div class="mt-3 pt-3 border-t border-gray-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <button type="button" class="item-fiscal-btn inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-semibold transition-all duration-150 border-gray-200 bg-gray-50 text-gray-400 hover:border-orange-300 hover:text-orange-500 w-full sm:w-auto" aria-pressed="false">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1435,26 +1441,35 @@
         const h = num(row.querySelector('.subitem-dim-height')?.value);
         const measInput  = row.querySelector('.subitem-measurement');
         const unitSelect = row.querySelector('.subitem-measurement-unit');
-        let vol = 0;
+        const qty        = Math.max(1, parseInt(row.querySelector('.subitem-qty')?.value) || 1);
+        let unitVol = 0;
 
         if (w > 0 && h > 0) {
-            vol = w * h;
-            if (measInput)  measInput.value  = vol.toFixed(3);
+            unitVol = w * h;
             if (unitSelect) unitSelect.value = 'm2';
         } else if (w > 0 || h > 0) {
-            vol = w || h;
-            if (measInput)  measInput.value  = vol.toFixed(3);
+            unitVol = w || h;
             if (unitSelect) unitSelect.value = 'm2';
         } else {
-            vol = num(measInput?.value);
+            // measurement was typed manually — treat as unit vol
+            unitVol = num(measInput?.value) / qty || num(measInput?.value);
         }
+
+        const total = unitVol * qty;
+        if (measInput && (w > 0 || h > 0)) measInput.value = total > 0 ? total.toFixed(3) : '';
 
         const volDisplay = row.querySelector('.subitem-vol-display');
         if (volDisplay) {
             const unit = unitSelect?.value || '';
-            volDisplay.textContent = vol > 0 ? `${vol.toFixed(3)} ${unit}` : '';
+            if (unitVol > 0 && qty > 1) {
+                volDisplay.textContent = `${unitVol.toFixed(3)} × ${qty} = ${total.toFixed(3)} ${unit}`;
+            } else if (unitVol > 0) {
+                volDisplay.textContent = `${unitVol.toFixed(3)} ${unit}`;
+            } else {
+                volDisplay.textContent = '';
+            }
         }
-        return vol;
+        return total;
     }
 
     function addSubitem(itemNode, data) {
@@ -1482,6 +1497,7 @@
             recalcAll();
         });
         row.querySelector('.subitem-qty')?.addEventListener('input', () => {
+            calcSubitem(row);
             updateSubitemsCounter(itemNode);
             recalcAll();
         });
@@ -1553,6 +1569,7 @@
             sel.value = data.measurement_unit;
         }
         if (data && data.description)      node.querySelector('.item-description').value   = data.description;
+        if (data && data.observations)     node.querySelector('.item-observations').value  = data.observations;
         if (data && data.include_fiscal) {
             const btn = node.querySelector('.item-fiscal-btn');
             if (btn) { btn.ariaPressed = 'true'; btn.classList.add('border-orange-400','bg-orange-50','text-orange-600'); btn.classList.remove('border-gray-200','bg-gray-50','text-gray-400'); }
@@ -1773,9 +1790,7 @@
         const subRows = row.querySelectorAll('.subitems-list .subitem-row');
         if (subRows.length > 0) {
             subRows.forEach(sr => {
-                const subVol = calcSubitem(sr);
-                const subQty = parseInt(sr.querySelector('.subitem-qty')?.value) || 1;
-                vol += subVol * subQty;
+                vol += calcSubitem(sr);
             });
             if (measInput)  measInput.value  = vol.toFixed(3);
             if (unitSelect) unitSelect.value = 'm2';
@@ -1941,6 +1956,7 @@
                     })(),
                     billing_type:     bType,
                     include_fiscal:   itemNode.querySelector('.item-fiscal-btn')?.ariaPressed === 'true',
+                    observations:     itemNode.querySelector('.item-observations')?.value || '',
                     subitems:         subitems,
                 });
             });

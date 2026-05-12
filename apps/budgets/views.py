@@ -211,6 +211,7 @@ def _save_sections_from_json(budget, sections_data_json):
                 'subitems_data': subitems or None,
                 'is_approved': True,
                 'include_fiscal': bool(item_data.get('include_fiscal', False)),
+                'observations': item_data.get('observations') or '',
             }
 
             item_id = item_data.get('id')
@@ -261,6 +262,7 @@ def _sections_to_json(budget):
                 'billing_type': item.billing_type or 'qty',
                 'subitems': item.subitems_data or [],
                 'include_fiscal': item.include_fiscal,
+                'observations': item.observations or '',
             })
         data.append({
             'id': section.pk,
@@ -289,6 +291,7 @@ def _sections_to_json(budget):
                 'billing_type': item.billing_type or 'qty',
                 'subitems': item.subitems_data or [],
                 'include_fiscal': item.include_fiscal,
+                'observations': item.observations or '',
             })
         data.insert(0, {
             'id': None,

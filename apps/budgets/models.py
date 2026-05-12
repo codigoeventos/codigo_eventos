@@ -484,6 +484,13 @@ class BudgetItem(models.Model):
         help_text='Aplica 17% de encargos fiscais sobre o total deste item'
     )
 
+    observations = models.TextField(
+        'Observações',
+        blank=True,
+        null=True,
+        help_text='Observações internas sobre este item'
+    )
+
     description_ref = models.ForeignKey(
         'ItemDescription',
         on_delete=models.SET_NULL,
