@@ -252,9 +252,13 @@
         <!-- Project Link -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <h3 class="text-lg font-semibold text-gray-900 mb-4">Projeto</h3>
+            {% if service_order.budget.proposal %}
             <a href="{% url 'projects:detail' service_order.budget.proposal.pk %}" class="text-blue-600 hover:underline">
                 {{ service_order.budget.proposal.title }}
             </a>
+            {% else %}
+            <span class="text-gray-400">Sem projeto vinculado</span>
+            {% endif %}
         </div>
     </div>
 </div>
