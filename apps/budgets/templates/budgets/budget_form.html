@@ -566,10 +566,6 @@
                 </div>
             </div>
         </div>
-        <div class="mt-3 pt-3 border-t border-gray-300">
-            <label class="block text-xs font-medium text-gray-500 mb-1">Observações (opcional)</label>
-            <textarea class="subitem-observations w-full px-2 py-1.5 border border-gray-300 rounded-md text-xs focus:ring-2 focus:ring-black focus:border-transparent" rows="2" placeholder="Anotações sobre este subitem..."></textarea>
-        </div>
         <div class="mt-2 flex items-center gap-3 flex-wrap">
             <select class="subitem-measurement-unit px-2 py-1.5 border border-gray-300 rounded-md text-xs focus:ring-2 focus:ring-black">
                 <option value="m2">m²</option>
@@ -1484,7 +1480,6 @@
             if (data.measurement_unit) {
                 row.querySelector('.subitem-measurement-unit').value = data.measurement_unit;
             }
-            if (data.observations)     row.querySelector('.subitem-observations').value    = data.observations;
         }
 
         row.querySelectorAll('.subitem-dim').forEach(el => el.addEventListener('input', () => {
@@ -1933,7 +1928,6 @@
                         dim_height:       subRow.querySelector('.subitem-dim-height')?.value || '',
                         measurement:      subRow.querySelector('.subitem-measurement')?.value || '',
                         measurement_unit: subRow.querySelector('.subitem-measurement-unit')?.value || 'm2',
-                        observations:     subRow.querySelector('.subitem-observations')?.value || '',
                     });
                 });
                 
