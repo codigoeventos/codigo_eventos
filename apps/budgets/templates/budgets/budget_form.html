@@ -1542,20 +1542,6 @@
         if (data && data.id)               node.dataset.itemId    = data.id;
         if (data && data.name)             node.querySelector('.item-name').value         = data.name;
         if (data && data.quantity)         node.querySelector('.qty-panel .item-quantity').value = data.quantity;
-        if (data && data.unit_price) {
-            // Back-compute total from stored unit_price × qty (or × measurement for meter)
-            const price = parseBR(data.unit_price);
-            const bType = (data && data.billing_type) || 'qty';
-            let total;
-            if (bType === 'meter') {
-                const meas = parseBR(data.measurement || '0') || 1;
-                total = price * meas;
-            } else {
-                const qty = Math.max(parseBR(data.quantity || '1'), 1);
-                total = price * qty;
-            }
-            node.querySelectorAll('.item-total').forEach(el => el.value = total > 0 ? formatBR(total) : '');
-        }
         if (data && data.dim_width)        node.querySelector('.item-dim-width').value     = data.dim_width;
         if (data && data.dim_height)       node.querySelector('.item-dim-height').value    = data.dim_height;
         if (data && data.measurement)      node.querySelector('.item-measurement').value   = data.measurement;
@@ -1563,6 +1549,30 @@
             const sel = node.querySelector('.item-measurement-unit');
             sel.value = data.measurement_unit;
         }
+        
+        // ── Load total value (prefer data.total if available to avoid recalculation errors) ──
+        if (data && (data.total || data.unit_price)) {
+            let totalValue;
+            // If total is explicitly provided (from edit), use it directly to avoid rounding errors
+            if (data.total !== null && data.total !== undefined && String(data.total).trim() !== '') {
+                totalValue = parseBR(data.total);
+            } else if (data.unit_price) {
+                // For new items, calculate from unit_price × qty (or × measurement for meter)
+                const price = parseBR(data.unit_price);
+                const bType = (data && data.billing_type) || 'qty';
+                if (bType === 'meter') {
+                    const meas = parseBR(data.measurement || '0') || 1;
+                    totalValue = price * meas;
+                } else {
+                    const qty = Math.max(parseBR(data.quantity || '1'), 1);
+                    totalValue = price * qty;
+                }
+            }
+            if (totalValue !== undefined) {
+                node.querySelectorAll('.item-total').forEach(el => el.value = totalValue > 0 ? formatBR(totalValue) : '');
+            }
+        }
+        
         if (data && data.description)      node.querySelector('.item-description').value   = data.description;
         if (data && data.observations)     node.querySelector('.item-observations').value  = data.observations;
         if (data && data.include_fiscal) {
@@ -1943,11 +1953,7 @@
                     dim_height:       itemNode.querySelector('.item-dim-height')?.value || '',
                     measurement:      itemNode.querySelector('.item-measurement')?.value || '',
                     measurement_unit: itemNode.querySelector('.item-measurement-unit')?.value || '',
-                    unit_price:       (() => {
-                        const totalVal = parseBR(itemNode.querySelector('.item-total')?.value || '0');
-                        const qtyVal   = bType === 'meter' ? (parseBR(itemNode.querySelector('.item-measurement')?.value || '0') || 1) : Math.max(num(itemNode.querySelector('.qty-panel .item-quantity')?.value || '1'), 1);
-                        return String(totalVal / qtyVal);
-                    })(),
+                    total:            itemNode.querySelector('.item-total')?.value || '0',
                     billing_type:     bType,
                     include_fiscal:   itemNode.querySelector('.item-fiscal-btn')?.ariaPressed === 'true',
                     observations:     itemNode.querySelector('.item-observations')?.value || '',

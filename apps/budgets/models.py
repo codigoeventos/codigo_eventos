@@ -510,16 +510,34 @@ class BudgetItem(models.Model):
         return f"{self.name} - {self.budget.name}"
     
     def save(self, *args, **kwargs):
-        """Auto-calculate total_price and volume before saving."""
+        """Auto-calculate total_price and volume before saving.
+        
+        However, if total_price was explicitly provided (from form edit),
+        respect it and don't recalculate to avoid rounding errors.
+        """
         # If all three dimensions are provided, compute volume (m³) automatically
         if self.dim_length and self.dim_width and self.dim_height:
             self.measurement = self.dim_length * self.dim_width * self.dim_height
             self.measurement_unit = 'm3'
-        # Total based on billing type
-        if self.billing_type == 'meter':
-            self.total_price = (self.measurement or 0) * self.quantity * self.unit_price
-        else:
-            self.total_price = self.quantity * self.unit_price
+        
+        # Check if this is an explicit total from form submission (not auto-calculated)
+        # If _skip_total_recalc flag is set, respect the provided total
+        should_recalc = not getattr(self, '_skip_total_recalc', False)
+        
+        # Only recalculate if:
+        # 1. Should recalc flag is not set, AND
+        # 2. Total is zero or item is new
+        if should_recalc and (self.total_price == 0 or self.pk is None):
+            # Total based on billing type
+            if self.billing_type == 'meter':
+                self.total_price = (self.measurement or 0) * self.quantity * self.unit_price
+            else:
+                self.total_price = self.quantity * self.unit_price
+        
+        # Clean up the flag
+        if hasattr(self, '_skip_total_recalc'):
+            delattr(self, '_skip_total_recalc')
+        
         super().save(*args, **kwargs)
 
 

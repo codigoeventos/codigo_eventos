@@ -180,7 +180,19 @@ def _save_sections_from_json(budget, sections_data_json):
             if not item_name:
                 continue
 
+            # ── Handle total price directly from form (prefer explicit total over recalculation) ──
+            total_price = to_decimal(item_data.get('total'))
             unit_price = to_decimal(item_data.get('unit_price'), Decimal('0'))
+            
+            # If total is provided explicitly, use it directly (don't recalculate)
+            # This prevents rounding errors when editing items with specific totals
+            if total_price is not None and total_price > 0:
+                # Keep the provided total, don't recalculate from unit_price
+                final_total = total_price
+            else:
+                # If no total provided, recalculate from unit_price × qty (new items)
+                final_total = None  # Will be calculated in model.save()
+            
             dim_length = to_decimal(item_data.get('dim_length'))
             dim_width = to_decimal(item_data.get('dim_width'))
             dim_height = to_decimal(item_data.get('dim_height'))
@@ -207,6 +219,7 @@ def _save_sections_from_json(budget, sections_data_json):
                 'measurement_unit': item_data.get('measurement_unit') or '',
                 'weight': to_decimal(item_data.get('weight')),
                 'unit_price': unit_price,
+                'total_price': final_total or Decimal('0'),  # Set explicitly if provided
                 'billing_type': billing_type,
                 'subitems_data': subitems or None,
                 'is_approved': True,
@@ -220,6 +233,9 @@ def _save_sections_from_json(budget, sections_data_json):
                 if item:
                     for k, v in item_fields.items():
                         setattr(item, k, v)
+                    # If an explicit total was provided, mark it so save() doesn't recalculate
+                    if total_price is not None and total_price > 0:
+                        item._skip_total_recalc = True
                     item.save()
                 else:
                     item = BudgetItem(**item_fields)
@@ -259,6 +275,7 @@ def _sections_to_json(budget):
                 'measurement_unit': item.measurement_unit or '',
                 'weight': str(item.weight) if item.weight else '',
                 'unit_price': str(item.unit_price),
+                'total': str(item.total_price),  # ← Include total to prevent recalculation
                 'billing_type': item.billing_type or 'qty',
                 'subitems': item.subitems_data or [],
                 'include_fiscal': item.include_fiscal,
@@ -288,6 +305,7 @@ def _sections_to_json(budget):
                 'measurement_unit': item.measurement_unit or '',
                 'weight': str(item.weight) if item.weight else '',
                 'unit_price': str(item.unit_price),
+                'total': str(item.total_price),  # ← Include total to prevent recalculation
                 'billing_type': item.billing_type or 'qty',
                 'subitems': item.subitems_data or [],
                 'include_fiscal': item.include_fiscal,
