@@ -2154,6 +2154,26 @@
         });
     }).observe(document.body, { childList: true, subtree: true });
 
+    // ── Prevent accidental form submission on Enter ────────────────────────
+    // Previne que Enter em campos de texto submeta o formulário automaticamente
+    // Permite Enter em:
+    // - Textareas (campos de múltiplas linhas intencionais)
+    // - Modais (para inputs dentro de diálogos)
+    // - Campos com listener próprio de Enter (como section-title-input)
+    document.getElementById('budget-form').addEventListener('keydown', (e) => {
+        if (e.key !== 'Enter') return;
+        
+        const target = e.target;
+        const isTextarea = target.tagName === 'TEXTAREA';
+        const inModal = target.closest('[role="dialog"]');
+        const isSpecialField = target.classList?.contains('section-title-input');
+        
+        // Previne Enter em inputs normais para evitar submissão acidental
+        if (target.tagName === 'INPUT' && !inModal && !isSpecialField) {
+            e.preventDefault();
+        }
+    });
+
     recalcAll();
 })();
 </script>
