@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     'safedelete',
     'simple_history',
     'django_extensions',
+    'storages',
     
     # Local apps
     'apps.common',
@@ -146,23 +147,59 @@ STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [BASE_DIR / 'static'] if (BASE_DIR / 'static').exists() else []
 
-# Whitenoise configuration for production static files
-STORAGES = {
-    "default": {
-        "BACKEND": "django.core.files.storage.FileSystemStorage",
-    },
-    "staticfiles": {
-        "BACKEND": (
-            "django.contrib.staticfiles.storage.StaticFilesStorage"
-            if DEBUG else
-            "whitenoise.storage.CompressedManifestStaticFilesStorage"
-        ),
-    },
-}
+# ── Storage Configuration (S3 ou local) ────────────────────────────────────
+try:
+    from decouple import config as _cfg
+except ImportError:
+    _cfg = lambda key, default='': os.getenv(key, default)
 
-# Media files
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+USE_S3 = _cfg('USE_S3', default='False') == 'True'
+
+if USE_S3:
+    STORAGES = {
+        "default": {
+            "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
+        },
+        "staticfiles": {
+            "BACKEND": (
+                "django.contrib.staticfiles.storage.StaticFilesStorage"
+                if DEBUG else
+                "whitenoise.storage.CompressedManifestStaticFilesStorage"
+            ),
+        },
+    }
+
+    AWS_ACCESS_KEY_ID       = _cfg('AWS_ACCESS_KEY_ID', default='')
+    AWS_SECRET_ACCESS_KEY   = _cfg('AWS_SECRET_ACCESS_KEY', default='')
+    AWS_STORAGE_BUCKET_NAME = _cfg('AWS_STORAGE_BUCKET_NAME', default='')
+    AWS_S3_REGION_NAME      = _cfg('AWS_S3_REGION_NAME', default='us-east-2')
+    AWS_S3_CUSTOM_DOMAIN    = _cfg('AWS_S3_CUSTOM_DOMAIN', default='')
+    AWS_S3_SIGNATURE_VERSION = 's3v4'
+    AWS_QUERYSTRING_AUTH    = False
+    AWS_DEFAULT_ACL         = None
+    AWS_S3_FILE_OVERWRITE   = False
+    AWS_S3_MAX_MEMORY_SIZE  = 10485760  # 10MB
+
+    MEDIA_URL  = f'https://{AWS_S3_CUSTOM_DOMAIN}/'
+    MEDIA_ROOT = BASE_DIR / 'media'
+
+else:
+    # Fallback local (desenvolvimento)
+    STORAGES = {
+        "default": {
+            "BACKEND": "django.core.files.storage.FileSystemStorage",
+        },
+        "staticfiles": {
+            "BACKEND": (
+                "django.contrib.staticfiles.storage.StaticFilesStorage"
+                if DEBUG else
+                "whitenoise.storage.CompressedManifestStaticFilesStorage"
+            ),
+        },
+    }
+
+    MEDIA_URL  = '/media/'
+    MEDIA_ROOT = BASE_DIR / 'media'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
