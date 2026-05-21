@@ -394,19 +394,19 @@
                 <td class="os-section-bar" style="padding:3px 16px;border:none;">DADOS DO EVENTO</td>
             </tr>
             <tr>
-                <td style="width:50%"><span class="os-info-label">Cliente: </span><span class="os-info-value">{{ service_order.event.client.name|default:"—" }}</span></td>
-                <td style="width:50%"><span class="os-info-label">Evento: </span><span class="os-info-value">{{ service_order.event.name|default:"—" }}</span></td>
+                <td style="width:50%"><span class="os-info-label">Cliente: </span><span class="os-info-value">{% if service_order.event and service_order.event.client %}{{ service_order.event.client.name }}{% else %}—{% endif %}</span></td>
+                <td style="width:50%"><span class="os-info-label">Evento: </span><span class="os-info-value">{% if service_order.event %}{{ service_order.event.name }}{% else %}—{% endif %}</span></td>
             </tr>
             <tr>
-                <td><span class="os-info-label">Contato: </span><span class="os-info-value">{{ service_order.event.client.contact_name|default:service_order.event.client.name|default:"—" }}</span></td>
-                <td><span class="os-info-label">Data do Evento: </span><span class="os-info-value">{% if service_order.event.event_date %}{{ service_order.event.event_date|date:"d/m/Y" }}{% else %}—{% endif %}</span></td>
+                <td><span class="os-info-label">Contato: </span><span class="os-info-value">{% if service_order.event and service_order.event.client %}{{ service_order.event.client.contact_name|default:service_order.event.client.name }}{% else %}—{% endif %}</span></td>
+                <td><span class="os-info-label">Data do Evento: </span><span class="os-info-value">{% if service_order.event and service_order.event.event_date %}{{ service_order.event.event_date|date:"d/m/Y" }}{% else %}—{% endif %}</span></td>
             </tr>
             <tr>
-                <td style="vertical-align: middle;"><span class="os-info-label">E-mail: </span><span class="os-info-value">{{ service_order.event.client.email|default:"—" }}</span></td>
-                <td><span class="os-info-label">Local: </span><span class="os-info-value">{{ service_order.event.location|default:"—" }}</span></td>
+                <td style="vertical-align: middle;"><span class="os-info-label">E-mail: </span><span class="os-info-value">{% if service_order.event and service_order.event.client %}{{ service_order.event.client.email|default:"—" }}{% else %}—{% endif %}</span></td>
+                <td><span class="os-info-label">Local: </span><span class="os-info-value">{% if service_order.event %}{{ service_order.event.location|default:"—" }}{% else %}—{% endif %}</span></td>
             </tr>
             <tr>
-                <td><span class="os-info-label">Telefone: </span><span class="os-info-value">{{ service_order.event.client.phone|default:"—" }}</span></td>
+                <td><span class="os-info-label">Telefone: </span><span class="os-info-value">{% if service_order.event and service_order.event.client %}{{ service_order.event.client.phone|default:"—" }}{% else %}—{% endif %}</span></td>
                 <td><span class="os-info-label">Proposta: </span><span class="os-info-value">{{ service_order.budget.name|default:"—" }}</span></td>
             </tr>
         </table>
