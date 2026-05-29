@@ -375,7 +375,7 @@
                     <input type="number" class="item-quantity w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-sm" min="1" value="1" placeholder="1">
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1">Valor Total (R$) <span class="text-red-500">*</span></label>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Valor Unitário (R$) <span class="text-red-500">*</span></label>
                     <input type="text" inputmode="decimal" class="item-total w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-sm font-semibold" placeholder="0,00" value="">
                 </div>
             </div>
@@ -497,7 +497,7 @@
         <div class="meter-panel mt-3 hidden">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1">Valor Total (R$) <span class="text-red-500">*</span></label>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Valor Unitário (R$) <span class="text-red-500">*</span></label>
                     <input type="text" inputmode="decimal" class="item-total w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-sm font-semibold" placeholder="0,00" value="">
                 </div>
             </div>
@@ -1204,6 +1204,35 @@
     const formatBR = v => new Intl.NumberFormat('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2}).format(v);
     const num   = v => parseBR(v);
 
+    function getItemTotalInput(itemNode) {
+        const bType = itemNode.dataset.billingType || 'qty';
+        if (bType === 'meter') {
+            return itemNode.querySelector('.meter-panel .item-total')
+                || itemNode.querySelector('.item-total');
+        }
+        return itemNode.querySelector('.qty-panel .item-total')
+            || itemNode.querySelector('.item-total');
+    }
+
+    function getItemTotalValue(itemNode) {
+        return parseBR(getItemTotalInput(itemNode)?.value || '0');
+    }
+
+    function getItemUnitPrice(itemNode) {
+        return getItemTotalValue(itemNode);
+    }
+
+    function getItemLineTotal(itemNode) {
+        const bType = itemNode.dataset.billingType || 'qty';
+        const unit  = getItemUnitPrice(itemNode);
+        if (bType === 'meter') {
+            const meas = num(itemNode.querySelector('.item-measurement')?.value) || 1;
+            return unit * meas;
+        }
+        const qty = parseInt(itemNode.querySelector('.qty-panel .item-quantity')?.value, 10) || 1;
+        return unit * qty;
+    }
+
     let _sectionCounter = 0;
 
     // ── Section management ─────────────────────────────────────────────────
@@ -1530,9 +1559,8 @@
             summaryNameEl.textContent = name || 'Novo item';
         }
         const summaryTotalEl = itemNode.querySelector('.item-summary-total');
-        const totalInput = itemNode.querySelector('.item-total');
-        if (summaryTotalEl && totalInput) {
-            summaryTotalEl.textContent = fmt(parseBR(totalInput.value || '0'));
+        if (summaryTotalEl) {
+            summaryTotalEl.textContent = fmt(getItemLineTotal(itemNode));
         }
     }
 
@@ -1550,26 +1578,24 @@
             sel.value = data.measurement_unit;
         }
         
-        // ── Load total value (prefer data.total if available to avoid recalculation errors) ──
+        // ── Load unit price (derive from total ÷ qty when editing) ──
         if (data && (data.total || data.unit_price)) {
-            let totalValue;
-            // If total is explicitly provided (from edit), use it directly to avoid rounding errors
-            if (data.total !== null && data.total !== undefined && String(data.total).trim() !== '') {
-                totalValue = parseBR(data.total);
-            } else if (data.unit_price) {
-                // For new items, calculate from unit_price × qty (or × measurement for meter)
-                const price = parseBR(data.unit_price);
-                const bType = (data && data.billing_type) || 'qty';
+            const bType = data.billing_type || 'qty';
+            const qty   = Math.max(parseInt(data.quantity || '1', 10), 1);
+            let unitValue;
+            if (data.unit_price && parseBR(data.unit_price) > 0) {
+                unitValue = parseBR(data.unit_price);
+            } else if (data.total !== null && data.total !== undefined && String(data.total).trim() !== '') {
+                const lineTotal = parseBR(data.total);
                 if (bType === 'meter') {
                     const meas = parseBR(data.measurement || '0') || 1;
-                    totalValue = price * meas;
+                    unitValue = lineTotal / meas;
                 } else {
-                    const qty = Math.max(parseBR(data.quantity || '1'), 1);
-                    totalValue = price * qty;
+                    unitValue = lineTotal / qty;
                 }
             }
-            if (totalValue !== undefined) {
-                node.querySelectorAll('.item-total').forEach(el => el.value = totalValue > 0 ? formatBR(totalValue) : '');
+            if (unitValue !== undefined && unitValue > 0) {
+                node.querySelectorAll('.item-total').forEach(el => el.value = formatBR(unitValue));
             }
         }
         
@@ -1768,6 +1794,7 @@
 
     // ── Billing type UI ────────────────────────────────────────────────────
     function applyBillingType(node, type) {
+        const currentUnit = getItemUnitPrice(node);
         node.dataset.billingType = type;
         const billingSelect = node.querySelector('.item-billing-select');
         const qtyPanel      = node.querySelector('.qty-panel');
@@ -1779,6 +1806,10 @@
         } else {
             qtyPanel?.classList.remove('hidden');
             meterPanel?.classList.add('hidden');
+        }
+        if (currentUnit > 0) {
+            const totalInput = getItemTotalInput(node);
+            if (totalInput) totalInput.value = formatBR(currentUnit);
         }
     }
 
@@ -1815,9 +1846,8 @@
             }
         }
 
-        // Total is entered directly by the user — just read it
-        const totalEl = row.querySelector('.item-total');
-        const total = parseBR(totalEl?.value || '0');
+        // Line total = unit price × quantity (or × measurement for meter)
+        const total = getItemLineTotal(row);
 
         updateItemHeader(row);
         return { total, vol, qty, unit: unitSelect?.value || '' };
@@ -1953,7 +1983,8 @@
                     dim_height:       itemNode.querySelector('.item-dim-height')?.value || '',
                     measurement:      itemNode.querySelector('.item-measurement')?.value || '',
                     measurement_unit: itemNode.querySelector('.item-measurement-unit')?.value || '',
-                    total:            itemNode.querySelector('.item-total')?.value || '0',
+                    unit_price:       String(getItemUnitPrice(itemNode)),
+                    total:            String(getItemLineTotal(itemNode)),
                     billing_type:     bType,
                     include_fiscal:   itemNode.querySelector('.item-fiscal-btn')?.ariaPressed === 'true',
                     observations:     itemNode.querySelector('.item-observations')?.value || '',

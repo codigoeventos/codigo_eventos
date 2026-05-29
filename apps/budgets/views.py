@@ -3,6 +3,7 @@ Budget views for Event Management System.
 """
 
 import json
+import re
 from decimal import Decimal, InvalidOperation
 
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -140,10 +141,25 @@ def _save_sections_from_json(budget, sections_data_json):
         sections_data = []
 
     def to_decimal(val, default=None):
+        """Parse standard decimal numbers (dimensions, measurements, weight)."""
         if val is None or str(val).strip() == '':
             return default
         try:
-            return Decimal(str(val))
+            return Decimal(str(val).strip())
+        except (InvalidOperation, ValueError):
+            return default
+
+    def to_decimal_money(val, default=None):
+        """Parse Brazilian currency format, e.g. 1.234,56 or 10.200."""
+        if val is None or str(val).strip() == '':
+            return default
+        s = str(val).strip()
+        if ',' in s:
+            s = s.replace('.', '').replace(',', '.')
+        elif re.match(r'^\d{1,3}(\.\d{3})+$', s):
+            s = s.replace('.', '')
+        try:
+            return Decimal(s)
         except (InvalidOperation, ValueError):
             return default
 
@@ -180,26 +196,37 @@ def _save_sections_from_json(budget, sections_data_json):
             if not item_name:
                 continue
 
-            # ── Handle total price directly from form (prefer explicit total over recalculation) ──
-            total_price = to_decimal(item_data.get('total'))
-            unit_price = to_decimal(item_data.get('unit_price'), Decimal('0'))
-            
-            # If total is provided explicitly, use it directly (don't recalculate)
-            # This prevents rounding errors when editing items with specific totals
-            if total_price is not None and total_price > 0:
-                # Keep the provided total, don't recalculate from unit_price
-                final_total = total_price
+            # ── Unit price × qty/measurement = line total ──
+            quantity = int(item_data.get('quantity') or 1)
+            unit_price = to_decimal_money(item_data.get('unit_price'), Decimal('0'))
+            measurement = to_decimal(item_data.get('measurement'))
+            billing_type = item_data.get('billing_type') or 'qty'
+            if billing_type not in ('qty', 'meter'):
+                billing_type = 'qty'
+
+            total_from_form = to_decimal_money(item_data.get('total'))
+
+            if unit_price > 0:
+                if billing_type == 'meter':
+                    meas = measurement or Decimal('1')
+                    final_total = unit_price * meas * quantity
+                else:
+                    final_total = unit_price * quantity
+                final_unit = unit_price
+            elif total_from_form is not None:
+                final_total = total_from_form
+                if billing_type == 'meter':
+                    meas = measurement or Decimal('1')
+                    final_unit = (total_from_form / meas) if meas else Decimal('0')
+                else:
+                    final_unit = (total_from_form / quantity) if quantity else Decimal('0')
             else:
-                # If no total provided, recalculate from unit_price × qty (new items)
-                final_total = None  # Will be calculated in model.save()
+                final_total = None
+                final_unit = Decimal('0')
             
             dim_length = to_decimal(item_data.get('dim_length'))
             dim_width = to_decimal(item_data.get('dim_width'))
             dim_height = to_decimal(item_data.get('dim_height'))
-
-            billing_type = item_data.get('billing_type') or 'qty'
-            if billing_type not in ('qty', 'meter'):
-                billing_type = 'qty'
 
             subitems = item_data.get('subitems')
             if subitems and not isinstance(subitems, list):
@@ -211,15 +238,15 @@ def _save_sections_from_json(budget, sections_data_json):
                 'name': item_name,
                 'description': item_data.get('description') or '',
                 'description_ref_id': item_data.get('description_ref_id') or None,
-                'quantity': int(item_data.get('quantity') or 1),
+                'quantity': quantity,
                 'dim_length': dim_length,
                 'dim_width': dim_width,
                 'dim_height': dim_height,
-                'measurement': to_decimal(item_data.get('measurement')),
+                'measurement': measurement,
                 'measurement_unit': item_data.get('measurement_unit') or '',
                 'weight': to_decimal(item_data.get('weight')),
-                'unit_price': unit_price,
-                'total_price': final_total or Decimal('0'),  # Set explicitly if provided
+                'unit_price': final_unit,
+                'total_price': final_total or Decimal('0'),
                 'billing_type': billing_type,
                 'subitems_data': subitems or None,
                 'is_approved': True,
@@ -228,20 +255,24 @@ def _save_sections_from_json(budget, sections_data_json):
             }
 
             item_id = item_data.get('id')
+            explicit_total = final_total is not None
             if item_id:
                 item = BudgetItem.objects.filter(pk=item_id, budget=budget).first()
                 if item:
                     for k, v in item_fields.items():
                         setattr(item, k, v)
-                    # If an explicit total was provided, mark it so save() doesn't recalculate
-                    if total_price is not None and total_price > 0:
+                    if explicit_total:
                         item._skip_total_recalc = True
                     item.save()
                 else:
                     item = BudgetItem(**item_fields)
+                    if explicit_total:
+                        item._skip_total_recalc = True
                     item.save()
             else:
                 item = BudgetItem(**item_fields)
+                if explicit_total:
+                    item._skip_total_recalc = True
                 item.save()
 
             kept_item_ids.add(item.pk)
