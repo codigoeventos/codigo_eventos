@@ -13,6 +13,7 @@
             {% csrf_token %}
             <input type="hidden" name="sections_data" id="sections-data" value="">
             <input type="hidden" name="extra_charges_data" id="extra-charges-data" value="">
+            <input type="hidden" name="create_version" id="create-version-input" value="true">
 
             {% include 'components/form_errors.html' %}
 
@@ -267,6 +268,31 @@
     </div>
 </div>
 
+{% if is_edit_mode %}
+<div id="save-version-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="save-version-modal-title">
+    <div class="absolute inset-0 bg-black/50" id="save-version-modal-backdrop"></div>
+    <div class="relative w-full max-w-md rounded-2xl bg-white shadow-2xl border border-gray-200 overflow-hidden">
+        <div class="px-6 py-5 border-b border-gray-100">
+            <h3 id="save-version-modal-title" class="text-base font-semibold text-gray-900">Como deseja salvar esta atualização?</h3>
+            <p class="mt-1 text-sm text-gray-500">Você pode registrar uma nova versão no histórico ou apenas atualizar a proposta atual.</p>
+        </div>
+        <div class="px-6 py-5 space-y-3">
+            <button type="button" id="save-with-version-btn" class="w-full text-left rounded-xl border border-gray-300 px-4 py-3 hover:border-black hover:bg-gray-50 transition-all">
+                <span class="block text-sm font-semibold text-gray-900">Salvar e criar nova versão</span>
+                <span class="block mt-1 text-xs text-gray-500">Guarda o estado anterior no histórico de versões antes da atualização.</span>
+            </button>
+            <button type="button" id="save-without-version-btn" class="w-full text-left rounded-xl border border-gray-300 px-4 py-3 hover:border-black hover:bg-gray-50 transition-all">
+                <span class="block text-sm font-semibold text-gray-900">Salvar sem criar versão</span>
+                <span class="block mt-1 text-xs text-gray-500">Atualiza a proposta sem adicionar um novo registro no histórico.</span>
+            </button>
+        </div>
+        <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-end">
+            <button type="button" id="save-version-modal-cancel" class="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-white">Cancelar</button>
+        </div>
+    </div>
+</div>
+{% endif %}
+
 <!-- ── Hidden Templates (cloned by JS) ────────────────────────────────────── -->
 
 <!-- Section template -->
@@ -375,7 +401,7 @@
                     <input type="number" class="item-quantity w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-sm" min="1" value="1" placeholder="1">
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1">Valor Unitário (R$) <span class="text-red-500">*</span></label>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Valor Total do Item (R$) <span class="text-red-500">*</span></label>
                     <input type="text" inputmode="decimal" class="item-total w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-sm font-semibold" placeholder="0,00" value="">
                 </div>
             </div>
@@ -497,7 +523,7 @@
         <div class="meter-panel mt-3 hidden">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1">Valor Unitário (R$) <span class="text-red-500">*</span></label>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Valor Total do Item (R$) <span class="text-red-500">*</span></label>
                     <input type="text" inputmode="decimal" class="item-total w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-sm font-semibold" placeholder="0,00" value="">
                 </div>
             </div>
@@ -742,6 +768,33 @@
     const INITIAL_EXTRA_CHARGES = {{ extra_charges_json|default:'{}'|safe }};
     const ITEM_DESC_URL         = "{% url 'budgets:item-descriptions' %}";
     const PAYMENT_INFO_URL      = "{% url 'budgets:payment-info-templates' %}";
+    const IS_EDIT_MODE          = {{ is_edit_mode|yesno:'true,false' }};
+    const budgetForm            = document.getElementById('budget-form');
+    const createVersionInput    = document.getElementById('create-version-input');
+    const saveVersionModal      = document.getElementById('save-version-modal');
+    const saveVersionBackdrop   = document.getElementById('save-version-modal-backdrop');
+    const saveVersionCancelBtn  = document.getElementById('save-version-modal-cancel');
+    const saveWithVersionBtn    = document.getElementById('save-with-version-btn');
+    const saveWithoutVersionBtn = document.getElementById('save-without-version-btn');
+    let allowBudgetSubmit       = !IS_EDIT_MODE;
+
+    function openSaveVersionModal() {
+        if (!saveVersionModal) return;
+        saveVersionModal.classList.remove('hidden');
+    }
+
+    function closeSaveVersionModal() {
+        if (!saveVersionModal) return;
+        saveVersionModal.classList.add('hidden');
+    }
+
+    function submitBudgetWithVersionChoice(createVersion) {
+        if (!budgetForm || !createVersionInput) return;
+        createVersionInput.value = createVersion ? 'true' : 'false';
+        allowBudgetSubmit = true;
+        closeSaveVersionModal();
+        budgetForm.requestSubmit();
+    }
 
     // ── Description helpers ─────────────────────────────────────────────────
     function populateDescriptionSelect(sel) {
@@ -926,6 +979,10 @@
         }
         if (paymentModal && !paymentModal.classList.contains('hidden')) {
             closePaymentModal();
+            return;
+        }
+        if (saveVersionModal && !saveVersionModal.classList.contains('hidden')) {
+            closeSaveVersionModal();
             return;
         }
         if (!descModal.classList.contains('hidden')) closeDescriptionModal();
@@ -1223,14 +1280,7 @@
     }
 
     function getItemLineTotal(itemNode) {
-        const bType = itemNode.dataset.billingType || 'qty';
-        const unit  = getItemUnitPrice(itemNode);
-        if (bType === 'meter') {
-            const meas = num(itemNode.querySelector('.item-measurement')?.value) || 1;
-            return unit * meas;
-        }
-        const qty = parseInt(itemNode.querySelector('.qty-panel .item-quantity')?.value, 10) || 1;
-        return unit * qty;
+        return getItemUnitPrice(itemNode);
     }
 
     let _sectionCounter = 0;
@@ -1578,24 +1628,13 @@
             sel.value = data.measurement_unit;
         }
         
-        // ── Load unit price (derive from total ÷ qty when editing) ──
+        // ── Load total item value when editing ──
         if (data && (data.total || data.unit_price)) {
-            const bType = data.billing_type || 'qty';
-            const qty   = Math.max(parseInt(data.quantity || '1', 10), 1);
-            let unitValue;
-            if (data.unit_price && parseBR(data.unit_price) > 0) {
-                unitValue = parseBR(data.unit_price);
-            } else if (data.total !== null && data.total !== undefined && String(data.total).trim() !== '') {
-                const lineTotal = parseBR(data.total);
-                if (bType === 'meter') {
-                    const meas = parseBR(data.measurement || '0') || 1;
-                    unitValue = lineTotal / meas;
-                } else {
-                    unitValue = lineTotal / qty;
-                }
-            }
-            if (unitValue !== undefined && unitValue > 0) {
-                node.querySelectorAll('.item-total').forEach(el => el.value = formatBR(unitValue));
+            const totalValue = data.total !== null && data.total !== undefined && String(data.total).trim() !== ''
+                ? parseBR(data.total)
+                : parseBR(data.unit_price);
+            if (totalValue > 0) {
+                node.querySelectorAll('.item-total').forEach(el => el.value = formatBR(totalValue));
             }
         }
         
@@ -1846,7 +1885,7 @@
             }
         }
 
-        // Line total = unit price × quantity (or × measurement for meter)
+        // The editable field already stores the final value for the item.
         const total = getItemLineTotal(row);
 
         updateItemHeader(row);
@@ -1950,7 +1989,17 @@
     }
 
     // ── Serialize to JSON before submit ───────────────────────────────────
-    document.getElementById('budget-form').addEventListener('submit', function () {
+    saveVersionBackdrop?.addEventListener('click', closeSaveVersionModal);
+    saveVersionCancelBtn?.addEventListener('click', closeSaveVersionModal);
+    saveWithVersionBtn?.addEventListener('click', () => submitBudgetWithVersionChoice(true));
+    saveWithoutVersionBtn?.addEventListener('click', () => submitBudgetWithVersionChoice(false));
+
+    budgetForm.addEventListener('submit', function (e) {
+        if (IS_EDIT_MODE && !allowBudgetSubmit) {
+            e.preventDefault();
+            openSaveVersionModal();
+            return;
+        }
         const sections = [];
         document.querySelectorAll('.section-card').forEach(secNode => {
             const items = [];
@@ -2013,6 +2062,7 @@
             if (rows.length) extraCharges[key] = rows;
         });
         extraChargesDataInput.value = JSON.stringify(extraCharges);
+        allowBudgetSubmit = !IS_EDIT_MODE;
     });
 
     // ── Init ───────────────────────────────────────────────────────────────
@@ -2209,4 +2259,3 @@
 })();
 </script>
 {% endblock %}
-

@@ -196,7 +196,7 @@ def _save_sections_from_json(budget, sections_data_json):
             if not item_name:
                 continue
 
-            # ── Unit price × qty/measurement = line total ──
+            # The form now sends a final per-item value; quantity/measurement do not affect price.
             quantity = int(item_data.get('quantity') or 1)
             unit_price = to_decimal_money(item_data.get('unit_price'), Decimal('0'))
             measurement = to_decimal(item_data.get('measurement'))
@@ -206,23 +206,8 @@ def _save_sections_from_json(budget, sections_data_json):
 
             total_from_form = to_decimal_money(item_data.get('total'))
 
-            if unit_price > 0:
-                if billing_type == 'meter':
-                    meas = measurement or Decimal('1')
-                    final_total = unit_price * meas * quantity
-                else:
-                    final_total = unit_price * quantity
-                final_unit = unit_price
-            elif total_from_form is not None:
-                final_total = total_from_form
-                if billing_type == 'meter':
-                    meas = measurement or Decimal('1')
-                    final_unit = (total_from_form / meas) if meas else Decimal('0')
-                else:
-                    final_unit = (total_from_form / quantity) if quantity else Decimal('0')
-            else:
-                final_total = None
-                final_unit = Decimal('0')
+            final_total = total_from_form if total_from_form is not None else unit_price
+            final_unit = final_total or Decimal('0')
             
             dim_length = to_decimal(item_data.get('dim_length'))
             dim_width = to_decimal(item_data.get('dim_width'))
@@ -455,6 +440,7 @@ class BudgetCreateView(LoginRequiredMixin, AuditMixin, SuccessMessageMixin, Crea
         ]
         context['form_title'] = 'Nova Proposta'
         context['submit_text'] = 'Criar Proposta'
+        context['is_edit_mode'] = False
 
         # Pass existing sections JSON (empty for new budget)
         context['sections_json'] = '[]'
@@ -518,6 +504,7 @@ class BudgetUpdateView(LoginRequiredMixin, AuditMixin, SuccessMessageMixin, Upda
         ]
         context['form_title'] = f'Editar Proposta: {self.object.name}'
         context['submit_text'] = 'Salvar Alterações'
+        context['is_edit_mode'] = True
 
         # Serialize existing sections + items as JSON for the JS UI
         context['sections_json'] = _sections_to_json(self.object)
@@ -537,8 +524,10 @@ class BudgetUpdateView(LoginRequiredMixin, AuditMixin, SuccessMessageMixin, Upda
         """Save budget then process sections + items from JSON."""
         # Snapshot the CURRENT state (before overwriting) so the version history
         # records what existed before this edit.
-        from django.db import models as _models
-        pre_save_snapshot_needed = self.object.pk is not None
+        should_create_version = str(
+            self.request.POST.get('create_version', 'true')
+        ).strip().lower() not in ('0', 'false', 'no')
+        pre_save_snapshot_needed = self.object.pk is not None and should_create_version
         if pre_save_snapshot_needed:
             _create_budget_version(
                 self.object,
@@ -1162,11 +1151,12 @@ class BudgetVersionListView(LoginRequiredMixin, View):
         data = []
         for v in versions:
             snapshot = v.snapshot or {}
+            created_at = timezone.localtime(v.created_at)
             data.append({
                 'id': v.pk,
                 'version_number': v.version_number,
                 'label': v.label,
-                'created_at': v.created_at.strftime('%d/%m/%Y %H:%M'),
+                'created_at': created_at.strftime('%d/%m/%Y %H:%M'),
                 'created_by': (
                     v.created_by.get_full_name() or v.created_by.email
                     if v.created_by else '—'
@@ -1185,11 +1175,12 @@ class BudgetVersionDetailView(LoginRequiredMixin, View):
     def get(self, request, pk, version_id):
         budget = get_object_or_404(Budget, pk=pk)
         version = get_object_or_404(BudgetVersion, pk=version_id, budget=budget)
+        created_at = timezone.localtime(version.created_at)
         return JsonResponse({
             'id': version.pk,
             'version_number': version.version_number,
             'label': version.label,
-            'created_at': version.created_at.strftime('%d/%m/%Y %H:%M'),
+            'created_at': created_at.strftime('%d/%m/%Y %H:%M'),
             'snapshot': version.snapshot,
         })
 
@@ -1352,4 +1343,3 @@ class BudgetVersionPublicPreviewView(LoginRequiredMixin, View):
             'back_url': reverse_lazy('budgets:detail', kwargs={'pk': budget.pk}),
         }
         return render(request, 'budgets/budget_version_preview.html', context)
-
