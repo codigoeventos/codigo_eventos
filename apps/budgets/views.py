@@ -259,7 +259,7 @@ def _save_sections_from_json(budget, sections_data_json):
             if not item_name:
                 continue
 
-            # ── Unit price × qty/measurement = line total ──
+            # The form now sends a final per-item value; quantity/measurement do not affect price.
             quantity = int(item_data.get('quantity') or 1)
             unit_price = to_decimal_money(item_data.get('unit_price'), Decimal('0'))
             measurement = to_decimal(item_data.get('measurement'))
@@ -269,23 +269,8 @@ def _save_sections_from_json(budget, sections_data_json):
 
             total_from_form = to_decimal_money(item_data.get('total'))
 
-            if unit_price > 0:
-                if billing_type == 'meter':
-                    meas = measurement or Decimal('1')
-                    final_total = unit_price * meas * quantity
-                else:
-                    final_total = unit_price * quantity
-                final_unit = unit_price
-            elif total_from_form is not None:
-                final_total = total_from_form
-                if billing_type == 'meter':
-                    meas = measurement or Decimal('1')
-                    final_unit = (total_from_form / meas) if meas else Decimal('0')
-                else:
-                    final_unit = (total_from_form / quantity) if quantity else Decimal('0')
-            else:
-                final_total = None
-                final_unit = Decimal('0')
+            final_total = total_from_form if total_from_form is not None else unit_price
+            final_unit = final_total or Decimal('0')
             
             dim_length = to_decimal(item_data.get('dim_length'))
             dim_width = to_decimal(item_data.get('dim_width'))
@@ -518,6 +503,7 @@ class BudgetCreateView(LoginRequiredMixin, AuditMixin, SuccessMessageMixin, Crea
         ]
         context['form_title'] = 'Nova Proposta'
         context['submit_text'] = 'Criar Proposta'
+        context['is_edit_mode'] = False
 
         # Pass existing sections JSON (empty for new budget)
         context['sections_json'] = '[]'
@@ -569,12 +555,15 @@ class BudgetUpdateView(LoginRequiredMixin, AuditMixin, SuccessMessageMixin, Upda
 
     def should_create_version_snapshot(self):
         """
-        Editing the current proposal can explicitly skip automatic versioning.
+        Decide whether this save should create a history snapshot first.
 
-        This is used by the edit-choice modal when the user selects
-        "Editar esta versão" instead of creating a new proposal copy first.
+        The edit form can explicitly send ``create_version=false`` when the
+        user chooses to update the current proposal without adding a new entry
+        to the version history.
         """
-        return self.request.GET.get('versioning') != 'off'
+        return str(
+            self.request.POST.get('create_version', 'true')
+        ).strip().lower() not in ('0', 'false', 'no')
     
     def get_success_url(self):
         """Redirect to budget detail after update."""
@@ -590,6 +579,7 @@ class BudgetUpdateView(LoginRequiredMixin, AuditMixin, SuccessMessageMixin, Upda
         ]
         context['form_title'] = f'Editar Proposta: {self.object.name}'
         context['submit_text'] = 'Salvar Alterações'
+        context['is_edit_mode'] = True
 
         # Serialize existing sections + items as JSON for the JS UI
         context['sections_json'] = _sections_to_json(self.object)
