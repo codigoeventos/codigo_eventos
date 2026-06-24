@@ -488,6 +488,7 @@
                     <label class="block text-xs font-medium text-gray-600 mb-1">Unidade do metro</label>
                     <select class="item-measurement-unit w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-sm">
                         <option value="m2">m²</option>
+                        <option value="m3">m³</option>
                     </select>
                 </div>
             </div>
@@ -569,6 +570,7 @@
         <div class="mt-2 flex items-center gap-3 flex-wrap">
             <select class="subitem-measurement-unit px-2 py-1.5 border border-gray-300 rounded-md text-xs focus:ring-2 focus:ring-black">
                 <option value="m2">m²</option>
+                <option value="m3">m³</option>
             </select>
             <span class="subitem-vol-display text-xs text-gray-500 flex-1"></span>
             <button type="button" class="remove-subitem text-xs text-red-500 hover:text-red-700 px-2 py-1 border border-red-200 rounded-md hover:bg-red-50 transition-all">
@@ -1471,10 +1473,8 @@
 
         if (w > 0 && h > 0) {
             unitVol = w * h;
-            if (unitSelect) unitSelect.value = 'm2';
         } else if (w > 0 || h > 0) {
             unitVol = w || h;
-            if (unitSelect) unitSelect.value = 'm2';
         } else {
             // measurement was typed manually — treat as unit vol
             unitVol = num(measInput?.value) / qty || num(measInput?.value);
@@ -1829,18 +1829,15 @@
                 vol += calcSubitem(sr);
             });
             if (measInput)  measInput.value  = vol.toFixed(3);
-            if (unitSelect) unitSelect.value = 'm2';
         } else {
             const w = num(row.querySelector('.item-dim-width')?.value);
             const h = num(row.querySelector('.item-dim-height')?.value);
             if (w > 0 && h > 0) {
                 vol = w * h * qty;
                 if (measInput)  measInput.value  = vol.toFixed(3);
-                if (unitSelect) unitSelect.value = 'm2';
             } else if (w > 0 || h > 0) {
                 vol = (w || h) * qty;
                 if (measInput)  measInput.value  = vol.toFixed(3);
-                if (unitSelect) unitSelect.value = 'm2';
             } else {
                 vol = num(measInput?.value);
             }
@@ -2166,7 +2163,6 @@
             });
         }
     }
-
     // Bind em todos os item-forms já existentes
     document.querySelectorAll('.item-form').forEach(bindDimSumPanels);
 
@@ -2209,4 +2205,3 @@
 })();
 </script>
 {% endblock %}
-

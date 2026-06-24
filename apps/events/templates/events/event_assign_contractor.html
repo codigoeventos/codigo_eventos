@@ -77,6 +77,41 @@
                 </div>
             </div>
 
+            <div id="vehicles-section" class="{% if not assignment %}hidden {% endif %}mb-5">
+                <label class="block text-sm font-medium text-gray-700 mb-3">
+                    Veículos que participarão do evento
+                </label>
+                <div id="vehicles-loading" class="hidden">
+                    <p class="text-sm text-gray-400 italic">Carregando veículos…</p>
+                </div>
+                <div id="vehicles-list" class="space-y-1 border border-gray-200 rounded-lg overflow-hidden">
+                    {% if assignment %}
+                    {% for vehicle in assignment.contractor.vehicles.all %}
+                    <label class="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-0">
+                        <input type="checkbox" name="vehicles" value="{{ vehicle.pk }}"
+                            {% if vehicle.pk in selected_vehicle_ids %}checked{% endif %}
+                            class="w-4 h-4 rounded border-gray-300 text-black focus:ring-black">
+                        <span class="flex-1">
+                            <span class="text-sm font-medium text-gray-900">{{ vehicle.plate }}</span>
+                            <span class="text-xs text-gray-500 ml-1.5">
+                                {% if vehicle.brand or vehicle.model %}
+                                    {{ vehicle.brand|default:"" }} {{ vehicle.model|default:"" }}
+                                {% else %}
+                                    Veículo cadastrado
+                                {% endif %}
+                            </span>
+                        </span>
+                        {% if vehicle.year %}
+                        <span class="text-xs text-gray-400">{{ vehicle.year }}</span>
+                        {% endif %}
+                    </label>
+                    {% empty %}
+                    <p class="px-4 py-3 text-sm text-gray-400 italic">Nenhum veículo cadastrado nesta empreiteira.</p>
+                    {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+
             <!-- Notes -->
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Observações</label>
@@ -104,21 +139,30 @@ const contractorSelect = document.getElementById('contractor-select');
 const membersSection = document.getElementById('members-section');
 const membersList = document.getElementById('members-list');
 const membersLoading = document.getElementById('members-loading');
-const preselected = {{ selected_member_ids|default:"[]" }};
+const vehiclesSection = document.getElementById('vehicles-section');
+const vehiclesList = document.getElementById('vehicles-list');
+const vehiclesLoading = document.getElementById('vehicles-loading');
+const preselected = ({{ selected_member_ids|default:"[]" }} || []).map(String);
+const preselectedVehicles = ({{ selected_vehicle_ids|default:"[]" }} || []).map(String);
 
 async function loadMembers(contractorId) {
     if (!contractorId) {
         membersSection.classList.add('hidden');
+        vehiclesSection.classList.add('hidden');
         return;
     }
     membersLoading.classList.remove('hidden');
+    vehiclesLoading.classList.remove('hidden');
     membersList.innerHTML = '';
+    vehiclesList.innerHTML = '';
     membersSection.classList.remove('hidden');
+    vehiclesSection.classList.remove('hidden');
 
     try {
         const res = await fetch(`/events/api/contractor-members/?contractor_id=${contractorId}`);
         const data = await res.json();
         membersLoading.classList.add('hidden');
+        vehiclesLoading.classList.add('hidden');
 
         if (!data.members.length) {
             membersList.innerHTML = '<p class="px-4 py-3 text-sm text-gray-400 italic">Nenhum membro cadastrado nesta empreiteira.</p>';
@@ -126,7 +170,7 @@ async function loadMembers(contractorId) {
             membersList.innerHTML = data.members.map(m => `
                 <label class="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-0">
                     <input type="checkbox" name="members" value="${m.id}"
-                        ${preselected.includes(m.id) ? 'checked' : ''}
+                        ${preselected.includes(String(m.id)) ? 'checked' : ''}
                         class="w-4 h-4 rounded border-gray-300 text-black focus:ring-black">
                     <span class="flex-1">
                         <span class="text-sm font-medium text-gray-900">${m.name}</span>
@@ -135,9 +179,28 @@ async function loadMembers(contractorId) {
                 </label>
             `).join('');
         }
+
+        if (!data.vehicles.length) {
+            vehiclesList.innerHTML = '<p class="px-4 py-3 text-sm text-gray-400 italic">Nenhum veículo cadastrado nesta empreiteira.</p>';
+        } else {
+            vehiclesList.innerHTML = data.vehicles.map(v => `
+                <label class="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-0">
+                    <input type="checkbox" name="vehicles" value="${v.id}"
+                        ${preselectedVehicles.includes(String(v.id)) ? 'checked' : ''}
+                        class="w-4 h-4 rounded border-gray-300 text-black focus:ring-black">
+                    <span class="flex-1">
+                        <span class="text-sm font-medium text-gray-900">${v.plate}</span>
+                        <span class="text-xs text-gray-500 ml-1.5">${[v.brand, v.model].filter(Boolean).join(' ') || 'Veículo cadastrado'}</span>
+                    </span>
+                    ${v.year ? `<span class="text-xs text-gray-400">${v.year}</span>` : ''}
+                </label>
+            `).join('');
+        }
     } catch (e) {
         membersLoading.classList.add('hidden');
+        vehiclesLoading.classList.add('hidden');
         membersList.innerHTML = '<p class="px-4 py-3 text-sm text-red-400 italic">Erro ao carregar membros.</p>';
+        vehiclesList.innerHTML = '<p class="px-4 py-3 text-sm text-red-400 italic">Erro ao carregar veículos.</p>';
     }
 }
 

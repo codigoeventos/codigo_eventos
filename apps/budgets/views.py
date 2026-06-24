@@ -11,7 +11,7 @@ from django.contrib.messages.views import SuccessMessageMixin
 from django.urls import reverse_lazy
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.views import View
-from django.db import models
+from django.db import models, transaction
 from django.db.models import Q, Max
 from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
@@ -103,6 +103,69 @@ def _create_budget_version(budget, user=None, label=''):
         snapshot=_snapshot_budget(budget),
         created_by=user,
     )
+
+
+def _build_duplicate_budget_name(source_budget):
+    """Preserve the original budget title when duplicating."""
+    return (source_budget.name or '').strip() or 'Proposta'
+
+
+def _extract_budget_family_base_name(name):
+    """Strip the generated " - Versão N" suffix to identify a version family."""
+    raw_name = (name or '').strip() or 'Proposta'
+    match = re.match(r'^(.*?)(?: - Versão (\d+))?$', raw_name)
+    if not match:
+        return raw_name
+    return (match.group(1) or '').strip() or 'Proposta'
+
+
+def _get_budget_family_queryset(budget):
+    """Return all budgets that belong to the same manually-created version family."""
+    base_name = _extract_budget_family_base_name(budget.name)
+    family_regex = rf'^{re.escape(base_name)}(?: - Versão \d+)?$'
+    queryset = Budget.objects.all()
+    if budget.proposal_id:
+        queryset = queryset.filter(proposal_id=budget.proposal_id)
+    return queryset.filter(name__regex=family_regex)
+
+
+def _duplicate_budget_for_edit(source_budget, user):
+    """
+    Create a brand-new budget prefilled from *source_budget*.
+
+    The duplicated budget starts pending review, gets its own approval token,
+    and preserves sections/items so the editor can adjust it immediately.
+    """
+    sections_data_json = _sections_to_json(source_budget)
+    extra_charges = json.loads(json.dumps(source_budget.extra_charges or {}))
+
+    with transaction.atomic():
+        new_budget = Budget.objects.create(
+            proposal=source_budget.proposal,
+            name=_build_duplicate_budget_name(source_budget),
+            status='sent',
+            is_selected=False,
+            approval_status='pending',
+            approved_at=None,
+            client_notes='',
+            payment_info=source_budget.payment_info or '',
+            freight_cost=source_budget.freight_cost,
+            freight_urgency=source_budget.freight_urgency,
+            freight_distance_km=source_budget.freight_distance_km,
+            freight_included=None,
+            include_fiscal_charges=source_budget.include_fiscal_charges,
+            extra_charges=extra_charges,
+            discount_type=source_budget.discount_type,
+            discount_value=source_budget.discount_value,
+            created_by=user,
+            updated_by=user,
+        )
+        _save_sections_from_json(new_budget, sections_data_json)
+
+        from apps.budgets.signals import sync_service_order_items
+        sync_service_order_items(new_budget)
+
+    return new_budget
 
 
 def _save_sections_from_json(budget, sections_data_json):
@@ -503,6 +566,15 @@ class BudgetUpdateView(LoginRequiredMixin, AuditMixin, SuccessMessageMixin, Upda
     form_class = BudgetForm
     template_name = 'budgets/budget_form.html'
     success_message = "Proposta %(name)s atualizada com sucesso!"
+
+    def should_create_version_snapshot(self):
+        """
+        Editing the current proposal can explicitly skip automatic versioning.
+
+        This is used by the edit-choice modal when the user selects
+        "Editar esta versão" instead of creating a new proposal copy first.
+        """
+        return self.request.GET.get('versioning') != 'off'
     
     def get_success_url(self):
         """Redirect to budget detail after update."""
@@ -537,8 +609,9 @@ class BudgetUpdateView(LoginRequiredMixin, AuditMixin, SuccessMessageMixin, Upda
         """Save budget then process sections + items from JSON."""
         # Snapshot the CURRENT state (before overwriting) so the version history
         # records what existed before this edit.
-        from django.db import models as _models
-        pre_save_snapshot_needed = self.object.pk is not None
+        pre_save_snapshot_needed = (
+            self.object.pk is not None and self.should_create_version_snapshot()
+        )
         if pre_save_snapshot_needed:
             _create_budget_version(
                 self.object,
@@ -590,6 +663,19 @@ class BudgetUpdateView(LoginRequiredMixin, AuditMixin, SuccessMessageMixin, Upda
         from apps.budgets.signals import sync_service_order_items
         sync_service_order_items(self.object)
         return response
+
+
+class BudgetDuplicateForEditView(LoginRequiredMixin, View):
+    """Create a new budget from an existing one and open it in edit mode."""
+
+    def post(self, request, pk):
+        source_budget = get_object_or_404(Budget, pk=pk)
+        new_budget = _duplicate_budget_for_edit(source_budget, request.user)
+        messages.success(
+            request,
+            f'Nova proposta criada a partir de "{source_budget.name}".',
+        )
+        return redirect('budgets:edit', pk=new_budget.pk)
 
 
 class BudgetDeleteView(LoginRequiredMixin, DeleteView):
@@ -1158,22 +1244,61 @@ class BudgetVersionListView(LoginRequiredMixin, View):
 
     def get(self, request, pk):
         budget = get_object_or_404(Budget, pk=pk)
-        versions = budget.versions.select_related('created_by').all()
+        family_budgets = list(
+            _get_budget_family_queryset(budget)
+            .select_related('created_by')
+            .order_by('created_at', 'pk')
+        )
+        snapshots = budget.versions.select_related('created_by').all()
         data = []
-        for v in versions:
-            snapshot = v.snapshot or {}
+        family_version_numbers = {
+            family_budget.pk: index
+            for index, family_budget in enumerate(family_budgets, start=1)
+        }
+
+        for family_budget in family_budgets:
+            created_at_local = timezone.localtime(family_budget.created_at)
             data.append({
+                'entry_type': 'budget',
+                'id': family_budget.pk,
+                'budget_id': family_budget.pk,
+                'version_number': family_version_numbers[family_budget.pk],
+                'label': family_budget.name,
+                'created_at': created_at_local.strftime('%d/%m/%Y %H:%M'),
+                'created_by': (
+                    family_budget.created_by.get_full_name() or family_budget.created_by.email
+                    if family_budget.created_by else '—'
+                ),
+                'total': str(family_budget.total_with_freight),
+                'status': family_budget.status,
+                'is_current': family_budget.pk == budget.pk,
+                'detail_url': str(reverse_lazy('budgets:detail', kwargs={'pk': family_budget.pk})),
+                'sort_key': created_at_local.isoformat(),
+            })
+
+        for v in snapshots:
+            snapshot = v.snapshot or {}
+            created_at_local = timezone.localtime(v.created_at)
+            data.append({
+                'entry_type': 'snapshot',
                 'id': v.pk,
+                'budget_id': budget.pk,
                 'version_number': v.version_number,
                 'label': v.label,
-                'created_at': v.created_at.strftime('%d/%m/%Y %H:%M'),
+                'created_at': created_at_local.strftime('%d/%m/%Y %H:%M'),
                 'created_by': (
                     v.created_by.get_full_name() or v.created_by.email
                     if v.created_by else '—'
                 ),
                 'total': snapshot.get('total_with_freight', '—'),
                 'status': snapshot.get('status', '—'),
+                'is_current': False,
+                'detail_url': '',
+                'sort_key': created_at_local.isoformat(),
             })
+        data.sort(key=lambda entry: entry['sort_key'], reverse=True)
+        for entry in data:
+            entry.pop('sort_key', None)
         return JsonResponse({'versions': data})
 
 
@@ -1185,11 +1310,12 @@ class BudgetVersionDetailView(LoginRequiredMixin, View):
     def get(self, request, pk, version_id):
         budget = get_object_or_404(Budget, pk=pk)
         version = get_object_or_404(BudgetVersion, pk=version_id, budget=budget)
+        created_at_local = timezone.localtime(version.created_at)
         return JsonResponse({
             'id': version.pk,
             'version_number': version.version_number,
             'label': version.label,
-            'created_at': version.created_at.strftime('%d/%m/%Y %H:%M'),
+            'created_at': created_at_local.strftime('%d/%m/%Y %H:%M'),
             'snapshot': version.snapshot,
         })
 
@@ -1352,4 +1478,3 @@ class BudgetVersionPublicPreviewView(LoginRequiredMixin, View):
             'back_url': reverse_lazy('budgets:detail', kwargs={'pk': budget.pk}),
         }
         return render(request, 'budgets/budget_version_preview.html', context)
-

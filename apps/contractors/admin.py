@@ -98,8 +98,18 @@ class ContractorMemberAdmin(admin.ModelAdmin):
 class EventContractorAdmin(admin.ModelAdmin):
     """Admin interface for EventContractor model."""
 
-    list_display = ('event', 'contractor', 'assigned_at')
+    list_display = ('event', 'contractor', 'assigned_at', 'selected_members_count', 'selected_vehicles_count')
     list_filter = ('assigned_at',)
     search_fields = ('event__name', 'contractor__name')
     ordering = ('-assigned_at',)
     autocomplete_fields = ['event', 'contractor']
+
+    def selected_members_count(self, obj):
+        return obj.selected_members.count()
+
+    selected_members_count.short_description = 'Membros'
+
+    def selected_vehicles_count(self, obj):
+        return obj.selected_vehicles.count()
+
+    selected_vehicles_count.short_description = 'Veículos'

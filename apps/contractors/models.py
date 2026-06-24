@@ -711,3 +711,32 @@ class EventContractorMember(models.Model):
 
     def __str__(self):
         return f"{self.member.name} — {self.assignment}"
+
+
+class EventContractorVehicle(models.Model):
+    """
+    Selected vehicle of a contractor for a specific event assignment.
+    """
+
+    assignment = models.ForeignKey(
+        EventContractor,
+        on_delete=models.CASCADE,
+        related_name='selected_vehicles',
+        verbose_name='Vínculo Empreiteira-Evento'
+    )
+
+    vehicle = models.ForeignKey(
+        ContractorVehicle,
+        on_delete=models.CASCADE,
+        related_name='event_participations',
+        verbose_name='Veículo'
+    )
+
+    class Meta:
+        verbose_name = 'Veículo em Evento'
+        verbose_name_plural = 'Veículos em Eventos'
+        unique_together = [['assignment', 'vehicle']]
+        ordering = ['vehicle__plate']
+
+    def __str__(self):
+        return f"{self.vehicle.plate} — {self.assignment}"
