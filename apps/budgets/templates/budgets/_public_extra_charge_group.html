@@ -1,0 +1,36 @@
+{% if rows %}
+{% load budget_filters %}
+{% for row in rows %}
+<tr class="item-row extra-charge-row"
+    data-unit-total="{{ row.value|js_number }}"
+    data-approved="{% if row.is_approved is not False %}1{% else %}0{% endif %}"
+    data-fiscal="{% if row.fiscal %}1{% else %}0{% endif %}">
+    {% if is_editable %}
+    <td class="os-item-sel text-center no-print" style="padding:4px;">
+        <input type="checkbox" name="extra_charges" value="{{ group_key }}:{{ forloop.counter0 }}"
+            class="item-checkbox os-check"
+            data-price="{{ row.value|js_number }}"
+            data-name="{{ row.label|default:group_label|escapejs }}"
+            data-fiscal="{% if row.fiscal %}1{% else %}0{% endif %}"
+            {% if row.is_approved is not False %}checked{% endif %}>
+    </td>
+    {% endif %}
+    {% if forloop.first %}<td class="os-item-name" rowspan="{{ rows|length }}">{{ group_label }}</td>{% endif %}
+    <td class="os-item-desc" data-label="Descritivo">{{ row.label|default:"—" }}</td>
+    <td class="text-right" data-label="Valor (Qtd.)">R$ {{ row.value|floatformat:"2g" }}</td>
+    {% if budget.has_item_fiscal %}
+    <td class="text-right os-item-encargos" data-label="Encargos">—</td>
+    <td class="text-right os-item-total" data-label="Total" style="font-weight:700;">—</td>
+    {% endif %}
+    {% if not is_editable %}
+    <td class="text-center" data-label="Status">
+        {% if row.is_approved is not False %}
+        <span class="os-badge os-badge-approved" style="font-size:8px;">&#10003;</span>
+        {% else %}
+        <span class="os-badge os-badge-rejected" style="font-size:8px;">&#10007;</span>
+        {% endif %}
+    </td>
+    {% endif %}
+</tr>
+{% endfor %}
+{% endif %}

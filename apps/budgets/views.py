@@ -2,6 +2,7 @@
 Budget views for Event Management System.
 """
 
+import copy
 import json
 import re
 from decimal import Decimal, InvalidOperation
@@ -754,13 +755,24 @@ class PublicBudgetApprovalView(View):
         action = request.POST.get('action')
         
         if action == 'approve':
-            # Get selected items
-            selected_items = request.POST.getlist('items')
+            # Get selected items and extra charges
+            selected_items = set(request.POST.getlist('items'))
+            selected_extra = set(request.POST.getlist('extra_charges'))
             
             # Update approval status for all items
             for item in budget.items.all():
                 item.is_approved = str(item.id) in selected_items
                 item.save()
+
+            # Update approval status for extra charge rows
+            extra_charges = copy.deepcopy(budget.extra_charges or {})
+            for group_key, rows in extra_charges.items():
+                if not isinstance(rows, list):
+                    continue
+                for idx, row in enumerate(rows):
+                    if isinstance(row, dict):
+                        row['is_approved'] = f'{group_key}:{idx}' in selected_extra
+            budget.extra_charges = extra_charges
             
             # Freight opt-in
             budget.freight_included = request.POST.get('include_freight') == '1'

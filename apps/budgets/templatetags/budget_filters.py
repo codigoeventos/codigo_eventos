@@ -68,6 +68,16 @@ def format_payment_info(value):
 
 
 @register.filter
+def js_number(value):
+    """Format a number for JS data attributes (always dot decimal)."""
+    try:
+        normalized = str(value).strip().replace('.', '').replace(',', '.') if ',' in str(value) else str(value)
+        return f"{float(normalized):.2f}"
+    except (TypeError, ValueError):
+        return "0.00"
+
+
+@register.filter
 def to_roman(value):
     """
     Convert a positive integer to its Roman numeral representation.
