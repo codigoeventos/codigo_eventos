@@ -43,6 +43,9 @@ class EventListView(LoginRequiredMixin, ListView):
             queryset = queryset.filter(
                 Q(name__icontains=search) |
                 Q(location__icontains=search) |
+                Q(address__icontains=search) |
+                Q(address_city__icontains=search) |
+                Q(address_neighborhood__icontains=search) |
                 Q(client__name__icontains=search)
             )
         

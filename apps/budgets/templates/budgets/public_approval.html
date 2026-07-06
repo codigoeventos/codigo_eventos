@@ -827,16 +827,6 @@
                     {% endwith %}
                     {% endif %}
 
-                    <!-- Total row -->
-                    {% if not is_editable and budget.total_value != budget.approved_value %}
-                    <tr class="os-total-row" style="opacity:.6;">
-                        <td></td>
-                        <td colspan="{% if budget.has_item_fiscal %}3{% else %}2{% endif %}" style="text-align:right;text-decoration:line-through;">TOTAL ORIGINAL</td>
-                        {% if budget.has_item_fiscal %}<td></td>{% endif %}
-                        <td class="text-right" style="text-decoration:line-through;">R$ {{ budget.total_value|floatformat:"2g" }}</td>
-                    </tr>
-                    {% endif %}
-
                     {% if budget.freight_cost %}
                     <tr class="os-total-row" style="font-size:10px;font-weight:400;" id="freight-row" {% if not is_editable and not budget.freight_included %}style="opacity:.35;"{% endif %}>
                         {% if is_editable %}

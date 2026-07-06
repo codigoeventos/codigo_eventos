@@ -325,65 +325,6 @@
             {% endif %}
         </div>
 
-        <!-- Vehicles -->
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-semibold text-gray-900">Veículos</h3>
-                <a href="{% url 'contractors:vehicle_create' contractor.pk %}"
-                    class="text-sm text-black hover:underline font-medium flex items-center gap-1">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                    </svg>
-                    Adicionar Veículo
-                </a>
-            </div>
-            {% if vehicles %}
-            <div class="overflow-x-auto">
-                <table class="w-full text-sm">
-                    <thead>
-                        <tr class="border-b border-gray-200">
-                            <th class="text-left text-xs font-medium text-gray-500 uppercase pb-2">Placa</th>
-                            <th class="text-left text-xs font-medium text-gray-500 uppercase pb-2">Marca / Modelo</th>
-                            <th class="text-left text-xs font-medium text-gray-500 uppercase pb-2">Ano</th>
-                            <th class="text-left text-xs font-medium text-gray-500 uppercase pb-2">Cor</th>
-                            <th class="text-left text-xs font-medium text-gray-500 uppercase pb-2">Combustível</th>
-                            <th class="pb-2"></th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-100">
-                        {% for vehicle in vehicles %}
-                        <tr class="hover:bg-gray-50">
-                            <td class="py-2.5 pr-4">
-                                <span class="font-mono font-semibold text-gray-900 tracking-widest">{{ vehicle.plate }}</span>
-                            </td>
-                            <td class="py-2.5 pr-4">
-                                {% if vehicle.brand or vehicle.model %}
-                                {{ vehicle.brand|default:"" }}{% if vehicle.brand and vehicle.model %} / {% endif %}{{ vehicle.model|default:"" }}
-                                {% else %}<span class="text-gray-400">—</span>{% endif %}
-                            </td>
-                            <td class="py-2.5 pr-4">{{ vehicle.year|default:"—" }}</td>
-                            <td class="py-2.5 pr-4">{{ vehicle.color|default:"—" }}</td>
-                            <td class="py-2.5 pr-4">{{ vehicle.get_fuel_display|default:"—" }}</td>
-                            <td class="py-2.5">
-                                <div class="flex items-center gap-2 justify-end">
-                                    <a href="{% url 'contractors:vehicle_edit' vehicle.pk %}"
-                                        class="text-xs text-gray-500 hover:text-gray-900 hover:underline">Editar</a>
-                                    <form method="post" action="{% url 'contractors:vehicle_delete' vehicle.pk %}"
-                                        onsubmit="return confirm('Excluir o veículo {{ vehicle.plate|escapejs }}?')">
-                                        {% csrf_token %}
-                                        <button type="submit" class="text-xs text-red-500 hover:text-red-700 hover:underline">Excluir</button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            {% else %}
-            <p class="text-sm text-gray-500 text-center py-4">Nenhum veículo cadastrado</p>
-            {% endif %}
-        </div>
     </div>
 
     <!-- Sidebar -->
@@ -427,6 +368,41 @@
             </div>
         </div>
         {% endif %}
+
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold text-gray-900">Veículos</h3>
+                <a href="{% url 'contractors:vehicle_create' contractor.pk %}"
+                    class="text-sm text-black hover:underline font-medium flex items-center gap-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    Adicionar
+                </a>
+            </div>
+            {% if vehicles %}
+            <div class="space-y-2">
+                {% for vehicle in vehicles %}
+                <a href="{% url 'contractors:vehicle_edit' vehicle.pk %}"
+                    class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors group">
+                    <div class="min-w-0">
+                        <p class="text-sm font-medium text-gray-900 font-mono tracking-wider">{{ vehicle.plate }}</p>
+                        {% if vehicle.brand or vehicle.model %}
+                        <p class="text-xs text-gray-500 mt-0.5 truncate">
+                            {{ vehicle.brand|default:"" }}{% if vehicle.brand and vehicle.model %} / {% endif %}{{ vehicle.model|default:"" }}
+                        </p>
+                        {% endif %}
+                    </div>
+                    <svg class="w-4 h-4 text-gray-400 group-hover:text-gray-700 shrink-0 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                </a>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-sm text-gray-500 text-center py-4">Nenhum veículo cadastrado</p>
+            {% endif %}
+        </div>
     </div>
 </div>
 
