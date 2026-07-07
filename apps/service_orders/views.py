@@ -112,8 +112,7 @@ class ServiceOrderDetailView(LoginRequiredMixin, DetailView):
                     'client_city', 'client_state', 'client_zip', 'tipo_contratante',
                     'obra_address', 'obra_number', 'obra_complement', 'obra_neighborhood',
                     'obra_city', 'obra_state', 'obra_zip',
-                    'nivel_atuacao', 'atividade', 'atividade_complemento', 'obra_servico',
-                    'activity_description', 'quantity', 'measurement_unit', 'contract_value',
+                    'quantity', 'measurement_unit',
                     'start_date', 'end_date', 'notes',
                 ]:
                     value = getattr(last_art, field, None)

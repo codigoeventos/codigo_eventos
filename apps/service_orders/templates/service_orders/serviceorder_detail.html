@@ -275,72 +275,7 @@
         <form method="post" action="{% url 'art:generate' service_order.pk %}" class="max-h-[80vh] overflow-y-auto px-6 py-5 space-y-6">
             {% csrf_token %}
 
-            <div>
-                <h4 class="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">Contratado</h4>
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div class="md:col-span-2"><label class="block text-xs font-medium text-gray-600 mb-1">Endereço</label><input type="text" name="client_address" value="{{ art_initial.client_address|default:'' }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg"></div>
-                    <div><label class="block text-xs font-medium text-gray-600 mb-1">N°</label><input type="text" name="client_number" value="{{ art_initial.client_number|default:'' }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg"></div>
-                    <div><label class="block text-xs font-medium text-gray-600 mb-1">Complemento</label><input type="text" name="client_complement" value="{{ art_initial.client_complement|default:'' }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg"></div>
-                    <div><label class="block text-xs font-medium text-gray-600 mb-1">Bairro</label><input type="text" name="client_neighborhood" value="{{ art_initial.client_neighborhood|default:'' }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg"></div>
-                    <div><label class="block text-xs font-medium text-gray-600 mb-1">Cidade</label><input type="text" name="client_city" value="{{ art_initial.client_city|default:'' }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg"></div>
-                    <div><label class="block text-xs font-medium text-gray-600 mb-1">UF</label><input type="text" maxlength="2" name="client_state" value="{{ art_initial.client_state|default:'' }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg"></div>
-                    <div><label class="block text-xs font-medium text-gray-600 mb-1">CEP</label><input type="text" name="client_zip" value="{{ art_initial.client_zip|default:'' }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg"></div>
-                    <div class="md:col-span-2">
-                        <label class="block text-xs font-medium text-gray-600 mb-1">Tipo de Contratante</label>
-                        <select name="tipo_contratante" class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white">
-                            <option value="">Selecione</option>
-                            <option value="pf_privado" {% if art_initial.tipo_contratante == 'pf_privado' %}selected{% endif %}>Pessoa Física de Direito Privado</option>
-                            <option value="pj_privado" {% if art_initial.tipo_contratante == 'pj_privado' %}selected{% endif %}>Pessoa Jurídica de Direito Privado</option>
-                            <option value="pf_publico" {% if art_initial.tipo_contratante == 'pf_publico' %}selected{% endif %}>Pessoa Física de Direito Público</option>
-                            <option value="pj_publico" {% if art_initial.tipo_contratante == 'pj_publico' %}selected{% endif %}>Pessoa Jurídica de Direito Público</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-
-            <div>
-                <h4 class="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">Obra / Serviço</h4>
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div class="md:col-span-2"><label class="block text-xs font-medium text-gray-600 mb-1">Endereço</label><input type="text" name="obra_address" value="{{ art_initial.obra_address|default:'' }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg"></div>
-                    <div><label class="block text-xs font-medium text-gray-600 mb-1">N°</label><input type="text" name="obra_number" value="{{ art_initial.obra_number|default:'' }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg"></div>
-                    <div><label class="block text-xs font-medium text-gray-600 mb-1">Complemento</label><input type="text" name="obra_complement" value="{{ art_initial.obra_complement|default:'' }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg"></div>
-                    <div><label class="block text-xs font-medium text-gray-600 mb-1">Bairro</label><input type="text" name="obra_neighborhood" value="{{ art_initial.obra_neighborhood|default:'' }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg"></div>
-                    <div><label class="block text-xs font-medium text-gray-600 mb-1">Cidade</label><input type="text" name="obra_city" value="{{ art_initial.obra_city|default:'' }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg"></div>
-                    <div><label class="block text-xs font-medium text-gray-600 mb-1">UF</label><input type="text" maxlength="2" name="obra_state" value="{{ art_initial.obra_state|default:'' }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg"></div>
-                    <div><label class="block text-xs font-medium text-gray-600 mb-1">CEP</label><input type="text" name="obra_zip" value="{{ art_initial.obra_zip|default:'' }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg"></div>
-                </div>
-            </div>
-
-            <div>
-                <h4 class="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">Atividades Técnicas</h4>
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div>
-                        <label class="block text-xs font-medium text-gray-600 mb-1">Quantidade</label>
-                        <input type="text" name="quantity" value="{{ art_initial.quantity|default:'0' }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-medium text-gray-600 mb-1">Unidade</label>
-                        <select name="measurement_unit" class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white">
-                            <option value="m" {% if art_initial.measurement_unit == 'm' %}selected{% endif %}>metros (m)</option>
-                            <option value="m2" {% if art_initial.measurement_unit == 'm2' %}selected{% endif %}>metros² (m²)</option>
-                            <option value="m3" {% if art_initial.measurement_unit == 'm3' %}selected{% endif %}>metros³ (m³)</option>
-                            <option value="un" {% if art_initial.measurement_unit == 'un' %}selected{% endif %}>unidades (un)</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-
-            <div>
-                <h4 class="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">Contrato e Prazo</h4>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div><label class="block text-xs font-medium text-gray-600 mb-1">Data Início</label><input type="date" name="start_date" value="{% if art_initial.start_date %}{{ art_initial.start_date|date:'Y-m-d' }}{% endif %}" class="w-full px-3 py-2 border border-gray-300 rounded-lg"></div>
-                    <div><label class="block text-xs font-medium text-gray-600 mb-1">Data Conclusão</label><input type="date" name="end_date" value="{% if art_initial.end_date %}{{ art_initial.end_date|date:'Y-m-d' }}{% endif %}" class="w-full px-3 py-2 border border-gray-300 rounded-lg"></div>
-                    <div class="md:col-span-2">
-                        <label class="block text-xs font-medium text-gray-600 mb-1">Observações</label>
-                        <textarea name="notes" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-lg">{{ art_initial.notes|default:'' }}</textarea>
-                    </div>
-                </div>
-            </div>
+            {% include 'art/_art_fields.html' with d=art_initial art_mode='generate' only %}
 
             <div class="flex justify-end gap-3 border-t border-gray-200 pt-4">
                 <button type="button" onclick="closeArtGenerateModal()" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50">Cancelar</button>

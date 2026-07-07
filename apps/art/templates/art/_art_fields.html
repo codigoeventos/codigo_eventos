@@ -1,0 +1,139 @@
+{# Partial compartilhado entre o modal "Gerar ART" e o formulário "Editar ART". #}
+{# Uso no modal : {% include 'art/_art_fields.html' with d=art_initial art_mode='generate' only %} #}
+{# Uso no edit  : {% include 'art/_art_fields.html' with f=form art_mode='edit' only %} #}
+
+{% with input_cls="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent" %}
+
+<!-- ── Contratado ─────────────────────────────────────────────────────── -->
+<div>
+    <h4 class="text-sm font-semibold text-gray-700 uppercase tracking-wide pb-1 border-b border-gray-200 mb-4">Contratado</h4>
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="md:col-span-2">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Endereço</label>
+            {% if art_mode == 'edit' %}{{ f.client_address }}{% else %}<input type="text" name="client_address" value="{{ d.client_address|default:'' }}" placeholder="Rua / Avenida" class="{{ input_cls }}">{% endif %}
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">N°</label>
+            {% if art_mode == 'edit' %}{{ f.client_number }}{% else %}<input type="text" name="client_number" value="{{ d.client_number|default:'' }}" placeholder="N°" class="{{ input_cls }}">{% endif %}
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Complemento</label>
+            {% if art_mode == 'edit' %}{{ f.client_complement }}{% else %}<input type="text" name="client_complement" value="{{ d.client_complement|default:'' }}" placeholder="2º pav, Apto 3..." class="{{ input_cls }}">{% endif %}
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Bairro</label>
+            {% if art_mode == 'edit' %}{{ f.client_neighborhood }}{% else %}<input type="text" name="client_neighborhood" value="{{ d.client_neighborhood|default:'' }}" placeholder="Bairro" class="{{ input_cls }}">{% endif %}
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Cidade</label>
+            {% if art_mode == 'edit' %}{{ f.client_city }}{% else %}<input type="text" name="client_city" value="{{ d.client_city|default:'' }}" placeholder="Cidade" class="{{ input_cls }}">{% endif %}
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">UF</label>
+            {% if art_mode == 'edit' %}{{ f.client_state }}{% else %}<input type="text" maxlength="2" name="client_state" value="{{ d.client_state|default:'' }}" placeholder="UF" class="{{ input_cls }}">{% endif %}
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">CEP</label>
+            {% if art_mode == 'edit' %}{{ f.client_zip }}{% else %}<input type="text" name="client_zip" value="{{ d.client_zip|default:'' }}" placeholder="00000-000" class="{{ input_cls }}">{% endif %}
+        </div>
+        <div class="md:col-span-2">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Tipo de Contratante</label>
+            {% if art_mode == 'edit' %}
+                {{ f.tipo_contratante }}
+            {% else %}
+                <select name="tipo_contratante" class="{{ input_cls }} bg-white">
+                    <option value="">Selecione</option>
+                    <option value="pf_privado" {% if d.tipo_contratante == 'pf_privado' %}selected{% endif %}>Pessoa Física de Direito Privado</option>
+                    <option value="pj_privado" {% if d.tipo_contratante == 'pj_privado' %}selected{% endif %}>Pessoa Jurídica de Direito Privado</option>
+                    <option value="pf_publico" {% if d.tipo_contratante == 'pf_publico' %}selected{% endif %}>Pessoa Física de Direito Público</option>
+                    <option value="pj_publico" {% if d.tipo_contratante == 'pj_publico' %}selected{% endif %}>Pessoa Jurídica de Direito Público</option>
+                </select>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- ── Obra / Serviço ─────────────────────────────────────────────────── -->
+<div>
+    <h4 class="text-sm font-semibold text-gray-700 uppercase tracking-wide pb-1 border-b border-gray-200 mb-4">Obra / Serviço</h4>
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="md:col-span-2">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Endereço</label>
+            {% if art_mode == 'edit' %}{{ f.obra_address }}{% else %}<input type="text" name="obra_address" value="{{ d.obra_address|default:'' }}" placeholder="Rua / Avenida" class="{{ input_cls }}">{% endif %}
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">N°</label>
+            {% if art_mode == 'edit' %}{{ f.obra_number }}{% else %}<input type="text" name="obra_number" value="{{ d.obra_number|default:'' }}" placeholder="N°" class="{{ input_cls }}">{% endif %}
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Complemento</label>
+            {% if art_mode == 'edit' %}{{ f.obra_complement }}{% else %}<input type="text" name="obra_complement" value="{{ d.obra_complement|default:'' }}" placeholder="Pavilhão, Bloco..." class="{{ input_cls }}">{% endif %}
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Bairro</label>
+            {% if art_mode == 'edit' %}{{ f.obra_neighborhood }}{% else %}<input type="text" name="obra_neighborhood" value="{{ d.obra_neighborhood|default:'' }}" placeholder="Bairro" class="{{ input_cls }}">{% endif %}
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Cidade</label>
+            {% if art_mode == 'edit' %}{{ f.obra_city }}{% else %}<input type="text" name="obra_city" value="{{ d.obra_city|default:'' }}" placeholder="Cidade" class="{{ input_cls }}">{% endif %}
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">UF</label>
+            {% if art_mode == 'edit' %}{{ f.obra_state }}{% else %}<input type="text" maxlength="2" name="obra_state" value="{{ d.obra_state|default:'' }}" placeholder="UF" class="{{ input_cls }}">{% endif %}
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">CEP</label>
+            {% if art_mode == 'edit' %}{{ f.obra_zip }}{% else %}<input type="text" name="obra_zip" value="{{ d.obra_zip|default:'' }}" placeholder="00000-000" class="{{ input_cls }}">{% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- ── Atividades Técnicas ────────────────────────────────────────────── -->
+<div>
+    <h4 class="text-sm font-semibold text-gray-700 uppercase tracking-wide pb-1 border-b border-gray-200 mb-4">Atividades Técnicas</h4>
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Quantidade</label>
+            {% if art_mode == 'edit' %}
+                {{ f.quantity }}
+            {% else %}
+                <input type="text" name="quantity" value="{{ d.quantity|default:'0' }}" class="{{ input_cls }}">
+            {% endif %}
+            <p class="mt-1 text-xs text-gray-500">Calculado automaticamente como soma da metragem dos itens</p>
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Unidade</label>
+            {% if art_mode == 'edit' %}
+                {{ f.measurement_unit }}
+            {% else %}
+                <select name="measurement_unit" class="{{ input_cls }} bg-white">
+                    <option value="m"  {% if d.measurement_unit == 'm'  %}selected{% endif %}>metros (m)</option>
+                    <option value="m2" {% if d.measurement_unit == 'm2' %}selected{% endif %}>metros² (m²)</option>
+                    <option value="m3" {% if d.measurement_unit == 'm3' or not d.measurement_unit %}selected{% endif %}>metros³ (m³)</option>
+                    <option value="un" {% if d.measurement_unit == 'un' %}selected{% endif %}>unidades (un)</option>
+                </select>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- ── Contrato e Prazo ───────────────────────────────────────────────── -->
+<div>
+    <h4 class="text-sm font-semibold text-gray-700 uppercase tracking-wide pb-1 border-b border-gray-200 mb-4">Contrato e Prazo</h4>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Data Início</label>
+            {% if art_mode == 'edit' %}{{ f.start_date }}{% else %}<input type="date" name="start_date" value="{% if d.start_date %}{{ d.start_date|date:'Y-m-d' }}{% endif %}" class="{{ input_cls }}">{% endif %}
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Data Conclusão</label>
+            {% if art_mode == 'edit' %}{{ f.end_date }}{% else %}<input type="date" name="end_date" value="{% if d.end_date %}{{ d.end_date|date:'Y-m-d' }}{% endif %}" class="{{ input_cls }}">{% endif %}
+        </div>
+        <div class="md:col-span-2">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Observações</label>
+            {% if art_mode == 'edit' %}{{ f.notes }}{% else %}<textarea name="notes" rows="2" placeholder="Observações adicionais (opcional)" class="{{ input_cls }}">{{ d.notes|default:'' }}</textarea>{% endif %}
+        </div>
+    </div>
+</div>
+
+{% endwith %}

@@ -73,8 +73,6 @@ class ARTGenerateView(LoginRequiredMixin, View):
         defaults = ART.build_initial_data(service_order)
 
         text_fields = [
-            'engineer_name', 'engineer_crea',
-            'contratante_nome', 'contratante_cnpj',
             'client_address', 'client_number', 'client_complement',
             'client_neighborhood', 'client_city', 'client_state', 'client_zip',
             'obra_address', 'obra_number', 'obra_complement',
@@ -83,14 +81,6 @@ class ARTGenerateView(LoginRequiredMixin, View):
         ]
 
         data = defaults.copy()
-
-        # Technical activity fields are always backend-driven.
-        last_art = ART.all_objects.filter(service_order=service_order).order_by('-updated_at', '-created_at').first()
-        if last_art:
-            for field in ['nivel_atuacao', 'atividade', 'atividade_complemento', 'obra_servico', 'activity_description']:
-                value = getattr(last_art, field, None)
-                if value not in (None, ''):
-                    data[field] = value
 
         for field in text_fields:
             if field in request.POST:
@@ -105,7 +95,6 @@ class ARTGenerateView(LoginRequiredMixin, View):
             data['measurement_unit'] = measurement_unit
 
         data['quantity'] = self._parse_decimal(request.POST.get('quantity'), defaults.get('quantity', Decimal('0')))
-        data['contract_value'] = self._parse_decimal(request.POST.get('contract_value'), defaults.get('contract_value'))
         data['start_date'] = self._parse_date(request.POST.get('start_date'), defaults.get('start_date'))
         data['end_date'] = self._parse_date(request.POST.get('end_date'), defaults.get('end_date'))
         data['location'] = data.get('obra_address') or defaults.get('location', '')
