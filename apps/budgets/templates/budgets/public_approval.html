@@ -168,6 +168,20 @@
             margin-top: 4px;
         }
 
+        /* ── Row spacing (gaps between items / sections) ─────────── */
+        .os-separator-row td.os-separator-gap {
+            height: 10px;
+            padding: 0;
+            background: #fff;
+            border: 0 !important;
+        }
+        .os-separator-row--section td.os-separator-gap {
+            height: 16px;
+        }
+        .os-separator-row--extra td.os-separator-gap {
+            height: 28px;
+        }
+
         /* ── Extra charges table (design bloco) ───────────────────── */
         .os-extra-table thead th {
             text-align: center;
@@ -452,49 +466,66 @@
             display: flex; gap: 8px; justify-content: flex-end;
         }
 
-        /* ── Mobile ──────────────────────────────────── */
-        @media (max-width: 640px) {
-            body { background: #f0f0f0; padding: 0; font-size: 14px; }
-            .os-doc { border: none; box-shadow: none; }
-
-            /* Header */
-            .os-header { padding: 12px; }
-            .os-header-flex { grid-template-columns: 1fr !important; gap: 8px !important; }
-            .os-header-logo img { height: 50px !important; margin: 0 !important; }
-            .os-header-title { font-size: 17px; }
-            .os-header-right { text-align: left; }
-            .os-header-flex > div[style*="text-align:right"] { text-align: left !important; }
-
-            /* Info table → lista de campos */
-            .os-info-table, .os-info-table tbody, .os-info-table tr { display: block; }
-            .os-info-table thead { display: none; }
-            .os-info-table td {
-                display: block;
-                width: 100% !important;
-                border-left: none; border-right: none; border-bottom: none;
-                padding: 6px 12px;
-                font-size: 13px;
+        /* ── Mobile: scale desktop layout to fit viewport width ─────── */
+        @media (max-width: 820px) {
+            body {
+                padding: 8px 0 96px;
+                background: #d4d4d4;
+                overflow-x: hidden;
             }
-            .os-info-table tr:last-child td:last-child { border-bottom: 1px solid var(--os-border); }
-            .os-section-bar { padding: 6px 12px; font-size: 11px; }
-            .os-section-title { font-size: 14px; padding: 8px 12px; }
-            .os-description { font-size: 12px; padding: 8px 12px; }
 
-            /* Items table → scroll horizontal */
-            .os-items-table { font-size: 12px; }
-            .os-items-table thead th { font-size: 11px; padding: 6px 8px; }
-            .os-items-table tbody td { font-size: 12px; padding: 6px 8px; }
-            .os-items-table tbody td.os-item-desc { font-size: 10px; }
+            .os-viewport {
+                width: 100%;
+                overflow: hidden;
+                padding: 0 8px;
+                box-sizing: border-box;
+            }
 
-            /* Action bar */
-            .os-action-bar { padding: 10px 12px; }
-            .os-action-inner { flex-direction: column; text-align: center; gap: 8px; }
-            .os-btn { width: 100%; padding: 12px; }
-            .os-action-total { font-size: 13px; }
-            .os-action-total strong { font-size: 17px; }
+            .os-doc-scaler {
+                width: 100%;
+                overflow: hidden;
+                margin: 0 auto;
+            }
 
-            /* Modal */
-            .os-modal { margin: 8px; }
+            .os-doc {
+                width: 794px;
+                min-width: 794px;
+                max-width: 794px;
+                transform-origin: top left;
+            }
+
+            .os-items-table-wrap {
+                overflow-x: visible;
+            }
+
+            .os-action-bar { padding: 8px 12px; }
+
+            .os-action-inner {
+                max-width: 100%;
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 8px;
+            }
+
+            .os-action-total {
+                flex: 1 1 100%;
+                text-align: center;
+            }
+
+            .flex-row {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 8px;
+            }
+
+            .os-btn {
+                flex: 1 1 calc(50% - 8px);
+                min-width: 120px;
+                padding: 10px 12px;
+                font-size: 11px;
+            }
+
+            .os-modal { margin: 8px; max-width: calc(100vw - 16px); }
         }
     </style>
 </head>
@@ -539,6 +570,8 @@
     </div>
     {% endif %}
 
+    <div class="os-viewport">
+    <div class="os-doc-scaler" id="approval-doc-scaler">
     <div class="os-doc" id="approval-doc">
 
         <div class="os-header">
@@ -700,11 +733,17 @@
                         </tr>
                         {% if not forloop.last %}
                         <tr class="os-separator-row" aria-hidden="true">
-                            {% if is_editable %}<td class="no-print" style="height:10px;padding:0;background:#fff;border:0;"></td>{% endif %}
-                            <td colspan="{% if is_editable %}{% if budget.has_item_fiscal %}5{% else %}3{% endif %}{% else %}{% if budget.has_item_fiscal %}6{% else %}4{% endif %}{% endif %}" style="height:10px;padding:0;background:#fff;border:0;"></td>
+                            {% if is_editable %}<td class="no-print os-separator-gap"></td>{% endif %}
+                            <td colspan="{% if is_editable %}{% if budget.has_item_fiscal %}5{% else %}3{% endif %}{% else %}{% if budget.has_item_fiscal %}6{% else %}4{% endif %}{% endif %}" class="os-separator-gap"></td>
                         </tr>
                         {% endif %}
                         {% endfor %}
+                        {% if not forloop.last %}
+                        <tr class="os-separator-row os-separator-row--section" aria-hidden="true">
+                            {% if is_editable %}<td class="no-print os-separator-gap"></td>{% endif %}
+                            <td colspan="{% if is_editable %}{% if budget.has_item_fiscal %}5{% else %}3{% endif %}{% else %}{% if budget.has_item_fiscal %}6{% else %}4{% endif %}{% endif %}" class="os-separator-gap"></td>
+                        </tr>
+                        {% endif %}
                         {% endfor %}
                     {% else %}
                         {# Fallback: no sections – flat list (legacy/unsectioned items) #}
@@ -764,9 +803,8 @@
                         </tr>
                         {% if not forloop.last %}
                         <tr class="os-separator-row" aria-hidden="true">
-                            {% if is_editable %}<td class="no-print" style="height:10px;padding:0;background:#fff;border:0;"></td>{% endif %}
-                            <td colspan="{% if budget.has_item_fiscal %}5{% else %}3{% endif %}" style="height:10px;padding:0;background:#fff;border:0;"></td>
-                            {% if not is_editable %}<td style="border:0;"></td>{% endif %}
+                            {% if is_editable %}<td class="no-print os-separator-gap"></td>{% endif %}
+                            <td colspan="{% if is_editable %}{% if budget.has_item_fiscal %}5{% else %}3{% endif %}{% else %}{% if budget.has_item_fiscal %}6{% else %}4{% endif %}{% endif %}" class="os-separator-gap"></td>
                         </tr>
                         {% endif %}
                         {% empty %}
@@ -778,129 +816,34 @@
 
                     {% if budget.extra_charges %}
                     {% if sections or unsectioned_items %}
-                    <tr class="os-separator-row" aria-hidden="true">
-                        {% if is_editable %}<td class="no-print" style="height:10px;padding:0;background:#fff;border:0;"></td>{% endif %}
-                        <td colspan="{% if budget.has_item_fiscal %}5{% else %}3{% endif %}" style="height:10px;padding:0;background:#fff;border:0;"></td>
-                        {% if not is_editable %}<td style="border:0;"></td>{% endif %}
+                    <tr class="os-separator-row os-separator-row--extra" aria-hidden="true">
+                        {% if is_editable %}<td class="no-print os-separator-gap"></td>{% endif %}
+                        <td colspan="{% if is_editable %}{% if budget.has_item_fiscal %}5{% else %}3{% endif %}{% else %}{% if budget.has_item_fiscal %}6{% else %}4{% endif %}{% endif %}" class="os-separator-gap"></td>
                     </tr>
                     {% endif %}
                     {% with rows=budget.extra_charges.logistica %}
-                    {% if rows %}
-                    {% for row in rows %}
-                    <tr class="item-row" data-unit-total="{{ row.value|floatformat:'2' }}" data-approved="1" data-fiscal="{% if row.fiscal %}1{% else %}0{% endif %}">
-                        {% if is_editable %}<td class="no-print"></td>{% endif %}
-                        {% if forloop.first %}<td class="os-item-name" rowspan="{{ rows|length }}">Logística</td>{% endif %}
-                        <td class="os-item-desc" data-label="Descritivo">{{ row.label|default:"—" }}</td>
-                        <td class="text-right" data-label="Valor (Qtd.)">R$ {{ row.value|floatformat:"2g" }}</td>
-                        {% if budget.has_item_fiscal %}
-                        <td class="text-right os-item-encargos" data-label="Encargos">—</td>
-                        <td class="text-right os-item-total" data-label="Total" style="font-weight:700;">—</td>
-                        {% endif %}
-                        {% if not is_editable %}<td></td>{% endif %}
-                    </tr>
-                    {% endfor %}
-                    {% endif %}
+                    {% include 'budgets/_public_extra_charge_group.html' with group_key='logistica' group_label='Logística' rows=rows is_editable=is_editable budget=budget %}
                     {% endwith %}
 
                     {% with rows=budget.extra_charges.apoio %}
-                    {% if rows %}
-                    {% for row in rows %}
-                    <tr class="item-row" data-unit-total="{{ row.value|floatformat:'2' }}" data-approved="1" data-fiscal="{% if row.fiscal %}1{% else %}0{% endif %}">
-                        {% if is_editable %}<td class="no-print"></td>{% endif %}
-                        {% if forloop.first %}<td class="os-item-name" rowspan="{{ rows|length }}">Apoio</td>{% endif %}
-                        <td class="os-item-desc" data-label="Descritivo">{{ row.label|default:"—" }}</td>
-                        <td class="text-right" data-label="Valor (Qtd.)">R$ {{ row.value|floatformat:"2g" }}</td>
-                        {% if budget.has_item_fiscal %}
-                        <td class="text-right os-item-encargos" data-label="Encargos">—</td>
-                        <td class="text-right os-item-total" data-label="Total" style="font-weight:700;">—</td>
-                        {% endif %}
-                        {% if not is_editable %}<td></td>{% endif %}
-                    </tr>
-                    {% endfor %}
-                    {% endif %}
+                    {% include 'budgets/_public_extra_charge_group.html' with group_key='apoio' group_label='Apoio' rows=rows is_editable=is_editable budget=budget %}
                     {% endwith %}
 
                     {% with rows=budget.extra_charges.mao_de_obra %}
-                    {% if rows %}
-                    {% for row in rows|dictsortreversed:"label" %}
-                    <tr class="item-row" data-unit-total="{{ row.value|floatformat:'2' }}" data-approved="1" data-fiscal="{% if row.fiscal %}1{% else %}0{% endif %}">
-                        {% if is_editable %}<td class="no-print"></td>{% endif %}
-                        {% if forloop.first %}<td class="os-item-name" rowspan="{{ rows|length }}">Extra Mão de Obra</td>{% endif %}
-                        <td class="os-item-desc" data-label="Descritivo">{{ row.label|default:"—" }}</td>
-                        <td class="text-right" data-label="Valor (Qtd.)">R$ {{ row.value|floatformat:"2g" }}</td>
-                        {% if budget.has_item_fiscal %}
-                        <td class="text-right os-item-encargos" data-label="Encargos">—</td>
-                        <td class="text-right os-item-total" data-label="Total" style="font-weight:700;">—</td>
-                        {% endif %}
-                        {% if not is_editable %}<td></td>{% endif %}
-                    </tr>
-                    {% endfor %}
-                    {% endif %}
+                    {% include 'budgets/_public_extra_charge_group.html' with group_key='mao_de_obra' group_label='Extra Mão de Obra' rows=rows is_editable=is_editable budget=budget %}
                     {% endwith %}
 
                     {% with rows=budget.extra_charges.documentacao %}
-                    {% if rows %}
-                    {% for row in rows %}
-                    <tr class="item-row" data-unit-total="{{ row.value|floatformat:'2' }}" data-approved="1" data-fiscal="{% if row.fiscal %}1{% else %}0{% endif %}">
-                        {% if is_editable %}<td class="no-print"></td>{% endif %}
-                        {% if forloop.first %}<td class="os-item-name" rowspan="{{ rows|length }}">Documentação Legal</td>{% endif %}
-                        <td class="os-item-desc" data-label="Descritivo">{{ row.label|default:"—" }}</td>
-                        <td class="text-right" data-label="Valor (Qtd.)">R$ {{ row.value|floatformat:"2g" }}</td>
-                        {% if budget.has_item_fiscal %}
-                        <td class="text-right os-item-encargos" data-label="Encargos">—</td>
-                        <td class="text-right os-item-total" data-label="Total" style="font-weight:700;">—</td>
-                        {% endif %}
-                        {% if not is_editable %}<td></td>{% endif %}
-                    </tr>
-                    {% endfor %}
-                    {% endif %}
+                    {% include 'budgets/_public_extra_charge_group.html' with group_key='documentacao' group_label='Documentação Legal' rows=rows is_editable=is_editable budget=budget %}
                     {% endwith %}
 
                     {% with rows=budget.extra_charges.taxa_feira %}
-                    {% if rows %}
-                    {% for row in rows %}
-                    <tr class="item-row" data-unit-total="{{ row.value|floatformat:'2' }}" data-approved="1" data-fiscal="{% if row.fiscal %}1{% else %}0{% endif %}">
-                        {% if is_editable %}<td class="no-print"></td>{% endif %}
-                        {% if forloop.first %}<td class="os-item-name" rowspan="{{ rows|length }}">Taxa Feira</td>{% endif %}
-                        <td class="os-item-desc" data-label="Descritivo">{{ row.label|default:"—" }}</td>
-                        <td class="text-right" data-label="Valor (Qtd.)">R$ {{ row.value|floatformat:"2g" }}</td>
-                        {% if budget.has_item_fiscal %}
-                        <td class="text-right os-item-encargos" data-label="Encargos">—</td>
-                        <td class="text-right os-item-total" data-label="Total" style="font-weight:700;">—</td>
-                        {% endif %}
-                        {% if not is_editable %}<td></td>{% endif %}
-                    </tr>
-                    {% endfor %}
-                    {% endif %}
+                    {% include 'budgets/_public_extra_charge_group.html' with group_key='taxa_feira' group_label='Taxa Feira' rows=rows is_editable=is_editable budget=budget %}
                     {% endwith %}
 
                     {% with rows=budget.extra_charges.outros %}
-                    {% if rows %}
-                    {% for row in rows %}
-                    <tr class="item-row" data-unit-total="{{ row.value|floatformat:'2' }}" data-approved="1" data-fiscal="{% if row.fiscal %}1{% else %}0{% endif %}">
-                        {% if is_editable %}<td class="no-print"></td>{% endif %}
-                        {% if forloop.first %}<td class="os-item-name" rowspan="{{ rows|length }}">Outros</td>{% endif %}
-                        <td class="os-item-desc" data-label="Descritivo">{{ row.label|default:"—" }}</td>
-                        <td class="text-right" data-label="Valor (Qtd.)">R$ {{ row.value|floatformat:"2g" }}</td>
-                        {% if budget.has_item_fiscal %}
-                        <td class="text-right os-item-encargos" data-label="Encargos">—</td>
-                        <td class="text-right os-item-total" data-label="Total" style="font-weight:700;">—</td>
-                        {% endif %}
-                        {% if not is_editable %}<td></td>{% endif %}
-                    </tr>
-                    {% endfor %}
-                    {% endif %}
+                    {% include 'budgets/_public_extra_charge_group.html' with group_key='outros' group_label='Outros' rows=rows is_editable=is_editable budget=budget %}
                     {% endwith %}
-                    {% endif %}
-
-                    <!-- Total row -->
-                    {% if not is_editable and budget.total_value != budget.approved_value %}
-                    <tr class="os-total-row" style="opacity:.6;">
-                        <td></td>
-                        <td colspan="{% if budget.has_item_fiscal %}3{% else %}2{% endif %}" style="text-align:right;text-decoration:line-through;">TOTAL ORIGINAL</td>
-                        {% if budget.has_item_fiscal %}<td></td>{% endif %}
-                        <td class="text-right" style="text-decoration:line-through;">R$ {{ budget.total_value|floatformat:"2g" }}</td>
-                    </tr>
                     {% endif %}
 
                     {% if budget.freight_cost %}
@@ -911,41 +854,61 @@
                                 {% if budget.freight_included %}checked{% endif %}>
                         </td>
                         {% endif %}
-                        <td colspan="{% if budget.has_item_fiscal %}3{% else %}2{% endif %}" style="text-align:right;font-weight:600;">
+                        <td colspan="2" style="text-align:right;font-weight:600;">
                             Frete
                             {% if budget.freight_urgency %}<span style="font-size:8px;font-weight:400;"> &mdash; {{ budget.freight_urgency.label }}</span>{% endif %}
                             {% if budget.freight_distance_km %}<span style="font-size:8px;font-weight:400;"> ({{ budget.freight_distance_km }} km)</span>{% endif %}
                             {% if is_editable %}<span style="font-size:8px;font-weight:400;color:#aaa;"> (opcional)</span>{% endif %}
                         </td>
                         <td class="text-right" id="freight-value">R$ {{ budget.freight_cost|floatformat:"2g" }}</td>
+                        {% if budget.has_item_fiscal %}
+                        <td></td>
+                        <td></td>
+                        {% endif %}
+                        {% if not is_editable %}
+                        <td></td>
+                        {% endif %}
                     </tr>
                     {% endif %}
 
                     {% if budget.discount_type != 'none' and budget.discount_value > 0 %}
                     <tr class="os-total-row" style="font-size:10px;font-weight:400;opacity:.85;" id="discount-row-main">
                         {% if is_editable %}<td class="no-print"></td>{% endif %}
-                        <td colspan="{% if is_editable %}{% if budget.has_item_fiscal %}3{% else %}2{% endif %}{% else %}{% if budget.has_item_fiscal %}4{% else %}3{% endif %}{% endif %}" style="text-align:right;font-weight:600;white-space:nowrap;">
+                        <td colspan="2" style="text-align:right;font-weight:600;white-space:nowrap;">
                             Desconto {% if budget.discount_type == 'percent' %}({{ budget.discount_value|floatformat:"2g" }}%){% else %}(R$){% endif %}
                         </td>
                         <td class="text-right" id="discount-value-main" style="white-space:nowrap;font-size:11px;font-weight:400;opacity:.8;">-R$ {{ budget.discount_amount|floatformat:"2g" }}</td>
+                        {% if budget.has_item_fiscal %}
+                        <td></td>
+                        <td></td>
+                        {% endif %}
+                        {% if not is_editable %}
+                        <td></td>
+                        {% endif %}
                     </tr>
                     {% endif %}
 
                     {% if budget.has_item_fiscal %}
                     <tr class="os-total-row">
                         {% if is_editable %}<td class="no-print"></td>{% endif %}
-                        <td colspan="{% if is_editable %}2{% else %}3{% endif %}" style="text-align:right;font-weight:600;">
+                        <td colspan="2" style="text-align:right;font-weight:600;">
                             TOTAIS
                         </td>
                         <td class="text-right" id="items-total-value" style="opacity:.8;font-size:11px;">R$ {{ budget.total_value|add:budget.extra_charges_total|floatformat:"2g" }}</td>
                         <td class="text-right" id="fiscal-charges-value" style="opacity:.8;font-size:11px;">R$ {{ budget.fiscal_charges_value|floatformat:"2g" }}</td>
                         <td class="text-right" id="total-value" style="font-size:13px;">R$ {{ budget.total_with_freight|floatformat:"2g" }}</td>
+                        {% if not is_editable %}
+                        <td></td>
+                        {% endif %}
                     </tr>
                     {% else %}
                     <tr class="os-total-row">
                         {% if is_editable %}<td class="no-print"></td>{% endif %}
-                        <td colspan="{% if is_editable %}2{% else %}3{% endif %}" style="text-align:right;font-weight:600;">TOTAIS</td>
+                        <td colspan="2" style="text-align:right;font-weight:600;">TOTAIS</td>
                         <td class="text-right" id="total-value" style="font-size:13px;">R$ {{ budget.total_with_freight|floatformat:"2g" }}</td>
+                        {% if not is_editable %}
+                        <td></td>
+                        {% endif %}
                     </tr>
                     {% endif %}
                 </tbody>
@@ -1006,6 +969,8 @@
 
         <div class="os-footer">Pagina 1/1</div>
     </div>
+    </div>
+    </div>
 
     <!-- ══ CONFIRMATION MODAL ═══════════════════════════════════════════════ -->
     <div id="confirm-modal" class="os-modal-overlay hidden no-print">
@@ -1023,14 +988,84 @@
     </div>
 
     <script>
+        /* ── Mobile: scale document to fit screen width ─────────────────── */
+        (function () {
+            const DOC_WIDTH = 794;
+            const MOBILE_BP = 820;
+            const VIEWPORT_PAD = 16;
+
+            function fitApprovalDocToMobile() {
+                const doc = document.getElementById('approval-doc');
+                const scaler = document.getElementById('approval-doc-scaler');
+                if (!doc || !scaler) return;
+
+                if (window.innerWidth > MOBILE_BP) {
+                    doc.style.transform = '';
+                    scaler.style.width = '';
+                    scaler.style.height = '';
+                    scaler.style.margin = '';
+                    return;
+                }
+
+                const scale = Math.min(1, (window.innerWidth - VIEWPORT_PAD) / DOC_WIDTH);
+                doc.style.transform = `scale(${scale})`;
+                doc.style.transformOrigin = 'top left';
+                scaler.style.width = `${DOC_WIDTH * scale}px`;
+                scaler.style.height = `${doc.offsetHeight * scale}px`;
+                scaler.style.margin = '0 auto';
+            }
+
+            window.addEventListener('resize', fitApprovalDocToMobile);
+            window.addEventListener('load', fitApprovalDocToMobile);
+            window.addEventListener('orientationchange', fitApprovalDocToMobile);
+            if (document.fonts && document.fonts.ready) {
+                document.fonts.ready.then(fitApprovalDocToMobile);
+            }
+            document.querySelectorAll('#approval-doc img').forEach(img => {
+                if (!img.complete) img.addEventListener('load', fitApprovalDocToMobile, { once: true });
+            });
+            const docEl = document.getElementById('approval-doc');
+            if (docEl && window.ResizeObserver) {
+                new ResizeObserver(fitApprovalDocToMobile).observe(docEl);
+            }
+            setTimeout(fitApprovalDocToMobile, 100);
+            window.fitApprovalDocToMobile = fitApprovalDocToMobile;
+        })();
+
         /* ── Currency formatter ─────────────────────────────────────────── */
         const fmt = v => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
+        const parsePrice = v => {
+            const s = String(v ?? '0').trim();
+            if (!s) return 0;
+            if (s.includes(',')) return parseFloat(s.replace(/\./g, '').replace(',', '.')) || 0;
+            return parseFloat(s) || 0;
+        };
+        const priceFromCheckbox = cb => {
+            const raw = cb.dataset.price || cb.closest('.item-row')?.dataset.unitTotal || '0';
+            return parsePrice(raw);
+        };
+        const servicePriceFromRow = row => parsePrice(row.dataset.unitTotal);
+        const lineTotalFromRow = row => {
+            const base = servicePriceFromRow(row);
+            const totCell = row.querySelector('.os-item-total');
+            if (totCell) {
+                const text = totCell.textContent.trim();
+                if (text && text !== '—') {
+                    return parsePrice(text.replace(/^R\$\s*/i, ''));
+                }
+            }
+            return row.dataset.fiscal === '1' ? base * 1.17 : base;
+        };
+        const lineTotalFromCheckbox = cb => {
+            const row = cb.closest('.item-row');
+            return row ? lineTotalFromRow(row) : priceFromCheckbox(cb);
+        };
 
         /* ── Encargos fiscais (17%) ──────────────────────────────────────── */
         // Fiscal por item (data-fiscal="1" nos itens marcados)
         function populateEncargos() {
             document.querySelectorAll('.item-row').forEach(row => {
-                const unitTotal = parseFloat(row.dataset.unitTotal) || 0;
+                const unitTotal = parsePrice(row.dataset.unitTotal);
                 const hasFiscal = row.dataset.fiscal === '1';
                 const encCell   = row.querySelector('.os-item-encargos');
                 const totCell   = row.querySelector('.os-item-total');
@@ -1071,15 +1106,18 @@
         function updateTotal() {
             let subtotal = 0;
             let fiscalTotal = 0;
-            document.querySelectorAll('.item-checkbox:checked').forEach(cb => {
-                const price = parseFloat(cb.dataset.price) || 0;
-                subtotal += price;
+            let selectedTotal = 0;
+            document.querySelectorAll('input[name="items"]:checked, input[name="extra_charges"]:checked').forEach(cb => {
                 const row = cb.closest('.item-row');
-                if (row && row.dataset.fiscal === '1') fiscalTotal += price * 0.17;
+                const base = row ? servicePriceFromRow(row) : priceFromCheckbox(cb);
+                subtotal += base;
+                const hasFiscal = row ? row.dataset.fiscal === '1' : cb.dataset.fiscal === '1';
+                if (hasFiscal) fiscalTotal += base * 0.17;
+                selectedTotal += lineTotalFromCheckbox(cb);
             });
             const freightCb = document.getElementById('freight-checkbox');
             const freightRow = document.getElementById('freight-row');
-            let total = subtotal + fiscalTotal;
+            let total = selectedTotal;
             if (freightCb) {
                 if (freightCb.checked) {
                     total += freightCost;
@@ -1088,10 +1126,8 @@
                     if (freightRow) freightRow.style.opacity = '0.35';
                 }
             }
-            const servicesTotal = subtotal + extraChargesTotal;
-            const fiscalAll = fiscalTotal + extraChargesFiscalTotal;
-            const totalsRowValue = servicesTotal + fiscalAll;
-            total += extraChargesTotal + extraChargesFiscalTotal;
+            const servicesTotal = subtotal;
+            const fiscalAll = fiscalTotal;
             const discount = calcDiscount(total);
             total -= discount;
             const el = document.getElementById('total-value');
@@ -1106,28 +1142,38 @@
         }
 
         /* ── Grand total for non-editable (no checkboxes) ───────────────── */
-        if (!document.querySelectorAll('.item-checkbox').length) {
+        if (!document.querySelectorAll('input[name="items"]').length) {
             let subtotalRO = 0;
             let fiscalRO = 0;
-            document.querySelectorAll('.item-row').forEach(row => {
+            document.querySelectorAll('.item-row:not(.extra-charge-row)').forEach(row => {
                 if (row.dataset.approved === '1') {
-                    const price = parseFloat(row.dataset.unitTotal) || 0;
-                    subtotalRO += price;
-                    if (row.dataset.fiscal === '1') fiscalRO += price * 0.17;
+                    const base = servicePriceFromRow(row);
+                    subtotalRO += base;
+                    if (row.dataset.fiscal === '1') fiscalRO += base * 0.17;
                 } else {
                     row.style.opacity = '0.35';
                 }
             });
-            let sum = subtotalRO + fiscalRO + extraChargesFiscalTotal;
+            let extraSubtotalRO = 0;
+            let extraFiscalRO = 0;
+            document.querySelectorAll('.extra-charge-row').forEach(row => {
+                if (row.dataset.approved === '1') {
+                    const base = servicePriceFromRow(row);
+                    extraSubtotalRO += base;
+                    if (row.dataset.fiscal === '1') extraFiscalRO += base * 0.17;
+                } else {
+                    row.style.opacity = '0.35';
+                }
+            });
+            let sum = subtotalRO + fiscalRO + extraSubtotalRO + extraFiscalRO;
             {% if budget.freight_included %}
             sum += freightCost;
             {% else %}
             const freightRowRO = document.getElementById('freight-row');
             if (freightRowRO) freightRowRO.style.opacity = '0.35';
             {% endif %}
-            sum += extraChargesTotal;
-            const servicesRO = subtotalRO + extraChargesTotal;
-            const fiscalAllRO = fiscalRO + extraChargesFiscalTotal;
+            const servicesRO = subtotalRO + extraSubtotalRO;
+            const fiscalAllRO = fiscalRO + extraFiscalRO;
             const totalsRowRO = servicesRO + fiscalAllRO;
             const discountRO = calcDiscount(sum);
             sum -= discountRO;
@@ -1142,17 +1188,17 @@
 
         /* ── Select all ─────────────────────────────────────────────────── */
         document.getElementById('select-all')?.addEventListener('change', function () {
-            document.querySelectorAll('.item-checkbox').forEach(cb => cb.checked = this.checked);
+            document.querySelectorAll('input[name="items"], input[name="extra_charges"]').forEach(cb => cb.checked = this.checked);
             updateTotal();
         });
 
-        document.querySelectorAll('.item-checkbox').forEach(cb => {
+        document.querySelectorAll('input[name="items"], input[name="extra_charges"]').forEach(cb => {
             cb.addEventListener('change', updateTotal);
         });
 
         document.getElementById('freight-checkbox')?.addEventListener('change', updateTotal);
 
-        if (document.querySelectorAll('.item-checkbox').length) updateTotal();
+        if (document.querySelectorAll('input[name="items"], input[name="extra_charges"]').length) updateTotal();
 
         /* ── Confirm modal ──────────────────────────────────────────────── */
         const modal  = document.getElementById('confirm-modal');
@@ -1167,8 +1213,8 @@
 
             if (isApprove) {
                 const approved = [], not = [];
-                document.querySelectorAll('.item-checkbox').forEach(cb => {
-                    const obj = { name: cb.dataset.name, price: fmt(parseFloat(cb.dataset.price)) };
+                document.querySelectorAll('input[name="items"], input[name="extra_charges"]').forEach(cb => {
+                    const obj = { name: cb.dataset.name, price: fmt(lineTotalFromCheckbox(cb)) };
                     (cb.checked ? approved : not).push(obj);
                 });
                 const list = (arr, icon) => arr.length
@@ -1201,8 +1247,8 @@
             btn.addEventListener('click', () => {
                 const action = btn.getAttribute('data-confirm-action');
                 if (action === 'approve') {
-                    const checked = document.querySelectorAll('.item-checkbox:checked');
-                    if (!checked.length) { alert('Selecione ao menos um item para confirmar.'); return; }
+                    const checkedItems = document.querySelectorAll('input[name="items"]:checked, input[name="extra_charges"]:checked');
+                    if (!checkedItems.length) { alert('Selecione ao menos um item ou encargo para confirmar.'); return; }
                 }
                 openConfirm(action);
             });

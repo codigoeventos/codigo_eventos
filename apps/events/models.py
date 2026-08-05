@@ -62,7 +62,52 @@ class Event(BaseModel):
 
     location = models.CharField(
         'Local',
-        max_length=255
+        max_length=255,
+        blank=True,
+        null=True,
+    )
+
+    address = models.CharField(
+        'Endereço',
+        max_length=300,
+        blank=True,
+        null=True,
+    )
+    address_number = models.CharField(
+        'Nº',
+        max_length=20,
+        blank=True,
+        null=True,
+    )
+    address_complement = models.CharField(
+        'Complemento',
+        max_length=200,
+        blank=True,
+        null=True,
+    )
+    address_neighborhood = models.CharField(
+        'Bairro',
+        max_length=100,
+        blank=True,
+        null=True,
+    )
+    address_city = models.CharField(
+        'Cidade',
+        max_length=100,
+        blank=True,
+        null=True,
+    )
+    address_state = models.CharField(
+        'UF',
+        max_length=2,
+        blank=True,
+        null=True,
+    )
+    address_zip = models.CharField(
+        'CEP',
+        max_length=10,
+        blank=True,
+        null=True,
     )
     
     notes = models.TextField(
@@ -78,6 +123,31 @@ class Event(BaseModel):
     
     def __str__(self):
         return f"{self.name} - {self.event_date.strftime('%d/%m/%Y')}"
+
+    def format_full_address(self):
+        """Build a readable address from structured fields, falling back to location."""
+        if self.address:
+            line1 = self.address.strip()
+            if self.address_number:
+                line1 = f'{line1}, {self.address_number.strip()}'
+            parts = [line1]
+            if self.address_complement:
+                parts.append(self.address_complement.strip())
+            city_line = self.address_neighborhood or ''
+            if self.address_city:
+                city_line = f'{city_line} - {self.address_city}'.strip(' -')
+            if self.address_state:
+                city_line = f'{city_line}/{self.address_state}'.strip('/')
+            if city_line:
+                parts.append(city_line)
+            if self.address_zip:
+                parts.append(f'CEP {self.address_zip.strip()}')
+            return ' — '.join(p for p in parts if p)
+        return self.location or ''
+
+    @property
+    def display_location(self):
+        return self.format_full_address() or '—'
     
     @property
     def status(self):

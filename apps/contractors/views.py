@@ -393,7 +393,13 @@ class ContractorDetailView(LoginRequiredMixin, DetailView):
     context_object_name = 'contractor'
 
     def get_queryset(self):
-        return Contractor.objects.prefetch_related('members', 'vehicles', 'created_by', 'updated_by')
+        return Contractor.objects.prefetch_related(
+            'members',
+            'vehicles',
+            'created_by',
+            'updated_by',
+            'event_assignments__event',
+        )
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

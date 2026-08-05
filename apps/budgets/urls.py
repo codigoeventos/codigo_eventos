@@ -12,6 +12,7 @@ urlpatterns = [
     path('create/', views.BudgetCreateView.as_view(), name='create'),
     path('<int:pk>/', views.BudgetDetailView.as_view(), name='detail'),
     path('<int:pk>/edit/', views.BudgetUpdateView.as_view(), name='edit'),
+    path('<int:pk>/duplicate-for-edit/', views.BudgetDuplicateForEditView.as_view(), name='duplicate-for-edit'),
     path('<int:pk>/delete/', views.BudgetDeleteView.as_view(), name='delete'),
     path('<int:pk>/calculate-freight/', views.BudgetCalculateFreightView.as_view(), name='calculate-freight'),
     path('freight-preview/', views.BudgetFreightPreviewView.as_view(), name='freight-preview'),

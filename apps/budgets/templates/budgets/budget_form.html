@@ -8,6 +8,23 @@
 {% include 'components/breadcrumbs.html' %}
 
 <div class="w-full mx-auto">
+    <div id="budget-draft-banner" class="hidden mb-4 flex flex-col gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+            <p class="text-sm font-semibold text-amber-900">Rascunho local encontrado</p>
+            <p id="budget-draft-banner-meta" class="mt-1 text-sm text-amber-800"></p>
+        </div>
+        <div class="flex shrink-0 gap-2">
+            <button type="button" id="budget-draft-restore-btn"
+                class="rounded-lg bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700">
+                Restaurar rascunho
+            </button>
+            <button type="button" id="budget-draft-discard-btn"
+                class="rounded-lg border border-amber-300 bg-white px-4 py-2 text-sm font-medium text-amber-900 hover:bg-amber-100">
+                Descartar
+            </button>
+        </div>
+    </div>
+
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 md:p-8 w-full">
         <form method="post" id="budget-form" novalidate>
             {% csrf_token %}
@@ -514,6 +531,7 @@
                     <label class="block text-xs font-medium text-gray-600 mb-1">Unidade do metro</label>
                     <select class="item-measurement-unit w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-gray-100 text-gray-500 cursor-not-allowed pointer-events-none" disabled aria-disabled="true" tabindex="-1">
                         <option value="m2">m²</option>
+                        <option value="m3">m³</option>
                     </select>
                 </div>
             </div>
@@ -595,6 +613,7 @@
         <div class="mt-2 flex items-center gap-3 flex-wrap">
             <select class="subitem-measurement-unit px-2 py-1.5 border border-gray-300 rounded-md text-xs bg-gray-100 text-gray-500 cursor-not-allowed pointer-events-none" disabled aria-disabled="true" tabindex="-1">
                 <option value="m2">m²</option>
+                <option value="m3">m³</option>
             </select>
             <span class="subitem-vol-display text-xs text-gray-500 flex-1"></span>
             <button type="button" class="remove-subitem text-xs text-red-500 hover:text-red-700 px-2 py-1 border border-red-200 rounded-md hover:bg-red-50 transition-all">
@@ -1521,10 +1540,8 @@
 
         if (w > 0 && h > 0) {
             unitVol = w * h;
-            if (unitSelect) unitSelect.value = 'm2';
         } else if (w > 0 || h > 0) {
             unitVol = w || h;
-            if (unitSelect) unitSelect.value = 'm2';
         } else {
             // measurement was typed manually — treat as unit vol
             unitVol = num(measInput?.value) / qty || num(measInput?.value);
@@ -1863,18 +1880,15 @@
                 vol += calcSubitem(sr);
             });
             if (measInput)  measInput.value  = vol.toFixed(3);
-            if (unitSelect) unitSelect.value = 'm2';
         } else {
             const w = num(row.querySelector('.item-dim-width')?.value);
             const h = num(row.querySelector('.item-dim-height')?.value);
             if (w > 0 && h > 0) {
                 vol = w * h * qty;
                 if (measInput)  measInput.value  = vol.toFixed(3);
-                if (unitSelect) unitSelect.value = 'm2';
             } else if (w > 0 || h > 0) {
                 vol = (w || h) * qty;
                 if (measInput)  measInput.value  = vol.toFixed(3);
-                if (unitSelect) unitSelect.value = 'm2';
             } else {
                 vol = num(measInput?.value);
             }
@@ -1983,6 +1997,256 @@
         });
     }
 
+    // ── Serialize form state ───────────────────────────────────────────────
+    function serializeSections() {
+        const sections = [];
+        document.querySelectorAll('.section-card').forEach(secNode => {
+            const items = [];
+            secNode.querySelectorAll('.item-form').forEach(itemNode => {
+                const deleted = itemNode.dataset.deleted === 'true';
+                const bType = itemNode.dataset.billingType || 'qty';
+                const subitems = [];
+                itemNode.querySelectorAll('.subitems-list .subitem-row').forEach(subRow => {
+                    subitems.push({
+                        name: subRow.querySelector('.subitem-name')?.value || '',
+                        qty: subRow.querySelector('.subitem-qty')?.value || '1',
+                        dim_width: subRow.querySelector('.subitem-dim-width')?.value || '',
+                        dim_height: subRow.querySelector('.subitem-dim-height')?.value || '',
+                        measurement: subRow.querySelector('.subitem-measurement')?.value || '',
+                        measurement_unit: 'm2',
+                    });
+                });
+                items.push({
+                    id: itemNode.dataset.itemId || null,
+                    delete: deleted,
+                    name: itemNode.querySelector('.item-name')?.value || '',
+                    description: itemNode.querySelector('.item-description')?.value || '',
+                    description_ref_id: itemNode.querySelector('.item-description-select')?.value || null,
+                    quantity: bType === 'meter' ? '1' : (itemNode.querySelector('.qty-panel .item-quantity')?.value || '1'),
+                    dim_length: '',
+                    dim_width: itemNode.querySelector('.item-dim-width')?.value || '',
+                    dim_height: itemNode.querySelector('.item-dim-height')?.value || '',
+                    measurement: itemNode.querySelector('.item-measurement')?.value || '',
+                    measurement_unit: 'm2',
+                    unit_price: String(getItemUnitPrice(itemNode)),
+                    total: String(getItemLineTotal(itemNode)),
+                    billing_type: bType,
+                    include_fiscal: itemNode.querySelector('.item-fiscal-btn')?.ariaPressed === 'true',
+                    observations: itemNode.querySelector('.item-observations')?.value || '',
+                    subitems,
+                });
+            });
+            sections.push({
+                id: secNode.dataset.sectionId || null,
+                title: secNode.querySelector('.section-title-input')?.value || '',
+                items,
+            });
+        });
+        return sections;
+    }
+
+    function serializeExtraCharges() {
+        const extraCharges = {};
+        document.querySelectorAll('.extra-charge-group').forEach(groupEl => {
+            const key = groupEl.dataset.group;
+            const rows = [];
+            groupEl.querySelectorAll('.extra-charge-row').forEach(row => {
+                const label = row.querySelector('.extra-row-label')?.value || '';
+                const value = row.querySelector('.extra-row-value')?.value || '0';
+                const fiscal = row.querySelector('.extra-row-fiscal-btn')?.ariaPressed === 'true';
+                if (label || num(value) > 0) rows.push({ label, value, fiscal });
+            });
+            if (rows.length) extraCharges[key] = rows;
+        });
+        return extraCharges;
+    }
+
+    function collectDraftPayload() {
+        return {
+            savedAt: new Date().toISOString(),
+            path: window.location.pathname,
+            isEditMode: IS_EDIT_MODE,
+            header: {
+                proposal: document.getElementById('id_proposal')?.value || '',
+                name: document.getElementById('id_name')?.value || '',
+                status: document.getElementById('id_status')?.value || '',
+                payment_info: document.getElementById('payment-info-text')?.value || '',
+                freight_cost: document.getElementById('freight-cost-input')?.value || '',
+                discount_type: document.getElementById('discount-type-input')?.value || '',
+                discount_value: document.getElementById('discount-value-input')?.value || '',
+            },
+            sections: serializeSections(),
+            extraCharges: serializeExtraCharges(),
+        };
+    }
+
+    const DRAFT_STORAGE_KEY = `ce-budget-draft:${window.location.pathname}`;
+    const draftBanner = document.getElementById('budget-draft-banner');
+    const draftBannerMeta = document.getElementById('budget-draft-banner-meta');
+    const draftRestoreBtn = document.getElementById('budget-draft-restore-btn');
+    const draftDiscardBtn = document.getElementById('budget-draft-discard-btn');
+    let draftSaveTimer = null;
+    let pendingDraft = null;
+
+    function draftHasContent(draft) {
+        if (!draft) return false;
+        const header = draft.header || {};
+        if ((header.name || '').trim()) return true;
+        if ((header.payment_info || '').trim()) return true;
+        return Array.isArray(draft.sections) && draft.sections.some(section =>
+            (section.title || '').trim() ||
+            (section.items || []).some(item => (item.name || '').trim() && !item.delete)
+        );
+    }
+
+    function readStoredDraft() {
+        try {
+            const raw = localStorage.getItem(DRAFT_STORAGE_KEY);
+            return raw ? JSON.parse(raw) : null;
+        } catch (_) {
+            return null;
+        }
+    }
+
+    function clearStoredDraft() {
+        localStorage.removeItem(DRAFT_STORAGE_KEY);
+        pendingDraft = null;
+        draftBanner?.classList.add('hidden');
+    }
+
+    function saveDraftToLocalStorage() {
+        if (!draftHasContent(collectDraftPayload())) return;
+        try {
+            localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(collectDraftPayload()));
+        } catch (_) {}
+    }
+
+    function scheduleDraftSave() {
+        clearTimeout(draftSaveTimer);
+        draftSaveTimer = setTimeout(saveDraftToLocalStorage, 2000);
+    }
+
+    function formatDraftTimestamp(iso) {
+        if (!iso) return '';
+        const date = new Date(iso);
+        if (Number.isNaN(date.getTime())) return '';
+        return date.toLocaleString('pt-BR');
+    }
+
+    function clearSectionsContainer() {
+        sectionsContainer.querySelectorAll('.section-card').forEach(node => node.remove());
+        _sectionCounter = 0;
+        updateNoSectionsMsg();
+    }
+
+    function clearExtraChargeRows() {
+        document.querySelectorAll('.extra-charge-group').forEach(groupEl => {
+            groupEl.querySelectorAll('.extra-charge-row').forEach(row => row.remove());
+        });
+    }
+
+    function loadExtraChargesFromData(extraCharges, useDefaultsWhenEmpty) {
+        clearExtraChargeRows();
+        if (extraCharges && Object.keys(extraCharges).length > 0) {
+            Object.entries(extraCharges).forEach(([key, rows]) => {
+                const groupEl = document.querySelector(`.extra-charge-group[data-group="${key}"]`);
+                if (groupEl && Array.isArray(rows)) {
+                    const orderedRows = key === 'mao_de_obra' ? sortMaoDeObraRows(rows) : rows;
+                    orderedRows.forEach(r => addExtraChargeRow(groupEl, r));
+                }
+            });
+            return;
+        }
+        if (!useDefaultsWhenEmpty) return;
+        const defaults = {
+            apoio: [
+                { label: 'Transporte de materiais', value: '' },
+                { label: 'Carregadores de apoio', value: '' },
+            ],
+            mao_de_obra: [
+                { label: 'Montagem em horários especiais', value: '' },
+                { label: 'Desmontagem em horários especiais', value: '' },
+            ],
+            documentacao: [
+                { label: 'Art de montagem + Atestados', value: '' },
+                { label: 'Ignofugação', value: '' },
+                { label: 'Seguro de responsabilidade Civil / Montagem', value: '' },
+            ],
+        };
+        Object.entries(defaults).forEach(([key, rows]) => {
+            const groupEl = document.querySelector(`.extra-charge-group[data-group="${key}"]`);
+            if (groupEl) rows.forEach(r => addExtraChargeRow(groupEl, r));
+        });
+    }
+
+    function applyDraftHeader(header) {
+        if (!header) return;
+        const setValue = (id, value) => {
+            const el = document.getElementById(id);
+            if (el && value !== undefined && value !== null) el.value = value;
+        };
+        setValue('id_proposal', header.proposal);
+        setValue('id_name', header.name);
+        setValue('id_status', header.status);
+        setValue('payment-info-text', header.payment_info);
+        setValue('freight-cost-input', header.freight_cost);
+        setValue('discount-type-input', header.discount_type);
+        setValue('discount-value-input', header.discount_value);
+        const discountType = header.discount_type || 'none';
+        const discountPrefix = document.getElementById('discount-prefix');
+        if (discountPrefix) discountPrefix.textContent = discountType === 'percent' ? '%' : 'R$';
+    }
+
+    function loadSectionsFromData(sections) {
+        clearSectionsContainer();
+        if (sections && sections.length > 0) {
+            sections.forEach(section => addSection(section));
+        } else {
+            updateNoSectionsMsg();
+            noSectionsMsg.classList.remove('hidden');
+        }
+    }
+
+    function restoreDraft(draft) {
+        if (!draft) return;
+        applyDraftHeader(draft.header);
+        loadSectionsFromData(draft.sections || []);
+        loadExtraChargesFromData(draft.extraCharges || {}, false);
+        recalcAll();
+        draftBanner?.classList.add('hidden');
+    }
+
+    function showDraftBanner(draft) {
+        if (!draftBanner || !draftBannerMeta || !draft) return;
+        pendingDraft = draft;
+        draftBannerMeta.textContent = `Salvo localmente em ${formatDraftTimestamp(draft.savedAt)}. Restaure se perdeu dados após sair ou ser deslogado.`;
+        draftBanner.classList.remove('hidden');
+    }
+
+    function loadInitialFromServer() {
+        if (INITIAL_SECTIONS && INITIAL_SECTIONS.length > 0) {
+            INITIAL_SECTIONS.forEach(s => addSection(s));
+        } else {
+            updateNoSectionsMsg();
+            noSectionsMsg.classList.remove('hidden');
+        }
+        if (INITIAL_EXTRA_CHARGES && Object.keys(INITIAL_EXTRA_CHARGES).length > 0) {
+            loadExtraChargesFromData(INITIAL_EXTRA_CHARGES, false);
+        } else {
+            loadExtraChargesFromData({}, true);
+        }
+    }
+
+    draftRestoreBtn?.addEventListener('click', () => restoreDraft(pendingDraft));
+    draftDiscardBtn?.addEventListener('click', clearStoredDraft);
+    budgetForm?.addEventListener('input', scheduleDraftSave);
+    budgetForm?.addEventListener('change', scheduleDraftSave);
+    window.addEventListener('beforeunload', saveDraftToLocalStorage);
+    setInterval(saveDraftToLocalStorage, 30000);
+    setInterval(() => {
+        fetch("{% url 'budgets:notifications' %}", { credentials: 'same-origin' }).catch(() => {});
+    }, 15 * 60 * 1000);
+
     // ── Serialize to JSON before submit ───────────────────────────────────
     saveVersionBackdrop?.addEventListener('click', closeSaveVersionModal);
     saveVersionCancelBtn?.addEventListener('click', closeSaveVersionModal);
@@ -1995,68 +2259,10 @@
             openSaveVersionModal();
             return;
         }
-        const sections = [];
-        document.querySelectorAll('.section-card').forEach(secNode => {
-            const items = [];
-            secNode.querySelectorAll('.item-form').forEach(itemNode => {
-                const deleted = itemNode.dataset.deleted === 'true';
-                const bType      = itemNode.dataset.billingType || 'qty';
-                
-                // Collect subitems
-                const subitems = [];
-                itemNode.querySelectorAll('.subitems-list .subitem-row').forEach(subRow => {
-                    subitems.push({
-                        name:             subRow.querySelector('.subitem-name')?.value || '',
-                        qty:              subRow.querySelector('.subitem-qty')?.value || '1',
-                        dim_width:        subRow.querySelector('.subitem-dim-width')?.value || '',
-                        dim_height:       subRow.querySelector('.subitem-dim-height')?.value || '',
-                        measurement:      subRow.querySelector('.subitem-measurement')?.value || '',
-                        measurement_unit: 'm2',
-                    });
-                });
-                
-                items.push({
-                    id:               itemNode.dataset.itemId || null,
-                    delete:           deleted,
-                    name:             itemNode.querySelector('.item-name')?.value || '',
-                    description:      itemNode.querySelector('.item-description')?.value || '',
-                    description_ref_id: itemNode.querySelector('.item-description-select')?.value || null,
-                    quantity:         bType === 'meter' ? '1' : (itemNode.querySelector('.qty-panel .item-quantity')?.value || '1'),
-                    dim_length:       '',
-                    dim_width:        itemNode.querySelector('.item-dim-width')?.value || '',
-                    dim_height:       itemNode.querySelector('.item-dim-height')?.value || '',
-                    measurement:      itemNode.querySelector('.item-measurement')?.value || '',
-                    measurement_unit: 'm2',
-                    unit_price:       String(getItemUnitPrice(itemNode)),
-                    total:            String(getItemLineTotal(itemNode)),
-                    billing_type:     bType,
-                    include_fiscal:   itemNode.querySelector('.item-fiscal-btn')?.ariaPressed === 'true',
-                    observations:     itemNode.querySelector('.item-observations')?.value || '',
-                    subitems:         subitems,
-                });
-            });
-            sections.push({
-                id:    secNode.dataset.sectionId || null,
-                title: secNode.querySelector('.section-title-input')?.value || '',
-                items: items,
-            });
-        });
+        const sections = serializeSections();
         sectionsDataInput.value = JSON.stringify(sections);
-
-        // Serialize extra charges
-        const extraCharges = {};
-        document.querySelectorAll('.extra-charge-group').forEach(groupEl => {
-            const key  = groupEl.dataset.group;
-            const rows = [];
-            groupEl.querySelectorAll('.extra-charge-row').forEach(row => {
-                const label  = row.querySelector('.extra-row-label')?.value || '';
-                const value  = row.querySelector('.extra-row-value')?.value || '0';
-                const fiscal = row.querySelector('.extra-row-fiscal-btn')?.ariaPressed === 'true';
-                if (label || num(value) > 0) rows.push({ label, value, fiscal });
-            });
-            if (rows.length) extraCharges[key] = rows;
-        });
-        extraChargesDataInput.value = JSON.stringify(extraCharges);
+        extraChargesDataInput.value = JSON.stringify(serializeExtraCharges());
+        clearStoredDraft();
         allowBudgetSubmit = !IS_EDIT_MODE;
     });
 
@@ -2099,44 +2305,13 @@
         return [...rows].sort((a, b) => score(a?.label) - score(b?.label));
     }
 
-    // Load existing sections (edit mode)
-    if (INITIAL_SECTIONS && INITIAL_SECTIONS.length > 0) {
-        INITIAL_SECTIONS.forEach(s => addSection(s));
+    // Load existing sections / extra charges (or offer local draft)
+    const storedDraft = readStoredDraft();
+    if (storedDraft && draftHasContent(storedDraft)) {
+        showDraftBanner(storedDraft);
+        loadInitialFromServer();
     } else {
-        updateNoSectionsMsg();
-        noSectionsMsg.classList.remove('hidden');
-    }
-
-    // Load extra charges (edit mode)
-    if (INITIAL_EXTRA_CHARGES && Object.keys(INITIAL_EXTRA_CHARGES).length > 0) {
-        Object.entries(INITIAL_EXTRA_CHARGES).forEach(([key, rows]) => {
-            const groupEl = document.querySelector(`.extra-charge-group[data-group="${key}"]`);
-            if (groupEl && Array.isArray(rows)) {
-                const orderedRows = key === 'mao_de_obra' ? sortMaoDeObraRows(rows) : rows;
-                orderedRows.forEach(r => addExtraChargeRow(groupEl, r));
-            }
-        });
-    } else {
-        // Default rows for new budgets
-        const defaults = {
-            apoio: [
-                { label: 'Transporte de materiais', value: '' },
-                { label: 'Carregadores de apoio',   value: '' },
-            ],
-            mao_de_obra: [
-                { label: 'Montagem em horários especiais',    value: '' },
-                { label: 'Desmontagem em horários especiais', value: '' },
-            ],
-            documentacao: [
-                { label: 'Art de montagem + Atestados', value: '' },
-                { label: 'Ignofugação',                 value: '' },
-                { label: 'Seguro de responsabilidade Civil / Montagem',                 value: '' },
-            ],
-        };
-        Object.entries(defaults).forEach(([key, rows]) => {
-            const groupEl = document.querySelector(`.extra-charge-group[data-group="${key}"]`);
-            if (groupEl) rows.forEach(r => addExtraChargeRow(groupEl, r));
-        });
+        loadInitialFromServer();
     }
 
     // ── Calculadora Σ de Largura / Altura ─────────────────────────────────
@@ -2211,7 +2386,6 @@
             });
         }
     }
-
     // Bind em todos os item-forms já existentes
     document.querySelectorAll('.item-form').forEach(bindDimSumPanels);
 

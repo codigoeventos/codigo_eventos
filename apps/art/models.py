@@ -226,7 +226,7 @@ class ART(BaseModel):
 
         atividade = budget.name or (project.title if project else '') or (event.name if event else '')
         obra_servico = (project.title if project and project.title else '') or (event.name if event else '') or budget.name
-        atividade_complemento = event.location if event and event.location else ''
+        event_location = event.format_full_address() if event else ''
 
         tipo_contratante = None
         if client and client.document_type == 'cpf':
@@ -250,19 +250,19 @@ class ART(BaseModel):
             'client_state': '',
             'client_zip': '',
             'tipo_contratante': tipo_contratante,
-            'obra_address': event.location if event else '',
-            'obra_number': '',
-            'obra_complement': '',
-            'obra_neighborhood': '',
-            'obra_city': '',
-            'obra_state': '',
-            'obra_zip': '',
+            'obra_address': (event.address if event and event.address else '') or event_location,
+            'obra_number': (event.address_number or '') if event else '',
+            'obra_complement': (event.address_complement or '') if event else '',
+            'obra_neighborhood': (event.address_neighborhood or '') if event else '',
+            'obra_city': (event.address_city or '') if event else '',
+            'obra_state': (event.address_state or '') if event else '',
+            'obra_zip': (event.address_zip or '') if event else '',
             'nivel_atuacao': 'Execução',
             'atividade': atividade,
-            'atividade_complemento': atividade_complemento,
+            'atividade_complemento': event_location,
             'obra_servico': obra_servico,
             'activity_description': '\n'.join(activity_parts),
-            'location': event.location if event else '',
+            'location': event_location,
             'quantity': quantity,
             'measurement_unit': 'm3',
             'contract_value': budget.total_with_freight or Decimal('0'),

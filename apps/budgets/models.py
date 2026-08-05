@@ -207,30 +207,40 @@ class Budget(BaseModel):
     @property
     def extra_charges_total(self):
         """Sum all extra charge entries from the JSON field (base values, no fiscal)."""
-        total = Decimal('0')
-        charges = self.extra_charges or {}
-        for rows in charges.values():
-            if isinstance(rows, list):
-                for row in rows:
-                    try:
-                        total += Decimal(str(row.get('value') or 0))
-                    except Exception:
-                        pass
-        return total
+        return self._sum_extra_charges(approved_only=False, fiscal=False)
 
     @property
     def extra_charges_fiscal_total(self):
         """17% fiscal charges from extra charge rows with fiscal=True."""
+        return self._sum_extra_charges(approved_only=False, fiscal=True)
+
+    @property
+    def approved_extra_charges_total(self):
+        """Sum approved extra charge entries only."""
+        return self._sum_extra_charges(approved_only=True, fiscal=False)
+
+    @property
+    def approved_extra_charges_fiscal_total(self):
+        """17% fiscal from approved extra charge rows with fiscal=True."""
+        return self._sum_extra_charges(approved_only=True, fiscal=True)
+
+    def _sum_extra_charges(self, approved_only=False, fiscal=False):
         total = Decimal('0')
         charges = self.extra_charges or {}
         for rows in charges.values():
             if isinstance(rows, list):
                 for row in rows:
-                    if row.get('fiscal'):
-                        try:
-                            total += Decimal(str(row.get('value') or 0)) * Decimal('0.17')
-                        except Exception:
-                            pass
+                    if approved_only and not row.get('is_approved', True):
+                        continue
+                    try:
+                        val = Decimal(str(row.get('value') or 0))
+                    except Exception:
+                        continue
+                    if fiscal:
+                        if row.get('fiscal'):
+                            total += val * Decimal('0.17')
+                    else:
+                        total += val
         return total
 
     @property
@@ -240,10 +250,10 @@ class Budget(BaseModel):
         total = approved_qs.aggregate(total=Sum('total_price'))['total'] or Decimal('0')
         # Per-item fiscal for approved items
         fiscal_base = approved_qs.filter(include_fiscal=True).aggregate(total=Sum('total_price'))['total'] or Decimal('0')
-        total += fiscal_base * Decimal('0.17') + self.extra_charges_fiscal_total
+        total += fiscal_base * Decimal('0.17') + self.approved_extra_charges_fiscal_total
         if self.freight_included and self.freight_cost:
             total += self.freight_cost
-        total += self.extra_charges_total
+        total += self.approved_extra_charges_total
         return total - self.calculate_discount(total)
 
     @property

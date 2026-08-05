@@ -15,7 +15,14 @@ from django.core.exceptions import ValidationError
 from apps.common.mixins import AuditMixin
 from .models import Event
 from .forms import EventForm, EventSearchForm
-from apps.contractors.models import Contractor, ContractorMember, EventContractor, EventContractorMember
+from apps.contractors.models import (
+    Contractor,
+    ContractorMember,
+    ContractorVehicle,
+    EventContractor,
+    EventContractorMember,
+    EventContractorVehicle,
+)
 
 
 class EventListView(LoginRequiredMixin, ListView):
@@ -36,6 +43,9 @@ class EventListView(LoginRequiredMixin, ListView):
             queryset = queryset.filter(
                 Q(name__icontains=search) |
                 Q(location__icontains=search) |
+                Q(address__icontains=search) |
+                Q(address_city__icontains=search) |
+                Q(address_neighborhood__icontains=search) |
                 Q(client__name__icontains=search)
             )
         
@@ -75,6 +85,7 @@ class EventDetailView(LoginRequiredMixin, DetailView):
             'technical_visits',
             'contractors__contractor',
             'contractors__selected_members__member',
+            'contractors__selected_vehicles__vehicle',
         )
     
     def get_context_data(self, **kwargs):
@@ -165,16 +176,19 @@ class EventDeleteView(LoginRequiredMixin, DeleteView):
 # ─── Contractor Assignment Views ──────────────────────────────────────────────
 
 class ContractorMembersJSONView(LoginRequiredMixin, View):
-    """Return JSON list of members for a given contractor (for dynamic loading)."""
+    """Return JSON list of members and vehicles for a given contractor."""
 
     def get(self, request):
         contractor_id = request.GET.get('contractor_id')
         if not contractor_id:
-            return JsonResponse({'members': []})
+            return JsonResponse({'members': [], 'vehicles': []})
         members = ContractorMember.objects.filter(
             contractor_id=contractor_id
         ).order_by('name').values('id', 'name', 'role')
-        return JsonResponse({'members': list(members)})
+        vehicles = ContractorVehicle.objects.filter(
+            contractor_id=contractor_id
+        ).order_by('plate').values('id', 'plate', 'brand', 'model', 'year', 'color')
+        return JsonResponse({'members': list(members), 'vehicles': list(vehicles)})
 
 
 class ContractorAssignView(LoginRequiredMixin, View):
@@ -194,6 +208,7 @@ class ContractorAssignView(LoginRequiredMixin, View):
             'contractors': contractors,
             'assignment': None,
             'selected_member_ids': [],
+            'selected_vehicle_ids': [],
             'breadcrumbs': [
                 {'name': 'Eventos', 'url': reverse('events:list')},
                 {'name': event.name, 'url': reverse('events:detail', kwargs={'pk': pk})},
@@ -205,12 +220,20 @@ class ContractorAssignView(LoginRequiredMixin, View):
         event = self._get_event(pk)
         contractor_id = request.POST.get('contractor')
         member_ids = request.POST.getlist('members')
+        vehicle_ids = request.POST.getlist('vehicles')
         notes = request.POST.get('notes', '')
         error = None
 
         if not contractor_id:
             error = 'Selecione uma empreiteira.'
         else:
+            valid_vehicle_ids = set(
+                ContractorVehicle.objects.filter(
+                    contractor_id=contractor_id,
+                    pk__in=vehicle_ids,
+                ).values_list('pk', flat=True)
+            )
+            valid_vehicle_ids_str = {str(pk) for pk in valid_vehicle_ids}
             # Validate only the selected members for blocked docs
             if member_ids:
                 selected_members = ContractorMember.objects.filter(
@@ -235,8 +258,12 @@ class ContractorAssignView(LoginRequiredMixin, View):
                     assignment.notes = notes
                     assignment.save(update_fields=['notes'])
                     assignment.selected_members.all().delete()
+                    assignment.selected_vehicles.all().delete()
                     for mid in member_ids:
                         EventContractorMember.objects.create(assignment=assignment, member_id=mid)
+                    for vid in vehicle_ids:
+                        if str(vid) in valid_vehicle_ids_str:
+                            EventContractorVehicle.objects.create(assignment=assignment, vehicle_id=vid)
                     return redirect('events:detail', pk=pk)
                 except ValidationError as e:
                     error = ' '.join(e.messages)
@@ -248,6 +275,7 @@ class ContractorAssignView(LoginRequiredMixin, View):
             'contractors': contractors,
             'assignment': None,
             'selected_member_ids': member_ids,
+            'selected_vehicle_ids': vehicle_ids,
             'error': error,
             'breadcrumbs': [
                 {'name': 'Eventos', 'url': reverse('events:list')},
@@ -270,23 +298,33 @@ class ContractorAssignEditView(LoginRequiredMixin, View):
     def get(self, request, pk, assignment_pk):
         event, assignment = self._get_objects(pk, assignment_pk)
         selected_ids = list(assignment.selected_members.values_list('member_id', flat=True))
+        selected_vehicle_ids = list(assignment.selected_vehicles.values_list('vehicle_id', flat=True))
         return render(request, self.template_name, {
             'event': event,
             'contractors': [assignment.contractor],
             'assignment': assignment,
             'selected_member_ids': selected_ids,
+            'selected_vehicle_ids': selected_vehicle_ids,
             'breadcrumbs': [
                 {'name': 'Eventos', 'url': reverse('events:list')},
                 {'name': event.name, 'url': reverse('events:detail', kwargs={'pk': pk})},
-                {'name': 'Editar Membros', 'url': None},
+                {'name': 'Editar Participação', 'url': None},
             ],
         })
 
     def post(self, request, pk, assignment_pk):
         event, assignment = self._get_objects(pk, assignment_pk)
         member_ids = request.POST.getlist('members')
+        vehicle_ids = request.POST.getlist('vehicles')
         notes = request.POST.get('notes', '')
         error = None
+        valid_vehicle_ids = set(
+            ContractorVehicle.objects.filter(
+                contractor=assignment.contractor,
+                pk__in=vehicle_ids,
+            ).values_list('pk', flat=True)
+        )
+        valid_vehicle_ids_str = {str(pk) for pk in valid_vehicle_ids}
 
         # Validate only the selected members for blocked docs
         if member_ids:
@@ -304,24 +342,30 @@ class ContractorAssignEditView(LoginRequiredMixin, View):
 
         if error:
             selected_ids = list(map(int, member_ids)) if member_ids else []
+            selected_vehicle_ids = list(map(int, vehicle_ids)) if vehicle_ids else []
             return render(request, self.template_name, {
                 'event': event,
                 'contractors': [assignment.contractor],
                 'assignment': assignment,
                 'selected_member_ids': selected_ids,
+                'selected_vehicle_ids': selected_vehicle_ids,
                 'error': error,
                 'breadcrumbs': [
                     {'name': 'Eventos', 'url': reverse('events:list')},
                     {'name': event.name, 'url': reverse('events:detail', kwargs={'pk': pk})},
-                    {'name': 'Editar Membros', 'url': None},
+                    {'name': 'Editar Participação', 'url': None},
                 ],
             })
 
         assignment.notes = notes
         assignment.save(update_fields=['notes'])
         assignment.selected_members.all().delete()
+        assignment.selected_vehicles.all().delete()
         for mid in member_ids:
             EventContractorMember.objects.create(assignment=assignment, member_id=mid)
+        for vid in vehicle_ids:
+            if str(vid) in valid_vehicle_ids_str:
+                EventContractorVehicle.objects.create(assignment=assignment, vehicle_id=vid)
         return redirect('events:detail', pk=pk)
 
 
@@ -347,7 +391,7 @@ class EventContractorListPDFView(LoginRequiredMixin, View):
         event = get_object_or_404(
             Event.objects.select_related('client').prefetch_related(
                 'contractors__selected_members__member__nrs',
-                'contractors__contractor__vehicles',
+                'contractors__selected_vehicles__vehicle',
             ),
             pk=pk,
         )
@@ -358,11 +402,12 @@ class EventContractorListPDFView(LoginRequiredMixin, View):
             for em in assignment.selected_members.all():
                 members.append(em.member)
 
-        # Collect all vehicles from all assigned contractors (deduplicated by pk)
+        # Collect only the selected vehicles across all assignments (deduplicated by pk)
         seen_vehicle_ids = set()
         vehicles = []
         for assignment in event.contractors.all():
-            for v in assignment.contractor.vehicles.all():
+            for selected_vehicle in assignment.selected_vehicles.all():
+                v = selected_vehicle.vehicle
                 if v.pk not in seen_vehicle_ids:
                     seen_vehicle_ids.add(v.pk)
                     vehicles.append(v)
@@ -388,12 +433,12 @@ class PublicContractorView(View):
                 'event', 'event__client', 'contractor'
             ).prefetch_related(
                 'selected_members__member__nrs',
-                'contractor__vehicles',
+                'selected_vehicles__vehicle',
             ),
             public_token=token,
         )
         members = [em.member for em in assignment.selected_members.all()]
-        vehicles = list(assignment.contractor.vehicles.all())
+        vehicles = [sv.vehicle for sv in assignment.selected_vehicles.all()]
         return render(request, self.template_name, {
             'assignment': assignment,
             'members': members,

@@ -119,22 +119,21 @@
         }
         .os-items-table thead th {
             background: var(--os-white);
-            border: 1px solid var(--os-border);
+            border: 1px solid #000;
             font-size: 12px;
             font-weight: 700;
             text-transform: uppercase;
             padding: 7px 10px;
             color: var(--os-black);
+            text-align: center;
         }
+        .os-items-table thead th.th-left { text-align: left; }
         .os-items-table tbody td {
-            border: 1px solid #c0c0c0;
+            border: 1px solid #000;
             padding: 7px 10px;
             font-size: 13px;
             color: var(--os-black);
-            vertical-align: top;
-        }
-        .os-items-table tbody tr:nth-child(even) td {
-            background: #f5f5f0;
+            vertical-align: middle;
         }
         .os-items-table tbody td.os-item-num {
             background: var(--os-dark) !important;
@@ -142,15 +141,25 @@
             font-weight: 700;
             text-align: center;
             width: 40px;
+            font-size: 13px;
         }
-        .os-items-table tbody td.os-item-name { 
+        .os-items-table tbody td.os-item-name {
             background: var(--os-dark) !important;
             color: var(--os-white) !important;
-            font-weight: 600; 
+            font-weight: 700;
+            font-size: 13px;
+            width: 14%;
+            text-align: center;
+            vertical-align: middle;
         }
-        .os-items-table tbody td.os-item-desc { color: #444; font-size: 12px; }
+        .os-items-table tbody td.os-item-desc { color: #000; font-size: 12px; }
+        .os-items-table tbody tr.item-row td {
+            border-top: 1px solid #000;
+            border-bottom: 1px solid #000;
+        }
         .os-item-desc-main {
             display: block;
+            white-space: pre-wrap;
         }
         .os-item-dimensions {
             margin-top: 6px;
@@ -159,6 +168,30 @@
         .os-item-dimension-line {
             display: block;
             margin-top: 4px;
+        }
+
+        /* ── Row spacing (gaps between items / sections) ─────────── */
+        .os-separator-row td.os-separator-gap {
+            height: 10px;
+            padding: 0;
+            background: #fff;
+            border: 0 !important;
+        }
+        .os-separator-row--section td.os-separator-gap {
+            height: 16px;
+        }
+
+        /* ── Section title row (full-width, centered) ─────────────── */
+        .os-items-table tbody tr.os-section-row td {
+            background: #3f3f3f !important;
+            color: #eeece1 !important;
+            font-weight: 700;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            padding: 6px 8px;
+            text-align: center !important;
+            border: 1px solid #000;
         }
 
         /* ── Status badge ─────────────────────────── */
@@ -287,6 +320,7 @@
                 box-shadow: 0 1px 4px rgba(0,0,0,.07);
             }
             .os-items-table tbody tr:nth-child(even) td { background: transparent; }
+            .os-items-table tbody tr.os-separator-row { display: none; }
 
             /* Card header: número do item */
             .os-items-table tbody td.os-item-num {
@@ -343,10 +377,13 @@
                 margin: 8px 0 0;
             }
             .os-items-table tbody tr.os-section-row td {
+                display: block !important;
+                width: 100%;
                 background: var(--os-dark) !important;
                 color: var(--os-cream) !important;
-                flex-direction: row;
-                padding: 7px 12px;
+                padding: 6px 8px;
+                font-size: 10px;
+                text-align: center !important;
                 border: none;
             }
             .os-items-table tbody tr.os-section-row td::before { display: none; }
@@ -424,8 +461,8 @@
         <table class="os-items-table">
             <thead>
                 <tr>
-                    <th style="text-align:left;">Item</th>
-                    <th style="text-align:left;">Descritivo</th>
+                    <th class="th-left" style="width:14%;">Item</th>
+                    <th class="th-left">Descritivo</th>
                 </tr>
             </thead>
             <tbody>
@@ -433,14 +470,10 @@
                     {% for section_name, items in sections.items %}
                     <!-- Section header row -->
                     <tr class="os-section-row">
-                        <td colspan="2"
-                            style="background:#3f3f3f;color:#eeece1;font-weight:700;font-size:13px;
-                                   text-transform:uppercase;letter-spacing:.05em;padding:6px 12px;">
-                            {{ section_name }}
-                        </td>
+                        <td colspan="2">{{ section_name }}</td>
                     </tr>
                     {% for item in items %}
-                    <tr>
+                    <tr class="item-row">
                         <td class="os-item-name" data-label="Item">{{ item.name }}</td>
                         <td class="os-item-desc" data-label="Descritivo">
                             <span class="os-item-desc-main">{{ item.description|default:"—" }}</span>
@@ -455,22 +488,31 @@
                             {% endif %}
                         </td>
                     </tr>
+                    {% if not forloop.last %}
+                    <tr class="os-separator-row" aria-hidden="true">
+                        <td colspan="2" class="os-separator-gap"></td>
+                    </tr>
+                    {% endif %}
                     {% endfor %}
+                    {% if not forloop.last %}
+                    <tr class="os-separator-row os-separator-row--section" aria-hidden="true">
+                        <td colspan="2" class="os-separator-gap"></td>
+                    </tr>
+                    {% endif %}
                     {% endfor %}
                 {% endif %}
 
                 {% if unsectioned %}
                     {% if sections %}
+                    <tr class="os-separator-row os-separator-row--section" aria-hidden="true">
+                        <td colspan="2" class="os-separator-gap"></td>
+                    </tr>
                     <tr class="os-section-row">
-                        <td colspan="2"
-                            style="background:#3f3f3f;color:#eeece1;font-weight:700;font-size:13px;
-                                   text-transform:uppercase;letter-spacing:.05em;padding:6px 12px;">
-                            Outros
-                        </td>
+                        <td colspan="2">Outros</td>
                     </tr>
                     {% endif %}
                     {% for item in unsectioned %}
-                    <tr>
+                    <tr class="item-row">
                         <td class="os-item-name" data-label="Item">{{ item.name }}</td>
                         <td class="os-item-desc" data-label="Descritivo">
                             <span class="os-item-desc-main">{{ item.description|default:"—" }}</span>
@@ -485,6 +527,11 @@
                             {% endif %}
                         </td>
                     </tr>
+                    {% if not forloop.last %}
+                    <tr class="os-separator-row" aria-hidden="true">
+                        <td colspan="2" class="os-separator-gap"></td>
+                    </tr>
+                    {% endif %}
                     {% endfor %}
                 {% endif %}
 
