@@ -143,9 +143,6 @@
         <thead class="bg-gray-50">
             <tr>
                 <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    OS #
-                </th>
-                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                     Evento
                 </th>
                 <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
@@ -165,9 +162,6 @@
         <tbody class="bg-white divide-y divide-gray-200">
             {% for service_order in service_orders %}
             <tr class="hover:bg-gray-50 transition-colors cursor-pointer" onclick="window.location='{% url 'service_orders:detail' service_order.pk %}'">
-                <td class="px-6 py-4">
-                    <div class="text-sm font-medium text-gray-900">OS #{{ service_order.pk }}</div>
-                </td>
                 <td class="px-6 py-4">
                     <div class="text-sm text-gray-900">{{ service_order.event.name }}</div>
                     <div class="text-xs text-gray-500">{{ service_order.event.event_date|date:"d/m/Y" }}</div>

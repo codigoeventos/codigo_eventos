@@ -342,8 +342,8 @@
                 <table class="w-full text-sm">
                     <thead>
                         <tr class="border-b border-gray-200">
-                            <th class="text-left text-xs font-medium text-gray-500 uppercase pb-2">Placa</th>
                             <th class="text-left text-xs font-medium text-gray-500 uppercase pb-2">Marca / Modelo</th>
+                            <th class="text-left text-xs font-medium text-gray-500 uppercase pb-2">Placa</th>
                             <th class="text-left text-xs font-medium text-gray-500 uppercase pb-2">Ano</th>
                             <th class="text-left text-xs font-medium text-gray-500 uppercase pb-2">Cor</th>
                             <th class="text-left text-xs font-medium text-gray-500 uppercase pb-2">Combustível</th>
@@ -354,12 +354,12 @@
                         {% for vehicle in vehicles %}
                         <tr class="hover:bg-gray-50">
                             <td class="py-2.5 pr-4">
-                                <span class="font-mono font-semibold text-gray-900 tracking-widest">{{ vehicle.plate }}</span>
-                            </td>
-                            <td class="py-2.5 pr-4">
                                 {% if vehicle.brand or vehicle.model %}
                                 {{ vehicle.brand|default:"" }}{% if vehicle.brand and vehicle.model %} / {% endif %}{{ vehicle.model|default:"" }}
                                 {% else %}<span class="text-gray-400">—</span>{% endif %}
+                            </td>
+                            <td class="py-2.5 pr-4">
+                                <span class="font-mono font-semibold text-gray-900 tracking-widest">{{ vehicle.plate }}</span>
                             </td>
                             <td class="py-2.5 pr-4">{{ vehicle.year|default:"—" }}</td>
                             <td class="py-2.5 pr-4">{{ vehicle.color|default:"—" }}</td>

@@ -169,6 +169,29 @@ class Budget(BaseModel):
         if self.proposal_id:
             return f"{self.name} - {self.proposal.title}"
         return self.name
+
+    @property
+    def status_label(self):
+        """Human label for current and legacy status values."""
+        labels = {
+            'sent': 'Enviado',
+            'rejected': 'Rejeitado',
+            'confirmed': 'Confirmado',
+            'approved': 'Confirmado',
+            'draft': 'Em andamento',
+        }
+        return labels.get(self.status, self.status or '—')
+
+    @property
+    def status_badge_class(self):
+        """Badge colors for current and legacy status values."""
+        if self.status in ('confirmed', 'approved'):
+            return 'bg-green-100 text-green-800'
+        if self.status == 'rejected':
+            return 'bg-red-100 text-red-800'
+        if self.status == 'sent':
+            return 'bg-blue-100 text-blue-800'
+        return 'bg-gray-100 text-gray-800'
     
     def get_approval_url(self):
         """Generate public approval URL."""
