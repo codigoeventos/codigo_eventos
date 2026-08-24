@@ -169,10 +169,6 @@
     <h4 class="text-sm font-semibold text-gray-700 uppercase tracking-wide pb-1 border-b border-gray-200 mb-4">Contrato e Prazo</h4>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Valor do Contrato (R$)</label>
-            {% if art_mode == 'edit' %}{{ f.contract_value }}{% else %}<input type="number" name="contract_value" value="{{ d.contract_value|default:'' }}" step="0.01" min="0" class="{{ input_cls }}">{% endif %}
-        </div>
-        <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Data Início</label>
             {% if art_mode == 'edit' %}{{ f.start_date }}{% else %}<input type="date" name="start_date" value="{% if d.start_date %}{{ d.start_date|date:'Y-m-d' }}{% endif %}" class="{{ input_cls }}">{% endif %}
         </div>

@@ -29,7 +29,7 @@ class ARTEditForm(forms.ModelForm):
             'nivel_atuacao', 'atividade', 'atividade_complemento', 'obra_servico',
             'activity_description', 'location',
             'quantity', 'measurement_unit',
-            'contract_value', 'start_date', 'end_date',
+            'start_date', 'end_date',
             'notes',
         ]
         widgets = {
@@ -60,7 +60,6 @@ class ARTEditForm(forms.ModelForm):
             'location':            forms.TextInput(attrs={'class': _cls, 'placeholder': 'Referência do local da obra'}),
             'quantity':            forms.NumberInput(attrs={'class': _cls, 'step': '0.001', 'min': '0'}),
             'measurement_unit':    forms.Select(attrs={'class': _cls}),
-            'contract_value':      forms.NumberInput(attrs={'class': _cls, 'step': '0.01', 'min': '0'}),
             'start_date':          forms.DateInput(attrs={'class': _cls, 'type': 'date'}),
             'end_date':            forms.DateInput(attrs={'class': _cls, 'type': 'date'}),
             'notes':               forms.Textarea(attrs={'class': _cls, 'rows': 2, 'placeholder': 'Observações adicionais (opcional)'}),
@@ -77,7 +76,7 @@ class ARTEditForm(forms.ModelForm):
             'atividade_complemento': 'Complemento da Atividade', 'obra_servico': 'Obra / Serviço',
             'activity_description': 'Descrição da Atividade / Serviço', 'location': 'Local da Obra (referência)',
             'quantity': 'Quantidade', 'measurement_unit': 'Unidade',
-            'contract_value': 'Valor do Contrato (R$)', 'start_date': 'Data Início', 'end_date': 'Data Conclusão',
+            'start_date': 'Data Início', 'end_date': 'Data Conclusão',
             'notes': 'Observações',
         }
         help_texts = {
