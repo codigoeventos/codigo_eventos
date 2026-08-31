@@ -133,6 +133,11 @@ class User(AbstractBaseUser, PermissionsMixin):
         return self.groups.filter(name='Comercial').exists()
 
     @property
+    def is_technical(self):
+        """Check if the user belongs to the Técnico group."""
+        return self.groups.filter(name='Técnico').exists()
+
+    @property
     def is_admin(self):
         """Check if the user belongs to the Administrador group or is a superuser."""
         return self.is_superuser or self.groups.filter(name='Administrador').exists()

@@ -213,7 +213,9 @@ class ART(BaseModel):
 
         budget = service_order.budget
         project = budget.proposal
-        event = project.event if project else None
+        # Prefer the project's event, but an OS may also be linked directly to
+        # an event (for example when its budget has no project).
+        event = (project.event if project and project.event_id else None) or service_order.event
         client = event.client if event else None
 
         quantity = cls.calculate_quantity(service_order) or Decimal('0')

@@ -4,10 +4,33 @@
 
 {% with input_cls="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent" %}
 
+<!-- ── Engenheiro ─────────────────────────────────────────────────────── -->
+<div>
+    <h4 class="text-sm font-semibold text-gray-700 uppercase tracking-wide pb-1 border-b border-gray-200 mb-4">Engenheiro Responsável</h4>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Nome do Engenheiro</label>
+            {% if art_mode == 'edit' %}{{ f.engineer_name }}{% else %}<input type="text" name="engineer_name" value="{{ d.engineer_name|default:'' }}" placeholder="Nome completo" class="{{ input_cls }}">{% endif %}
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">CREA do Engenheiro</label>
+            {% if art_mode == 'edit' %}{{ f.engineer_crea }}{% else %}<input type="text" name="engineer_crea" value="{{ d.engineer_crea|default:'' }}" placeholder="Ex.: CREA-SP 123456/D" class="{{ input_cls }}">{% endif %}
+        </div>
+    </div>
+</div>
+
 <!-- ── Contratado ─────────────────────────────────────────────────────── -->
 <div>
     <h4 class="text-sm font-semibold text-gray-700 uppercase tracking-wide pb-1 border-b border-gray-200 mb-4">Contratado</h4>
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="md:col-span-2">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Contratante</label>
+            {% if art_mode == 'edit' %}{{ f.contratante_nome }}{% else %}<input type="text" name="contratante_nome" value="{{ d.contratante_nome|default:'' }}" placeholder="Nome ou razão social" class="{{ input_cls }}">{% endif %}
+        </div>
+        <div class="md:col-span-2">
+            <label class="block text-sm font-medium text-gray-700 mb-1">CPF/CNPJ do Contratante</label>
+            {% if art_mode == 'edit' %}{{ f.contratante_cnpj }}{% else %}<input type="text" name="contratante_cnpj" value="{{ d.contratante_cnpj|default:'' }}" placeholder="CPF ou CNPJ" class="{{ input_cls }}">{% endif %}
+        </div>
         <div class="md:col-span-2">
             <label class="block text-sm font-medium text-gray-700 mb-1">Endereço</label>
             {% if art_mode == 'edit' %}{{ f.client_address }}{% else %}<input type="text" name="client_address" value="{{ d.client_address|default:'' }}" placeholder="Rua / Avenida" class="{{ input_cls }}">{% endif %}
@@ -113,6 +136,30 @@
                     <option value="un" {% if d.measurement_unit == 'un' %}selected{% endif %}>unidades (un)</option>
                 </select>
             {% endif %}
+        </div>
+        <div class="md:col-span-2">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Nível de Atuação</label>
+            {% if art_mode == 'edit' %}{{ f.nivel_atuacao }}{% else %}<input type="text" name="nivel_atuacao" value="{{ d.nivel_atuacao|default:'' }}" class="{{ input_cls }}">{% endif %}
+        </div>
+        <div class="md:col-span-2">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Atividade</label>
+            {% if art_mode == 'edit' %}{{ f.atividade }}{% else %}<input type="text" name="atividade" value="{{ d.atividade|default:'' }}" class="{{ input_cls }}">{% endif %}
+        </div>
+        <div class="md:col-span-2">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Complemento da Atividade</label>
+            {% if art_mode == 'edit' %}{{ f.atividade_complemento }}{% else %}<input type="text" name="atividade_complemento" value="{{ d.atividade_complemento|default:'' }}" class="{{ input_cls }}">{% endif %}
+        </div>
+        <div class="md:col-span-2">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Obra / Serviço</label>
+            {% if art_mode == 'edit' %}{{ f.obra_servico }}{% else %}<input type="text" name="obra_servico" value="{{ d.obra_servico|default:'' }}" class="{{ input_cls }}">{% endif %}
+        </div>
+        <div class="md:col-span-4">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Descrição da Atividade / Serviço</label>
+            {% if art_mode == 'edit' %}{{ f.activity_description }}{% else %}<textarea name="activity_description" rows="3" class="{{ input_cls }}">{{ d.activity_description|default:'' }}</textarea>{% endif %}
+        </div>
+        <div class="md:col-span-4">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Local da Obra (referência)</label>
+            {% if art_mode == 'edit' %}{{ f.location }}{% else %}<input type="text" name="location" value="{{ d.location|default:'' }}" class="{{ input_cls }}">{% endif %}
         </div>
     </div>
 </div>

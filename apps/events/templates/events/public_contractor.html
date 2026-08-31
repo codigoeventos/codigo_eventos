@@ -260,8 +260,8 @@
         <thead>
             <tr>
                 <th style="width:40px;">#</th>
-                <th style="text-align:left;">Placa</th>
                 <th style="text-align:left;">Marca / Modelo</th>
+                <th style="text-align:left;">Placa</th>
                 <th style="text-align:center;">Ano</th>
                 <th style="text-align:center;">Cor</th>
                 <th style="text-align:center;">Combustível</th>
@@ -272,12 +272,12 @@
             {% for vehicle in vehicles %}
             <tr>
                 <td class="col-num" data-label="#">{{ forloop.counter }}</td>
-                <td class="col-name" data-label="Placa">{{ vehicle.plate }}</td>
                 <td data-label="Marca/Modelo">
                     {% if vehicle.brand or vehicle.model %}
                         {{ vehicle.brand|default:"" }} {{ vehicle.model|default:"" }}
                     {% else %}—{% endif %}
                 </td>
+                <td class="col-name" data-label="Placa">{{ vehicle.plate }}</td>
                 <td style="text-align:center;" data-label="Ano">{{ vehicle.year|default:"—" }}</td>
                 <td style="text-align:center;" data-label="Cor">{{ vehicle.color|default:"—" }}</td>
                 <td style="text-align:center;" data-label="Combustível">{{ vehicle.get_fuel_display|default:"—" }}</td>

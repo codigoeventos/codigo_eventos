@@ -108,10 +108,13 @@ class ServiceOrderDetailView(LoginRequiredMixin, DetailView):
             if last_art:
                 # Keep fallback defaults and override with last saved ART values when present.
                 for field in [
+                    'engineer_name', 'engineer_crea', 'contratante_nome', 'contratante_cnpj',
                     'client_address', 'client_number', 'client_complement', 'client_neighborhood',
                     'client_city', 'client_state', 'client_zip', 'tipo_contratante',
                     'obra_address', 'obra_number', 'obra_complement', 'obra_neighborhood',
                     'obra_city', 'obra_state', 'obra_zip',
+                    'nivel_atuacao', 'atividade', 'atividade_complemento', 'obra_servico',
+                    'activity_description', 'location', 'contract_value',
                     'quantity', 'measurement_unit',
                     'start_date', 'end_date', 'notes',
                 ]:

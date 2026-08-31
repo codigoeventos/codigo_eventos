@@ -292,7 +292,7 @@ def _save_sections_from_json(budget, sections_data_json):
                 'dim_width': dim_width,
                 'dim_height': dim_height,
                 'measurement': measurement,
-                'measurement_unit': item_data.get('measurement_unit') or '',
+                'measurement_unit': 'm2',
                 'weight': to_decimal(item_data.get('weight')),
                 'unit_price': final_unit,
                 'total_price': final_total or Decimal('0'),
@@ -1459,7 +1459,7 @@ class BudgetVersionPublicPreviewView(LoginRequiredMixin, View):
         status_labels = {
             'draft':     'Em andamento',
             'sent':      'Enviado',
-            'approved':  'Aprovado',
+            'approved':  'Confirmado',
             'rejected':  'Rejeitado',
             'confirmed': 'Confirmado',
         }

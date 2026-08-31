@@ -99,14 +99,14 @@
                             {% if vehicle.pk in selected_vehicle_ids %}checked{% endif %}
                             class="w-4 h-4 rounded border-gray-300 text-black focus:ring-black">
                         <span class="flex-1">
-                            <span class="text-sm font-medium text-gray-900">{{ vehicle.plate }}</span>
-                            <span class="text-xs text-gray-500 ml-1.5">
-                                {% if vehicle.brand or vehicle.model %}
-                                    {{ vehicle.brand|default:"" }} {{ vehicle.model|default:"" }}
-                                {% else %}
-                                    Veículo cadastrado
-                                {% endif %}
+                            {% if vehicle.brand or vehicle.model %}
+                            <span class="text-sm font-medium text-gray-900">
+                                {{ vehicle.brand|default:"" }}{% if vehicle.brand and vehicle.model %} / {% endif %}{{ vehicle.model|default:"" }}
                             </span>
+                            {% else %}
+                            <span class="text-sm font-medium text-gray-900">Veículo cadastrado</span>
+                            {% endif %}
+                            <span class="text-xs text-gray-500 ml-1.5">{{ vehicle.plate }}</span>
                         </span>
                         {% if vehicle.year %}
                         <span class="text-xs text-gray-400">{{ vehicle.year }}</span>
@@ -234,8 +234,8 @@ async function loadMembers(contractorId) {
                         ${preselectedVehicles.includes(String(v.id)) ? 'checked' : ''}
                         class="w-4 h-4 rounded border-gray-300 text-black focus:ring-black">
                     <span class="flex-1">
-                        <span class="text-sm font-medium text-gray-900">${v.plate}</span>
-                        <span class="text-xs text-gray-500 ml-1.5">${[v.brand, v.model].filter(Boolean).join(' ') || 'Veículo cadastrado'}</span>
+                        <span class="text-sm font-medium text-gray-900">${[v.brand, v.model].filter(Boolean).join(' / ') || 'Veículo cadastrado'}</span>
+                        <span class="text-xs text-gray-500 ml-1.5">${v.plate}</span>
                     </span>
                     ${v.year ? `<span class="text-xs text-gray-400">${v.year}</span>` : ''}
                 </label>

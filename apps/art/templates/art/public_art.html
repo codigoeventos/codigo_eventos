@@ -204,11 +204,11 @@
         <table class="art-rows">
             <tr>
                 <td class="lbl">Contratante:</td>
-                <td class="val">{% if art.service_order.budget.proposal.event and art.service_order.budget.proposal.event.client %}{{art.service_order.budget.proposal.event.client.name }}{% else %}—{% endif %}</td>
+                <td class="val">{{ art.contratante_nome|default:"—" }}</td>
             </tr>
             <tr>
                 <td class="lbl">CPF/ CNPJ:</td>
-                <td class="val">{% if art.service_order.budget.proposal.event and art.service_order.budget.proposal.event.client  %}{{art.service_order.budget.proposal.event.client.document_number|default:"—" }}{% else %}—{% endif %}
+                <td class="val">{{ art.contratante_cnpj|default:"—" }}
                 </td>
             </tr>
             <tr>
@@ -295,19 +295,19 @@
         <table class="art-rows">
             <tr>
                 <td class="lbl">Nível de Atuação:</td>
-                <td class="val" style="font-weight:700;color:var(--platform-dark);">FISCALIZAÇÃO</td>
+                <td class="val" style="font-weight:700;color:var(--platform-dark);">{{ art.nivel_atuacao|default:"—" }}</td>
             </tr>
             <tr>
                 <td class="lbl">Atividade:</td>
-                <td class="val" style="font-weight:700;color:var(--platform-dark);">MONTAGEM</td>
+                <td class="val" style="font-weight:700;color:var(--platform-dark);">{{ art.atividade|default:"—" }}</td>
             </tr>
             <tr>
                 <td class="lbl">Complemento:</td>
-                <td class="val" style="font-weight:700;color:var(--platform-dark);">INSTALAÇÃO PROVISÓRIA</td>
+                <td class="val" style="font-weight:700;color:var(--platform-dark);">{{ art.atividade_complemento|default:"—" }}</td>
             </tr>
             <tr>
                 <td class="lbl">Obra / Serviço:</td>
-                <td class="val" style="font-weight:700;color:var(--platform-dark);">EDIFICAÇÃO DE MATERIAIS MISTOS</td>
+                <td class="val" style="font-weight:700;color:var(--platform-dark);">{{ art.obra_servico|default:"—" }}</td>
             </tr>
             <tr>
                 <td class="lbl">Quantidade:</td>
@@ -321,7 +321,7 @@
 
         <div class="art-spacer"></div>
         <div class="art-obs-hdr">OBSERVAÇÃO:</div>
-        <div class="art-obs-body">MONTAGEM DE ESTRUTURA PROVISÓRIA PARA EVENTO</div>
+        <div class="art-obs-body">{{ art.notes|default:"—"|linebreaksbr }}</div>
 
     </div>
 
