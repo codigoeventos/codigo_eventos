@@ -57,6 +57,13 @@
                 </div>
                 <div id="members-list" class="space-y-1 border border-gray-200 rounded-lg overflow-hidden">
                     {% if assignment %}
+                    {% if assignment.contractor.members.all %}
+                    <label id="members-select-all-row" class="flex items-center gap-3 px-4 py-2 bg-gray-50 cursor-pointer border-b border-gray-200">
+                        <input type="checkbox" id="members-select-all"
+                            class="w-4 h-4 rounded border-gray-300 text-black focus:ring-black">
+                        <span class="text-xs font-medium text-gray-600 uppercase tracking-wide">Selecionar todos</span>
+                    </label>
+                    {% endif %}
                     {% for m in assignment.contractor.members.all %}
                     <label class="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-0">
                         <input type="checkbox" name="members" value="{{ m.pk }}"
@@ -145,6 +152,37 @@ const vehiclesLoading = document.getElementById('vehicles-loading');
 const preselected = ({{ selected_member_ids|default:"[]" }} || []).map(String);
 const preselectedVehicles = ({{ selected_vehicle_ids|default:"[]" }} || []).map(String);
 
+function getMemberCheckboxes() {
+    return membersList.querySelectorAll('input[name="members"]');
+}
+
+function updateMembersSelectAllState() {
+    const selectAll = document.getElementById('members-select-all');
+    if (!selectAll) return;
+    const boxes = getMemberCheckboxes();
+    if (!boxes.length) {
+        selectAll.checked = false;
+        selectAll.indeterminate = false;
+        return;
+    }
+    const checkedCount = [...boxes].filter(cb => cb.checked).length;
+    selectAll.checked = checkedCount === boxes.length;
+    selectAll.indeterminate = checkedCount > 0 && checkedCount < boxes.length;
+}
+
+function bindMembersSelectAll() {
+    const selectAll = document.getElementById('members-select-all');
+    if (!selectAll) return;
+    selectAll.onchange = () => {
+        getMemberCheckboxes().forEach(cb => { cb.checked = selectAll.checked; });
+        selectAll.indeterminate = false;
+    };
+    getMemberCheckboxes().forEach(cb => {
+        cb.onchange = updateMembersSelectAllState;
+    });
+    updateMembersSelectAllState();
+}
+
 async function loadMembers(contractorId) {
     if (!contractorId) {
         membersSection.classList.add('hidden');
@@ -167,7 +205,13 @@ async function loadMembers(contractorId) {
         if (!data.members.length) {
             membersList.innerHTML = '<p class="px-4 py-3 text-sm text-gray-400 italic">Nenhum membro cadastrado nesta empreiteira.</p>';
         } else {
-            membersList.innerHTML = data.members.map(m => `
+            membersList.innerHTML = `
+                <label id="members-select-all-row" class="flex items-center gap-3 px-4 py-2 bg-gray-50 cursor-pointer border-b border-gray-200">
+                    <input type="checkbox" id="members-select-all"
+                        class="w-4 h-4 rounded border-gray-300 text-black focus:ring-black">
+                    <span class="text-xs font-medium text-gray-600 uppercase tracking-wide">Selecionar todos</span>
+                </label>
+            ` + data.members.map(m => `
                 <label class="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-0">
                     <input type="checkbox" name="members" value="${m.id}"
                         ${preselected.includes(String(m.id)) ? 'checked' : ''}
@@ -178,6 +222,7 @@ async function loadMembers(contractorId) {
                     </span>
                 </label>
             `).join('');
+            bindMembersSelectAll();
         }
 
         if (!data.vehicles.length) {
@@ -207,5 +252,7 @@ async function loadMembers(contractorId) {
 if (contractorSelect) {
     contractorSelect.addEventListener('change', (e) => loadMembers(e.target.value));
 }
+
+bindMembersSelectAll();
 </script>
 {% endblock %}
