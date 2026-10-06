@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}OS #{{ service_order.pk }} - Ordens de Serviço{% endblock %}
+{% block title %}Detalhes da Ordem de Serviço{% endblock %}
 {% block page_title %}Detalhes da Ordem de Serviço{% endblock %}
 
 {% block content %}
@@ -12,7 +12,7 @@
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <div class="flex justify-between items-start mb-6">
                 <div>
-                    <h2 class="text-2xl font-bold text-gray-900">OS #{{ service_order.pk }}</h2>
+                    <h2 class="text-2xl font-bold text-gray-900">Ordem de Serviço</h2>
                     <p class="text-sm text-gray-500 mt-1">Criada em {{ service_order.created_at|date:"d/m/Y" }}</p>
                 </div>
 

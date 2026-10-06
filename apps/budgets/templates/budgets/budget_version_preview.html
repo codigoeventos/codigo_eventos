@@ -180,10 +180,16 @@
         .os-btn-filled:hover { background: #2a2a2a; }
 
         @media print {
+            @page { size: A4 portrait; margin: 8mm; }
             .no-print { display: none !important; }
             body { background: white !important; padding: 0; }
             * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-            .os-doc { box-shadow: none !important; border: none !important; margin: 0 !important; max-width: 100%; }
+            .os-doc { box-shadow: none !important; border: none !important; margin: 0 !important; width: 100% !important; max-width: 100% !important; }
+            .os-items-table-wrap { width: 100% !important; overflow: visible !important; }
+            .os-items-table { width: 100% !important; max-width: 100% !important; min-width: 0 !important; table-layout: fixed; }
+            .os-items-table thead { display: table-row-group; }
+            .os-items-table th, .os-items-table td { overflow-wrap: anywhere; }
+            .os-items-table .text-right { white-space: normal; }
         }
     </style>
 </head>
@@ -282,8 +288,8 @@
         <table class="os-items-table">
             <thead>
                 <tr>
-                    <th class="th-left" style="width:14%;">Item</th>
-                    <th class="th-left">Descritivo</th>
+                    <th style="width:14%;">Item</th>
+                    <th>Descritivo</th>
                     {% if has_fiscal %}
                     <th style="width:80px;">Valor dos Serviços</th>
                     <th style="width:80px;">Encargos Fiscais</th>
@@ -308,11 +314,6 @@
                     <td class="os-item-name">{{ item.name }}</td>
                     <td class="os-item-desc">
                         <span>{{ item.description|default:"—" }}</span>
-                        {% if item.dim_width and item.dim_height %}
-                        <span style="display:block;margin-top:6px;font-size:11px;">
-                            Dimensão {{ item.dim_width }} × {{ item.dim_height }}
-                        </span>
-                        {% endif %}
                     </td>
                     <td class="text-right">R$ {{ item.total_price|floatformat:"2g" }}</td>
                     {% if has_fiscal %}

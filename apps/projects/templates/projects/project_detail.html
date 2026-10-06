@@ -252,7 +252,13 @@
             <dl class="space-y-3">
                 <div>
                     <dt class="text-xs text-gray-500">Criado por</dt>
-                    <dd class="text-sm text-gray-900">{{ project.created_by.get_full_name|default:project.created_by.email }}</dd>
+                    <dd class="text-sm text-gray-900">
+                        {% if project.created_by %}
+                            {{ project.created_by.get_full_name|default:project.created_by.email }}
+                        {% else %}
+                            —
+                        {% endif %}
+                    </dd>
                 </div>
                 <div>
                     <dt class="text-xs text-gray-500">Criado em</dt>

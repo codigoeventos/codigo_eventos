@@ -113,6 +113,9 @@
     <table class="min-w-full divide-y divide-gray-200">
         <thead class="bg-gray-50">
             <tr>
+                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">
+                    Nº Proposta
+                </th>
                 <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                     Nome
                 </th>
@@ -139,6 +142,9 @@
         <tbody class="bg-white divide-y divide-gray-200">
             {% for budget in budgets %}
             <tr class="hover:bg-gray-50 transition-colors cursor-pointer" onclick="window.location='{% url 'budgets:detail' budget.pk %}'">
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="text-sm font-semibold text-gray-900">{{ budget.proposal_number }}</div>
+                </td>
                 <td class="px-6 py-4">
                     <div class="text-sm font-medium text-gray-900">
                         {{ budget.name }}

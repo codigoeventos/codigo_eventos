@@ -97,7 +97,6 @@ class ServiceOrderDetailView(LoginRequiredMixin, DetailView):
         context = super().get_context_data(**kwargs)
         context['breadcrumbs'] = [
             {'name': 'Ordens de Serviço', 'url': reverse_lazy('service_orders:list')},
-            {'name': f'OS #{self.object.pk}', 'url': None}
         ]
         service_order_art = ART.objects.filter(service_order=self.object).first()
         context['service_order_art'] = service_order_art

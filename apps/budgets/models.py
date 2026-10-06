@@ -171,6 +171,13 @@ class Budget(BaseModel):
         return self.name
 
     @property
+    def proposal_number(self):
+        """Human-readable proposal reference: two-digit year followed by its ID."""
+        if not self.pk or not self.created_at:
+            return ''
+        return f"{self.created_at:%y}-{self.pk}"
+
+    @property
     def status_label(self):
         """Human label for current and legacy status values."""
         labels = {

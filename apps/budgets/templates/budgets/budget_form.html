@@ -788,6 +788,8 @@
     const ITEM_DESC_URL         = "{% url 'budgets:item-descriptions' %}";
     const PAYMENT_INFO_URL      = "{% url 'budgets:payment-info-templates' %}";
     const IS_EDIT_MODE          = {{ is_edit_mode|yesno:'true,false' }};
+    const CURRENT_USER_ID       = "{{ request.user.pk|escapejs }}";
+    const SERVER_UPDATED_AT     = "{{ draft_server_updated_at|default:''|escapejs }}";
     const budgetForm            = document.getElementById('budget-form');
     const createVersionInput    = document.getElementById('create-version-input');
     const saveVersionModal      = document.getElementById('save-version-modal');
@@ -1886,11 +1888,10 @@
             if (w > 0 && h > 0) {
                 vol = w * h * qty;
                 if (measInput)  measInput.value  = vol.toFixed(3);
-            } else if (w > 0 || h > 0) {
-                vol = (w || h) * qty;
-                if (measInput)  measInput.value  = vol.toFixed(3);
             } else {
-                vol = num(measInput?.value);
+                // L × A só existe quando as duas dimensões foram informadas.
+                // Não preserve uma medida antiga ao abrir o item para edição.
+                if (measInput) measInput.value = '';
             }
         }
 
@@ -2063,9 +2064,12 @@
 
     function collectDraftPayload() {
         return {
+            schemaVersion: 2,
             savedAt: new Date().toISOString(),
             path: window.location.pathname,
+            userId: CURRENT_USER_ID,
             isEditMode: IS_EDIT_MODE,
+            baseUpdatedAt: SERVER_UPDATED_AT,
             header: {
                 proposal: document.getElementById('id_proposal')?.value || '',
                 name: document.getElementById('id_name')?.value || '',
@@ -2080,13 +2084,16 @@
         };
     }
 
-    const DRAFT_STORAGE_KEY = `ce-budget-draft:${window.location.pathname}`;
+    const DRAFT_STORAGE_KEY = `ce-budget-draft:${CURRENT_USER_ID}:${window.location.pathname}`;
+    const DRAFT_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
     const draftBanner = document.getElementById('budget-draft-banner');
     const draftBannerMeta = document.getElementById('budget-draft-banner-meta');
     const draftRestoreBtn = document.getElementById('budget-draft-restore-btn');
     const draftDiscardBtn = document.getElementById('budget-draft-discard-btn');
     let draftSaveTimer = null;
     let pendingDraft = null;
+    let draftDirty = false;
+    let isSubmitting = false;
 
     function draftHasContent(draft) {
         if (!draft) return false;
@@ -2102,7 +2109,27 @@
     function readStoredDraft() {
         try {
             const raw = localStorage.getItem(DRAFT_STORAGE_KEY);
-            return raw ? JSON.parse(raw) : null;
+            const draft = raw ? JSON.parse(raw) : null;
+            if (!draft) return null;
+
+            const savedAt = new Date(draft.savedAt || '');
+            const isExpired = Number.isNaN(savedAt.getTime()) || Date.now() - savedAt.getTime() > DRAFT_MAX_AGE_MS;
+            const isCompatible = (
+                draft.schemaVersion === 2 &&
+                draft.userId === CURRENT_USER_ID &&
+                draft.path === window.location.pathname &&
+                draft.isEditMode === IS_EDIT_MODE
+            );
+            if (isExpired || !isCompatible) {
+                localStorage.removeItem(DRAFT_STORAGE_KEY);
+                return null;
+            }
+
+            draft.isStale = Boolean(
+                IS_EDIT_MODE && SERVER_UPDATED_AT && draft.baseUpdatedAt &&
+                draft.baseUpdatedAt !== SERVER_UPDATED_AT
+            );
+            return draft;
         } catch (_) {
             return null;
         }
@@ -2114,10 +2141,12 @@
         draftBanner?.classList.add('hidden');
     }
 
-    function saveDraftToLocalStorage() {
-        if (!draftHasContent(collectDraftPayload())) return;
+    function saveDraftToLocalStorage(force = false) {
+        if (isSubmitting || (!force && !draftDirty)) return;
+        const draft = collectDraftPayload();
+        if (!draftHasContent(draft)) return;
         try {
-            localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(collectDraftPayload()));
+            localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(draft));
         } catch (_) {}
     }
 
@@ -2213,13 +2242,17 @@
         loadSectionsFromData(draft.sections || []);
         loadExtraChargesFromData(draft.extraCharges || {}, false);
         recalcAll();
+        draftDirty = true;
         draftBanner?.classList.add('hidden');
     }
 
     function showDraftBanner(draft) {
         if (!draftBanner || !draftBannerMeta || !draft) return;
         pendingDraft = draft;
-        draftBannerMeta.textContent = `Salvo localmente em ${formatDraftTimestamp(draft.savedAt)}. Restaure se perdeu dados após sair ou ser deslogado.`;
+        const staleWarning = draft.isStale
+            ? ' A proposta foi alterada no servidor desde então; restaure somente se quiser substituir os dados atuais.'
+            : '';
+        draftBannerMeta.textContent = `Salvo localmente em ${formatDraftTimestamp(draft.savedAt)}. Restaure se perdeu dados após sair ou ser deslogado.${staleWarning}`;
         draftBanner.classList.remove('hidden');
     }
 
@@ -2239,9 +2272,13 @@
 
     draftRestoreBtn?.addEventListener('click', () => restoreDraft(pendingDraft));
     draftDiscardBtn?.addEventListener('click', clearStoredDraft);
-    budgetForm?.addEventListener('input', scheduleDraftSave);
-    budgetForm?.addEventListener('change', scheduleDraftSave);
-    window.addEventListener('beforeunload', saveDraftToLocalStorage);
+    const markDraftDirty = () => {
+        draftDirty = true;
+        scheduleDraftSave();
+    };
+    budgetForm?.addEventListener('input', markDraftDirty);
+    budgetForm?.addEventListener('change', markDraftDirty);
+    window.addEventListener('beforeunload', () => saveDraftToLocalStorage());
     setInterval(saveDraftToLocalStorage, 30000);
     setInterval(() => {
         fetch("{% url 'budgets:notifications' %}", { credentials: 'same-origin' }).catch(() => {});
@@ -2262,7 +2299,9 @@
         const sections = serializeSections();
         sectionsDataInput.value = JSON.stringify(sections);
         extraChargesDataInput.value = JSON.stringify(serializeExtraCharges());
-        clearStoredDraft();
+        // Keep the backup until the server confirms the save on the detail page.
+        saveDraftToLocalStorage(true);
+        isSubmitting = true;
         allowBudgetSubmit = !IS_EDIT_MODE;
     });
 

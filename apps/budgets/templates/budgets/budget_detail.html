@@ -6,6 +6,14 @@
 {% block content %}
 {% include 'components/breadcrumbs.html' %}
 
+{% if clear_budget_draft %}
+<script>
+    try {
+        localStorage.removeItem('ce-budget-draft:{{ request.user.pk }}:{% url "budgets:edit" budget.pk %}');
+    } catch (_) {}
+</script>
+{% endif %}
+
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
     <!-- Budget Info Card -->
     <div class="lg:col-span-2">

@@ -281,6 +281,16 @@ def _save_sections_from_json(budget, sections_data_json):
             if subitems and not isinstance(subitems, list):
                 subitems = None
 
+            # L × A é um campo calculado: sem largura e altura compartilhadas
+            # (e sem subitens), qualquer medida anterior é obsoleta.
+            has_shared_dimensions = (
+                dim_width is not None and dim_width > 0 and
+                dim_height is not None and dim_height > 0
+            )
+            has_subitems = bool(subitems)
+            if not has_shared_dimensions and not has_subitems:
+                measurement = None
+
             item_fields = {
                 'budget': budget,
                 'section': section,
@@ -472,6 +482,12 @@ class BudgetDetailView(LoginRequiredMixin, DetailView):
             {'name': self.object.name, 'url': None}
         ]
         context['urgency_options'] = UrgencyMultiplier.objects.order_by('multiplier')
+        cleared_draft = self.request.session.pop('clear_budget_draft', None)
+        context['clear_budget_draft'] = bool(
+            cleared_draft
+            and cleared_draft.get('budget_id') == self.object.pk
+            and cleared_draft.get('user_id') == self.request.user.pk
+        )
         return context
 
 
@@ -505,6 +521,7 @@ class BudgetCreateView(LoginRequiredMixin, AuditMixin, SuccessMessageMixin, Crea
         context['form_title'] = 'Nova Proposta'
         context['submit_text'] = 'Criar Proposta'
         context['is_edit_mode'] = False
+        context['draft_server_updated_at'] = ''
 
         # Pass existing sections JSON (empty for new budget)
         context['sections_json'] = '[]'
@@ -581,6 +598,7 @@ class BudgetUpdateView(LoginRequiredMixin, AuditMixin, SuccessMessageMixin, Upda
         context['form_title'] = f'Editar Proposta: {self.object.name}'
         context['submit_text'] = 'Salvar Alterações'
         context['is_edit_mode'] = True
+        context['draft_server_updated_at'] = self.object.updated_at.isoformat()
 
         # Serialize existing sections + items as JSON for the JS UI
         context['sections_json'] = _sections_to_json(self.object)
@@ -596,6 +614,27 @@ class BudgetUpdateView(LoginRequiredMixin, AuditMixin, SuccessMessageMixin, Upda
 
         return context
 
+    def form_invalid(self, form):
+        """Keep dynamically managed sections visible after a failed POST."""
+        response = super().form_invalid(form)
+        sections_data = self.request.POST.get('sections_data', '')
+        extra_charges_data = self.request.POST.get('extra_charges_data', '')
+
+        try:
+            json.loads(sections_data)
+            response.context_data['sections_json'] = sections_data
+        except (TypeError, json.JSONDecodeError):
+            pass
+
+        try:
+            json.loads(extra_charges_data)
+            response.context_data['extra_charges_json'] = extra_charges_data
+        except (TypeError, json.JSONDecodeError):
+            pass
+
+        return response
+
+    @transaction.atomic
     def form_valid(self, form):
         """Save budget then process sections + items from JSON."""
         # Snapshot the CURRENT state (before overwriting) so the version history
@@ -653,6 +692,12 @@ class BudgetUpdateView(LoginRequiredMixin, AuditMixin, SuccessMessageMixin, Upda
         # Re-sync items to Service Order after edit (without financial values)
         from apps.budgets.signals import sync_service_order_items
         sync_service_order_items(self.object)
+        # The detail page clears the browser draft only after this full update
+        # has completed successfully.
+        self.request.session['clear_budget_draft'] = {
+            'budget_id': self.object.pk,
+            'user_id': self.request.user.pk,
+        }
         return response
 
 
