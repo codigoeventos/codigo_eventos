@@ -587,7 +587,7 @@
                     {% else %}
                     <div><strong>Data Proposta:</strong> {{ budget.created_at|date:"d/m/Y" }}</div>
                     {% endif %}
-                    <div><strong>Proposta nº</strong> {% if current_version_number %}{{ current_version_number|to_roman }}{% else %}—{% endif %}</div>
+                    <div><strong>Proposta {% if current_version_number %}{{ current_version_number|to_roman }}{% else %}—{% endif %} - nº {{ budget.proposal_number }}</strong></div>
                 </div>
                 <div class="os-header-logo" style="text-align:center;align-self:center;">
                     <img src="{% static 'assets/logo_black.png' %}" alt="Código Eventos"

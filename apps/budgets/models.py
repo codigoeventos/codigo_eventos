@@ -172,10 +172,10 @@ class Budget(BaseModel):
 
     @property
     def proposal_number(self):
-        """Human-readable proposal reference: two-digit year followed by its ID."""
+        """Human-readable proposal reference: two-digit year plus a two-digit minimum ID."""
         if not self.pk or not self.created_at:
             return ''
-        return f"{self.created_at:%y}-{self.pk}"
+        return f"{self.created_at:%y}{self.pk:02d}"
 
     @property
     def status_label(self):
