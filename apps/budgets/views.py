@@ -13,7 +13,7 @@ from django.urls import reverse_lazy
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.views import View
 from django.db import models, transaction
-from django.db.models import Q, Max
+from django.db.models import Q, Max, Prefetch
 from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils import timezone
@@ -766,9 +766,37 @@ class PublicBudgetApprovalView(View):
         """Display budget for approval."""
         budget = get_object_or_404(Budget, approval_token=token)
 
-        sections = budget.sections.prefetch_related('section_items').all()
+        approved_only = budget.approval_status == 'approved'
+        items_queryset = budget.items.all()
+        if approved_only:
+            # Após a confirmação, o link público é o documento final da
+            # proposta: itens não selecionados pelo cliente não devem aparecer.
+            items_queryset = items_queryset.filter(is_approved=True)
+
+        sections = (
+            budget.sections
+            .filter(section_items__is_approved=True)
+            .distinct()
+            .prefetch_related(Prefetch('section_items', queryset=items_queryset.filter(section__isnull=False)))
+            if approved_only
+            else budget.sections.prefetch_related('section_items').all()
+        )
         # Fall back to unsectioned items if no sections defined
-        unsectioned_items = budget.items.filter(section__isnull=True)
+        unsectioned_items = items_queryset.filter(section__isnull=True)
+
+        extra_charges = copy.deepcopy(budget.extra_charges or {})
+        if approved_only:
+            approved_extra_charges = {}
+            for group_key, rows in extra_charges.items():
+                if not isinstance(rows, list):
+                    continue
+                approved_rows = [
+                    row for row in rows
+                    if not isinstance(row, dict) or row.get('is_approved') is not False
+                ]
+                if approved_rows:
+                    approved_extra_charges[group_key] = approved_rows
+            extra_charges = approved_extra_charges
 
         # The version history stores snapshots of the state *before* each edit.
         # So the current live state is always one version ahead of the latest snapshot.
@@ -781,6 +809,7 @@ class PublicBudgetApprovalView(View):
             'budget': budget,
             'sections': sections,
             'unsectioned_items': unsectioned_items,
+            'extra_charges': extra_charges,
             'is_editable': budget.is_editable,
             'show_pdf_button': True,
             'current_version_number': current_version_number,

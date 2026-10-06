@@ -437,7 +437,17 @@
             .os-items-table { width: 100% !important; max-width: 100% !important; min-width: 0 !important; table-layout: fixed; }
             .os-items-table thead { display: table-row-group; }
             .os-items-table th, .os-items-table td { overflow-wrap: anywhere; }
-            .os-items-table .text-right { white-space: normal; }
+            /* Valores monetários não podem quebrar entre "R$" e o número. */
+            .os-items-table .text-right {
+                text-align: center;
+                white-space: nowrap !important;
+                overflow-wrap: normal !important;
+                word-break: keep-all;
+                font-size: 9px;
+                letter-spacing: -.15px;
+                padding-left: 4px;
+                padding-right: 4px;
+            }
         }
 
         /* ── Modal ───────────────────────────────────── */
@@ -594,7 +604,7 @@
                          style="height:120px;width:auto;object-fit:contain;display:inline-block;">
                 </div>
                 <div style="text-align:right;align-self:start;">
-                    <img src="{% static 'assets/qr_code_codigo_eventos.png' %}" alt="QR Code" style="display:block;width:70px;height:70px;object-fit:contain;margin-left:auto;">
+                    <img src="{% static 'assets/qr_code_codigo_eventos.png' %}" alt="QR Code" style="display:block;width:70px;height:70px;object-fit:contain;margin:48px 0 0 auto;">
                     {% if budget.approval_status != 'pending' %}
                     <div style="margin-top:4px;">
                         <span class="os-badge {% if budget.approval_status == 'approved' %}os-badge-approved{% else %}os-badge-rejected{% endif %}">
@@ -781,34 +791,34 @@
                         {% endfor %}
                     {% endif %}
 
-                    {% if budget.extra_charges %}
+                    {% if extra_charges %}
                     {% if sections or unsectioned_items %}
                     <tr class="os-separator-row os-separator-row--extra" aria-hidden="true">
                         {% if is_editable %}<td class="no-print os-separator-gap"></td>{% endif %}
                         <td colspan="{% if is_editable %}{% if budget.has_item_fiscal %}5{% else %}3{% endif %}{% else %}{% if budget.has_item_fiscal %}6{% else %}4{% endif %}{% endif %}" class="os-separator-gap"></td>
                     </tr>
                     {% endif %}
-                    {% with rows=budget.extra_charges.logistica %}
+                    {% with rows=extra_charges.logistica %}
                     {% include 'budgets/_public_extra_charge_group.html' with group_key='logistica' group_label='Logística' rows=rows is_editable=is_editable budget=budget %}
                     {% endwith %}
 
-                    {% with rows=budget.extra_charges.apoio %}
+                    {% with rows=extra_charges.apoio %}
                     {% include 'budgets/_public_extra_charge_group.html' with group_key='apoio' group_label='Apoio' rows=rows is_editable=is_editable budget=budget %}
                     {% endwith %}
 
-                    {% with rows=budget.extra_charges.mao_de_obra %}
+                    {% with rows=extra_charges.mao_de_obra %}
                     {% include 'budgets/_public_extra_charge_group.html' with group_key='mao_de_obra' group_label='Extra Mão de Obra' rows=rows is_editable=is_editable budget=budget %}
                     {% endwith %}
 
-                    {% with rows=budget.extra_charges.documentacao %}
+                    {% with rows=extra_charges.documentacao %}
                     {% include 'budgets/_public_extra_charge_group.html' with group_key='documentacao' group_label='Documentação Legal' rows=rows is_editable=is_editable budget=budget %}
                     {% endwith %}
 
-                    {% with rows=budget.extra_charges.taxa_feira %}
+                    {% with rows=extra_charges.taxa_feira %}
                     {% include 'budgets/_public_extra_charge_group.html' with group_key='taxa_feira' group_label='Taxa Feira' rows=rows is_editable=is_editable budget=budget %}
                     {% endwith %}
 
-                    {% with rows=budget.extra_charges.outros %}
+                    {% with rows=extra_charges.outros %}
                     {% include 'budgets/_public_extra_charge_group.html' with group_key='outros' group_label='Outros' rows=rows is_editable=is_editable budget=budget %}
                     {% endwith %}
                     {% endif %}
